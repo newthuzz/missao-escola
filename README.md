@@ -3,6 +3,7 @@
 Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por Cloudflare Pages Functions.
 
 - [Login, backups e publicação](supabase/SETUP.md)
+- [Sincronização automática de progresso](docs/SINCRONIZACAO.md)
 - [Ativação de amigos e ligas](supabase/SOCIAL-SETUP.md)
 - [Migração SQL social](supabase/social.sql)
 - [Melhorias do estudo personalizado, testes e limites](docs/ESTUDO-PERSONALIZADO.md)

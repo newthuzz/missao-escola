@@ -3,6 +3,7 @@ export const KEY = 'sb_publishable_v3EJ6JyxoqHS6Jk75oXhOQ_lFS7KYsJ';
 export async function request(path, {token, method = 'GET', body} = {}) {
   const response = await fetch(URL + path, {
     method,
+    cache: 'no-store',
     headers: {apikey: KEY, ...(token ? {Authorization: `Bearer ${token}`} : {}), ...(body !== undefined ? {'Content-Type': 'application/json'} : {})},
     ...(body !== undefined ? {body: JSON.stringify(body)} : {})
   });

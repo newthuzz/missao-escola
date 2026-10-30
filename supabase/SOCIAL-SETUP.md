@@ -40,7 +40,7 @@ Mantenha o domínio publicado configurado em Supabase **Authentication → URL C
 - A mesma resposta reenviada retorna o resultado anterior sem pontuar novamente. Operações são transacionais e serializadas por jogador; entrada nas ligas também é serializada.
 - Pontos das ligas não alteram XP, estrelas ou o backup local. Não há importação de pontos do ChatGPT.
 - Perfis são encontrados pelo código compartilhado, sem busca pública por nome. Participantes veem apelidos e pontos da própria liga. Não há chat, reações, equipes, denúncias ou loja social nesta versão.
-- Salvamento do backup continua manual e separado. O ranking social é atualizado pelo botão de atualização; não usa Realtime.
+- O backup dos estudos é sincronizado automaticamente pela conta e permanece separado dos pontos sociais. O ranking social é atualizado pelo botão de atualização; não usa Realtime.
 - Configure rate limiting para `/api/social` no Cloudflare antes de abrir para um público amplo. Os limites de pontuação já são aplicados no banco; proteção contra volume abusivo de requisições pertence também à configuração do Cloudflare.
 
 ## Validação automatizada
