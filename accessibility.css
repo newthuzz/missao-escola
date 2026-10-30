@@ -1,6 +1,6 @@
 /* Relative type respects browser preferences and zoom. Supporting text is at
-   least 16px and body copy is 18px with the default browser font setting. */
-html { font-size:112.5%; }
+   least 14px and body copy is 16px with the default browser font setting. */
+html { font-size:100%; }
 body { line-height:1.6; }
 button, input, select, textarea { font:inherit; }
 button, a, label, h1, h2, h3, p, small { overflow-wrap:anywhere; }
@@ -56,11 +56,11 @@ dialog { max-height:85dvh; overflow-y:auto; }
   .mobile-tools { flex-wrap:wrap; gap:.3rem 1rem; }
   .mobile-tools button { padding:.4rem; }
   .mobile-nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.25rem; padding:.4rem .4rem calc(.4rem + env(safe-area-inset-bottom)); }
-  .mobile-nav button { width:100%; max-width:none; min-width:0; font-size:.8889rem; gap:.15rem; padding:.3rem; }
+  .mobile-nav button { width:100%; max-width:none; min-width:0; font-size:.875rem; gap:.15rem; padding:.3rem; }
   .mobile-nav button>span:first-child { font-size:1.4rem; }
   .profile-dock { left:.5rem; bottom:calc(10rem + env(safe-area-inset-bottom)); width:3rem; height:3rem; min-height:3rem; padding:.2rem; }
   .profile-dock>b { width:2.5rem; height:2.5rem; }
-  .profile-dock::after { font-size:.8889rem; bottom:-1.4rem; }
+  .profile-dock::after { font-size:.875rem; bottom:-1.4rem; }
   .dashboard-aside, .profile-sidebar, .form-two, .routine-two,
   .difficulty-checkboxes, .subject-evidence-grid, .diagnostic-results-grid,
   .routine-subject-choices, .reward-grid, .choice-list { grid-template-columns:minmax(0,1fr); }
