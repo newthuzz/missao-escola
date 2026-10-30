@@ -39,7 +39,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   assert.match(await field.inputValue(),/\n/);await field.press('Enter');
   await page.waitForFunction(()=>document.querySelector('#tutor-status').textContent.includes('Resposta disponível'));
   await page.locator('.tutor-message-body .katex').waitFor();
-  assert.equal(await page.locator('.tutor-message img').count(),0);
+  assert.equal(await page.locator('.tutor-message-body img').count(),0);
   assert.ok(calls.some(c=>c.body.op==='send'&&c.body.message.includes('poema')));
   assert.ok(calls.filter(c=>c.body.op==='send').every(c=>c.body.context.exerciseId===null));
   console.log('PASS lazy chat/math, arbitrary text, Shift+Enter/Enter, native stream handling, safe text rendering and formulas');

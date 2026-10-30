@@ -23,7 +23,7 @@ async function renderMath(body,text) {
 export function mountTutor(launcher) {
   const panel=document.createElement('section');panel.id='tutor-panel';panel.className='tutor-panel';panel.hidden=true;
   panel.setAttribute('aria-labelledby','tutor-heading');
-  panel.innerHTML=`<header class="tutor-header"><h2 id="tutor-heading">Tutor IA</h2><button type="button" id="tutor-minimize" aria-label="Minimizar tutor">−</button></header>
+  panel.innerHTML=`<header class="tutor-header"><div class="tutor-identity"><img class="tutor-mascot" src="./assets/mascot/mascot.webp" alt="" aria-hidden="true" width="42" height="48" decoding="async"><h2 id="tutor-heading">Tutor IA</h2></div><button type="button" id="tutor-minimize" aria-label="Minimizar tutor">−</button></header>
   <div class="tutor-context" id="tutor-context"></div>
   <div class="tutor-history"><label>Conversas<select id="tutor-history" aria-label="Histórico do tutor"><option value="">Conversa atual</option></select></label><button type="button" id="tutor-delete" disabled>Apagar</button></div>
   <button type="button" class="text-button tutor-load-older" id="tutor-older" hidden>Ver mensagens anteriores</button>
@@ -57,6 +57,9 @@ export function mountTutor(launcher) {
     log.querySelector('.tutor-empty')?.remove();
     const article=document.createElement('article');article.className='tutor-message';article.dataset.role=role;
     const label=document.createElement('strong');label.textContent=role==='user'?'Você':'Tutor IA';
+    if(role==='assistant'){
+      const avatar=document.createElement('img');avatar.src='./assets/mascot/mascot.webp';avatar.alt='';avatar.setAttribute('aria-hidden','true');avatar.className='tutor-message-avatar';avatar.width=22;avatar.height=26;avatar.decoding='async';label.prepend(avatar);
+    }
     const body=document.createElement('div');body.className='tutor-message-body';body.textContent=text;
     article.append(label,body);log.append(article);
     return {article,body};

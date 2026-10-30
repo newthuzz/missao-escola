@@ -1,5 +1,6 @@
-.tutor-launcher { position:fixed; right:16px; bottom:16px; z-index:25; display:flex; align-items:center; gap:12px; padding:12px 16px; min-height:76px; border:2px solid var(--brand); border-radius:17px; background:var(--panel); color:var(--ink); box-shadow:0 8px 30px #06112433; text-align:left; }
-.tutor-launcher>span:first-child { display:grid; place-items:center; width:40px; height:40px; background:var(--brand-soft); color:var(--brand); border-radius:50%; font-size:1.7rem; }
+.tutor-launcher { position:fixed; right:16px; bottom:16px; z-index:25; display:flex; align-items:center; gap:12px; padding:8px 16px; min-height:76px; border:2px solid var(--brand); border-radius:17px; background:var(--panel); color:var(--ink); box-shadow:0 8px 30px #06112433; text-align:left; }
+.tutor-launcher>span:first-child { display:grid; place-items:center; width:48px; height:56px; flex-shrink:0; }
+.tutor-mascot { display:block; width:100%; height:100%; object-fit:contain; }
 .tutor-launcher strong,.tutor-launcher small { display:block; }
 .tutor-launcher small { color:var(--muted); font-size:.875rem; margin-top:3px; }
 .tutor-panel[hidden] { display:none; }
@@ -7,6 +8,8 @@
 .tutor-header,.tutor-history,.tutor-status { flex-shrink:0; }
 .tutor-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); }
 .tutor-header h2 { font-size:1.1rem; margin:0; }
+.tutor-identity { display:flex; gap:10px; align-items:center; min-width:0; }
+.tutor-identity>.tutor-mascot { width:42px; height:48px; flex-shrink:0; }
 .tutor-header button,.tutor-history button { border:1px solid var(--line); border-radius:8px; background:var(--panel-2); color:var(--ink); padding:6px 10px; }
 .tutor-context { padding:10px 18px; border-bottom:1px solid var(--line); background:var(--brand-soft); font-size:.875rem; max-height:100px; overflow:auto; flex-shrink:0; }
 .tutor-context strong,.tutor-context small { display:block; }
@@ -20,6 +23,7 @@
 .tutor-message { margin-bottom:16px; padding:12px; border-radius:12px; background:var(--panel-2); overflow-wrap:anywhere; }
 .tutor-message[data-role="user"] { background:var(--brand-soft); margin-left:20px; }
 .tutor-message>strong { font-size:.875rem; display:block; margin-bottom:5px; color:var(--muted); }
+.tutor-message-avatar { width:22px; height:26px; object-fit:contain; vertical-align:middle; margin-right:6px; }
 .tutor-message-body { white-space:pre-wrap; font-size:1rem; line-height:1.65; }
 .tutor-message[data-incomplete="true"] { border:1px dashed var(--muted); }
 .tutor-messages .katex-display { overflow:auto; padding:6px 0; margin:8px 0; }
@@ -40,13 +44,15 @@
 .tutor-checks { display:block; font-size:.875rem; color:var(--muted); white-space:normal; margin-top:10px; }
 .tutor-panel :focus-visible,.tutor-launcher:focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
 @media(max-width:760px) {
- .tutor-launcher { right:10px; bottom:var(--tutor-dock-bottom,160px); width:54px; height:54px; min-height:54px; padding:6px; border-radius:16px; justify-content:center; }
+ .tutor-launcher { right:10px; bottom:var(--tutor-dock-bottom,160px); width:54px; height:54px; min-height:54px; padding:4px; border-radius:16px; justify-content:center; }
+ .tutor-launcher>span:first-child { width:42px; height:42px; }
  .profile-dock { bottom:var(--tutor-dock-bottom,160px); }
  .tutor-launcher>span:nth-child(2) { display:none; }
  .tutor-launcher::after { content:'Tutor'; position:absolute; bottom:-18px; left:0; width:100%; text-align:center; font-size:.875rem; background:var(--bg); border-radius:5px; }
  .tutor-panel { right:10px; bottom:calc(var(--tutor-dock-bottom,160px) + 72px); width:calc(100vw - 20px); height:min(700px,calc(100dvh - var(--tutor-dock-bottom,160px) - 86px)); }
  .tutor-form { padding:8px 12px; }
  .tutor-header { padding:8px 14px; }
+ .tutor-identity>.tutor-mascot { width:36px; height:42px; }
  .tutor-suggestions { display:none; }
 }
 @media(max-height:600px) { .tutor-context { max-height:54px; } .tutor-history { padding:3px 10px; } .tutor-form textarea { min-height:48px; max-height:80px; } .tutor-suggestions { display:none; } }
