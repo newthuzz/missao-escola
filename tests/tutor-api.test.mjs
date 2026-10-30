@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {onRequest} from '../functions/api/tutor.js';
+import {handleEdgeRequest as onRequest} from '../server/tutor-edge.mjs';
 import {questions} from '../server/tutor-core.mjs';
 const USER='00000000-0000-4000-8000-000000000001',OTHER='00000000-0000-4000-8000-000000000002',CID='00000000-0000-4000-8000-000000000010',RID='00000000-0000-4000-8000-000000000020';
 const q=questions.get('study-v2-m-fracoes-7');
@@ -10,6 +10,14 @@ async function harness(run,options={}) {
  globalThis.fetch=async(url,init)=>{
   if(url.includes('/auth/v1/user'))return Response.json(options.badAuth?{}:{id:USER,email:'private@example.test'},{status:options.badAuth?401:200});
   if(url.includes('/learner_backups'))return Response.json([{snapshot:{learner:{profile:{grade:7,name:'PRIVATE NAME'},...(options.diagnostic?{diagnostic:{questionIds:[q.id],finished:false}}:{})},progress:{events:[]}}}]);
+  if(url==='https://api.openai.com/v1/responses'){
+   const body=JSON.parse(init.body);inputs.push({model:body.model,input:{stream:body.stream,messages:[{role:'system',content:body.instructions},...body.input]},body});
+   assert.equal(body.model,'gpt-5-mini');assert.equal(body.store,false);assert.equal(body.reasoning.effort,'low');assert.equal(body.temperature,undefined);
+   if(options.providerError)return Response.json({error:{message:'provider internal secret'}},{status:500});
+   if(!body.stream)return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:'Resumo contextual'}]}]});
+   const events=[{type:'response.output_text.delta',delta:'Explicação com frações: '},{type:'response.output_text.delta',delta:'ação e razão.'},options.incomplete?{type:'response.incomplete',response:{status:'incomplete'}}:{type:'response.completed',response:{status:'completed'}}];
+   return new Response(new ReadableStream({start(c){const bytes=new TextEncoder().encode(events.map(e=>'data: '+JSON.stringify(e)+'\n\n').join(''));c.enqueue(bytes.slice(0,60));c.enqueue(bytes.slice(60,68));c.enqueue(bytes.slice(68));c.close();}}),{headers:{'Content-Type':'text/event-stream'}});
+  }
   const data=JSON.parse(init.body);calls.push(data);
   assert.equal(data.p_user,USER);
   if(options.rpcError)return Response.json({code:'P0001',message:options.rpcError},{status:400});
@@ -17,7 +25,7 @@ async function harness(run,options={}) {
   if(data.p_op==='state')return Response.json({conversation:null,messages:[],conversations:[]});
   return Response.json({saved:true});
  };
- const env={SUPABASE_SERVICE_ROLE_KEY:'server-secret',TUTOR_ENABLED:'true',AI:{run:async(model,input)=>{inputs.push({model,input});if(options.providerError)throw Error('provider internal secret');if(!input.stream)return {response:'Resumo contextual'};return new ReadableStream({start(c){const bytes=new TextEncoder().encode('data: {"response":"Explicação com frações: "}\n\ndata: {"response":"ação e razão."}\n\ndata: [DONE]\n\n');c.enqueue(bytes.slice(0,60));c.enqueue(bytes.slice(60,68));c.enqueue(bytes.slice(68));c.close();}});}}};
+ const env={SUPABASE_SERVICE_ROLE_KEY:'server-secret',TUTOR_ENABLED:'true',OPENAI_API_KEY:'private-test-key',TUTOR_ALLOWED_ORIGINS:'https://school.example'};
  try{return await run({env,calls,inputs,tasks,handle:body=>onRequest({request:request(body),env,waitUntil:p=>tasks.push(p)})});}
  finally{await Promise.all(tasks);globalThis.fetch=original;}
 }
@@ -59,4 +67,13 @@ test('oversized requests are rejected without provider usage',()=>harness(async(
 test('disconnect cancels reading and cannot persist a partial assistant answer',()=>harness(async({handle,calls,tasks})=>{
  const response=await handle(payload);await response.body.cancel();await Promise.all(tasks);
  assert.ok(!calls.some(c=>c.p_op==='finish'));assert.ok(calls.some(c=>c.p_op==='fail'));
+}));
+
+test('incomplete Responses API output is an error, never a completed saved answer',()=>harness(async({handle,calls})=>{
+ const text=await(await handle(payload)).text();assert.match(text,/event: error/);assert.ok(!text.includes('event: done'));assert.ok(!calls.some(c=>c.p_op==='finish'));
+},{incomplete:true}));
+test('CORS accepts configured site and preflight, rejects unknown sites',()=>harness(async({env})=>{
+ const response=await onRequest({request:new Request('https://project.supabase.co/functions/v1/quick-endpoint',{method:'OPTIONS',headers:{Origin:'https://school.example'}}),env});
+ assert.equal(response.status,204);assert.equal(response.headers.get('Access-Control-Allow-Origin'),'https://school.example');
+ const denied=await onRequest({request:new Request('https://project.supabase.co/functions/v1/quick-endpoint',{method:'OPTIONS',headers:{Origin:'https://evil.example'}}),env});assert.equal(denied.status,403);
 }));

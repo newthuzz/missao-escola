@@ -20,7 +20,7 @@ test('unknown API routes return JSON 404 instead of a frontend fallback',async()
  const response=await worker.fetch(new Request('https://school.example/api/missing'),{});
  assert.equal(response.status,404);assert.match(response.headers.get('Content-Type'),/application\/json/);
 });
-test('routes tutor requests through the authenticated backend',async()=>{
+test('tutor belongs to Supabase rather than the Cloudflare Worker',async()=>{
  const response=await worker.fetch(new Request('https://school.example/api/tutor',{method:'POST',body:'{}'}),{ASSETS:{fetch(){throw Error('Tutor must not be served as an asset');}}});
- assert.equal(response.status,401);
+ assert.equal(response.status,404);
 });

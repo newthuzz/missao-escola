@@ -16,15 +16,17 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    if(url.includes('/social_action'))return route.fulfill({json:{registered:false}});
    return route.fulfill({json:{}});
   });
-  const calls=[],state={delay:false,fail:false,release:null,history:false};
-  await context.route('**/api/tutor',async route=>{
-   const req=route.request(),body=req.postDataJSON();calls.push({body,auth:req.headers().authorization});
-   if(body.op==='state')return route.fulfill({json:{conversation:state.history&&body.conversationId?{id:C,context:{title:'Conversa anterior'}}:null,messages:state.history&&body.conversationId?[{seq:body.beforeSeq?1:41,role:'assistant',content:body.beforeSeq?'Mensagem mais antiga':'Explicação anterior privada'}]:[],hasMore:Boolean(state.history&&body.conversationId&&!body.beforeSeq),conversations:state.history?[{id:C,title:'Conversa anterior',updated_at:new Date().toISOString()}]:[],available:true}});
-   if(body.op==='delete')return route.fulfill({json:{deleted:true}});
+  const calls=[],state={delay:false,fail:false,release:null,history:false,legacy:false};
+  await context.route('**/functions/v1/quick-endpoint',async route=>{
+   const req=route.request();if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'}});
+   const body=req.postDataJSON();calls.push({body,auth:req.headers().authorization});
+   if(body.op==='state'&&state.legacy)return route.fulfill({headers:{'Access-Control-Allow-Origin':origin},status:400,json:{error:'Mensagem inválida'}});
+   if(body.op==='state')return route.fulfill({headers:{'Access-Control-Allow-Origin':origin},json:{conversation:state.history&&body.conversationId?{id:C,context:{title:'Conversa anterior'}}:null,messages:state.history&&body.conversationId?[{seq:body.beforeSeq?1:41,role:'assistant',content:body.beforeSeq?'Mensagem mais antiga':'Explicação anterior privada'}]:[],hasMore:Boolean(state.history&&body.conversationId&&!body.beforeSeq),conversations:state.history?[{id:C,title:'Conversa anterior',updated_at:new Date().toISOString()}]:[],available:true,protocol:2}});
+   if(body.op==='delete')return route.fulfill({headers:{'Access-Control-Allow-Origin':origin},json:{deleted:true}});
    if(state.delay)await new Promise(resolve=>state.release=resolve);
    try{
-    if(state.fail)return await route.fulfill({status:503,json:{error:'Modelo indisponível. Tente novamente.'}});
-    return await route.fulfill({contentType:'text/event-stream',body:'event: start\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context})+'\n\nevent: delta\ndata: '+JSON.stringify({text:'Explicação da IA: '})+'\n\nevent: done\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context,text:'Explicação da IA: \\(\\frac{1}{2} + \\frac{1}{2} = 1\\). <img src=x onerror=alert(1)>',checks:[]})+'\n\n'});
+    if(state.fail)return await route.fulfill({headers:{'Access-Control-Allow-Origin':origin},status:503,json:{error:'Modelo indisponível. Tente novamente.'}});
+    return await route.fulfill({headers:{'Access-Control-Allow-Origin':origin},contentType:'text/event-stream',body:'event: start\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context})+'\n\nevent: delta\ndata: '+JSON.stringify({text:'Explicação da IA: '})+'\n\nevent: done\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context,text:'Explicação da IA: \\(\\frac{1}{2} + \\frac{1}{2} = 1\\). <img src=x onerror=alert(1)>',checks:[]})+'\n\n'});
    }catch{} // An intentionally cancelled old context must never render.
   });
   const page=await context.newPage(),errors=[],assets=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>assets.push(r.url()));page.setDefaultTimeout(15000);
@@ -66,7 +68,10 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await page.waitForTimeout(100);state.release();state.delay=false;await page.waitForTimeout(100);
   assert.ok(!(await page.locator('#tutor-messages').innerText()).includes('conta A'));assert.ok(!(await page.locator('#tutor-messages').innerText()).includes('Explicação da IA'));
   console.log('PASS account switch clears drafts/history and suppresses late responses');
-  state.history=true;await page.evaluate(()=>{navigate('inicio');});await page.waitForFunction(()=>document.querySelector('#tutor-history').options.length>1);
+  state.legacy=true;await page.evaluate(()=>navigate('inicio'));await page.locator('#tutor-retry').waitFor({state:'visible'});assert.ok(await page.locator('#tutor-send').isDisabled());
+  const beforeLegacySend=calls.filter(c=>c.body.op==='send').length;await field.fill('Não gastar com endpoint antigo');await field.press('Enter');assert.equal(calls.filter(c=>c.body.op==='send').length,beforeLegacySend);
+  state.legacy=false;await page.locator('#tutor-retry').click();await page.waitForFunction(()=>!document.querySelector('#tutor-send').disabled);console.log('PASS old backend cannot trigger paid generations before protocol upgrade');
+  state.history=true;await page.locator('#tutor-minimize').click();await page.locator('#tutor-launcher').click();await page.waitForFunction(()=>document.querySelector('#tutor-history').options.length>1);
   await page.locator('#tutor-history').selectOption(C);await page.waitForFunction(()=>document.querySelector('#tutor-context').textContent.includes('Somente leitura'));
   assert.ok(await field.isDisabled());assert.match(await page.locator('#tutor-messages').innerText(),/anterior privada/);
   await page.locator('#tutor-older').click();await page.waitForFunction(()=>document.querySelector('#tutor-messages').textContent.includes('Mensagem mais antiga'));assert.match(await page.locator('#tutor-messages').innerText(),/anterior privada/);assert.ok(await page.locator('#tutor-older').isHidden());

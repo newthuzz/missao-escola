@@ -1,5 +1,5 @@
 import catalog from './tutor-catalog.json' with {type:'json'};
-export const MODEL='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+export const MODEL='gpt-5-mini';
 export const questions=new Map(catalog.questions.map(q=>[q.id,q]));
 const units=new Map(catalog.units.map(u=>[u.id,u]));
 export class TutorError extends Error {
@@ -56,11 +56,14 @@ export function arithmeticChecks(context,message) {
   return [...new Set(candidates)].slice(0,3).flatMap(expression=>{try{return [{expression,result:calculate(expression)}];}catch{return [];}});
 }
 export function memoryWindow(messages,summarySeq=0) {
-  let recent=messages.slice(-12);
+  // Legacy tables allowed unbounded content. Keep originals in storage/UI,
+  // while bounding each model-only excerpt as well as the total window.
+  const bounded=messages.map(m=>({...m,content:m.content.length>6000?m.content.slice(0,6000)+'\n[Trecho longo reduzido na memória do modelo.]':m.content}));
+  let recent=bounded.slice(-12);
   while(recent.length>2&&recent.reduce((n,m)=>n+m.content.length,0)>14000)recent.shift();
   const cutoff=recent[0]?.seq||0;
   const older=[];let size=0;
-  for(const message of messages.filter(m=>m.seq>summarySeq&&m.seq<cutoff)){
+  for(const message of bounded.filter(m=>m.seq>summarySeq&&m.seq<cutoff)){
     if(size+message.content.length>18000)break;
     older.push(message);size+=message.content.length;
   }

@@ -4,10 +4,11 @@
   "scripts": {
     "test": "node tests/cloud-api.test.mjs && node tests/social-api.test.mjs && node tests/social-db.test.mjs && node tests/adaptive.test.cjs && node tests/worker.test.mjs && node tests/progress-sync.test.mjs && npm run test:tutor",
     "build": "node scripts/build.mjs",
-    "test:tutor": "node tests/tutor-core.test.mjs && node tests/tutor-api.test.mjs && node tests/tutor-db.test.mjs"
+    "test:tutor": "node tests/tutor-core.test.mjs && node tests/tutor-api.test.mjs && node tests/tutor-db.test.mjs && node tests/tutor-bundle.test.mjs"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.13"
+    "@electric-sql/pglite": "0.5.13",
+    "esbuild": "0.28.2"
   },
   "dependencies": {
     "katex": "0.19.1"

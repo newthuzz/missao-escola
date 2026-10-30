@@ -1,5 +1,6 @@
 import {mkdir,copyFile,cp,rm} from 'node:fs/promises';
 await import('./build-tutor-catalog.mjs');
+await import('./build-tutor-edge.mjs');
 // Only ship browser assets. Functions are built by Cloudflare from /functions.
 await mkdir(new URL('../dist/',import.meta.url),{recursive:true});
 for(const file of ['index.html','theme.js','island-life.js','island-life.css','brand.css','brand.js','adaptive.js','study-content.js','study-ui.js','account.js','cloud-api.mjs','progress-sync.mjs','social.js','accessibility.css','tutor-bootstrap.js','tutor.css','tutor-ui.js','tutor-context.mjs','_routes.json']) {

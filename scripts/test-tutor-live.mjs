@@ -1,7 +1,8 @@
 // Explicit opt-in integration evaluation. Requires a dedicated test account.
 // Tokens are read from the environment and never printed or saved in the report.
 import {writeFile} from 'node:fs/promises';
-import {questions} from '../server/tutor-core.mjs';
+import {questions,MODEL} from '../server/tutor-core.mjs';
+import {URL as SUPABASE_URL,KEY as SUPABASE_KEY} from '../cloud-api.mjs';
 const site=process.env.TUTOR_TEST_SITE,token=process.env.TUTOR_TEST_TOKEN;
 if(!site||!token){console.error('Não executado: configure TUTOR_TEST_SITE e TUTOR_TEST_TOKEN de uma conta de teste. Não publique nem compartilhe o token.');process.exitCode=2;}
 else {
@@ -17,10 +18,10 @@ else {
   ['F','Agora volte para o exercício aberto. Resolve essa questão e explica cada passo.',''],
   ['G','Se uma biblioteca emprestasse metade de seus livros e depois recebesse a mesma quantidade emprestada, ela teria mais livros do que no início? Explique o raciocínio.','']
  ];
- const report={date:new Date().toISOString(),site:base.origin,provider:'Cloudflare Workers AI',model:'@cf/meta/llama-3.3-70b-instruct-fp8-fast',semanticReview:'Pendente de revisão humana das respostas efetivas.',results:[]};
+ const report={date:new Date().toISOString(),site:base.origin,provider:'OpenAI via Supabase Edge Functions',model:MODEL,semanticReview:'Pendente de revisão humana das respostas efetivas.',results:[]};
  for(const [test,message,answer] of cases){
   try{
-   const response=await fetch(new URL('/api/tutor',base),{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:base.origin},body:JSON.stringify({op:'send',context,message,answer,requestId:crypto.randomUUID()}),signal:AbortSignal.timeout(110000)});
+   const response=await fetch(SUPABASE_URL+'/functions/v1/quick-endpoint',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:base.origin},body:JSON.stringify({op:'send',context,message,answer,requestId:crypto.randomUUID()}),signal:AbortSignal.timeout(110000)});
    const raw=await response.text();let final,error;
    if(response.headers.get('Content-Type')?.includes('application/json')){const data=JSON.parse(raw);final=data.text;error=data.error;}
    else for(const block of raw.replace(/\r/g,'').split('\n\n')){const lines=block.split('\n'),event=lines.find(x=>x.startsWith('event:'))?.slice(6).trim(),data=lines.filter(x=>x.startsWith('data:')).map(x=>x.slice(5).trim()).join('\n');if(!data)continue;const parsed=JSON.parse(data);if(event==='done')final=parsed.text;if(event==='error')error=parsed.error;}

@@ -4,15 +4,15 @@ O código do tutor foi integrado à aplicação existente. A ativação online e
 
 ## 1. Provedor e modelo
 
-Integração preparada para **Cloudflare Workers AI**, modelo `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, por `env.AI.run`. Esse é o modelo definido no código, não uma afirmação de que uma chamada de produção foi executada nesta entrega. Nenhuma chave do provedor é enviada ao navegador: o binding `AI` está declarado no Wrangler.
+Integração preparada para **OpenAI Responses API**, modelo `gpt-5-mini`, por uma Edge Function Supabase chamada `quick-endpoint`. A chave `OPENAI_API_KEY` fica nos secrets do Supabase. O site no Cloudflare envia a sessão do aluno para a função. Esse é o modelo definido no código; chamadas reais ainda precisam ser validadas na conta do usuário. A implementação anterior com Workers AI foi substituída para aproveitar a estrutura mostrada nas capturas.
 
-O recurso só gera respostas quando a variável de runtime `TUTOR_ENABLED` está exatamente como `true`. Na ausência da variável, permanece desativado. `keep_vars` preserva variáveis configuradas no painel em publicações seguintes. O consumo fica sujeito aos limites e à cobrança do Workers AI; é necessário verificar as condições da conta antes de ativar.
+O recurso só gera respostas quando o secret de runtime `TUTOR_ENABLED`, no Supabase, está exatamente como `true`. Na ausência dele, permanece desativado. `TUTOR_ALLOWED_ORIGINS` lista os domínios do site autorizados a acessar a função pelo navegador. A cobrança e as quotas são da API OpenAI, independentes de uma assinatura do ChatGPT. O cliente verifica a versão do protocolo antes de habilitar envios; um endpoint antigo ou desativado não recebe perguntas do aluno para geração.
 
 ## 2. Comunicação e interface
 
 `tutor-bootstrap.js` adiciona um botão fixo no canto inferior direito e observa eventos das funções existentes de navegação e exercícios. Não captura a tela nem executa IA no navegador. O chat é importado na primeira abertura. KaTeX 0.19.1 e suas fontes locais só são carregados quando uma resposta contém fórmula.
 
-Fluxo: texto livre → `POST /api/tutor` no Worker → verificação da sessão no Supabase Auth → recuperação autorizada do exercício e histórico → Workers AI → streaming SSE → gravação da resposta concluída no Supabase. Resumos de conversas extensas também são produzidos pelo modelo.
+Fluxo: texto livre no site Cloudflare → `POST /functions/v1/quick-endpoint` no Supabase com `apikey` pública e JWT do aluno → verificação da sessão no Supabase Auth → recuperação autorizada do exercício e histórico → OpenAI Responses API → streaming SSE → gravação da resposta concluída no Supabase. Resumos extensos também são produzidos pelo modelo. `store:false` desativa o armazenamento solicitado à API OpenAI; o histórico privado no Supabase é mantido separadamente.
 
 O painel oferece texto livre, Enter para enviar, Shift+Enter para nova linha, indicador de geração, sugestões opcionais que apenas preenchem o campo, campo opcional para resposta discursiva/etapa atual, minimização, histórico, paginação de mensagens antigas e exclusão de conversa. Fórmulas são renderizadas com `trust:false` e limites de expansão. Texto gerado não é interpretado como HTML.
 
@@ -28,24 +28,24 @@ Prática, exemplo resolvido e teste inicial são identificados pelas funções r
 
 O banco atual contém perguntas textuais de múltipla escolha, sem anexos de imagem/gráfico. Não foram inventadas mídias ausentes. Perguntas abertas e discursivas podem ser fornecidas no texto livre, com a resposta no campo opcional. Isso não cria notas oficiais nem transforma o banco existente em uma plataforma de provas discursivas.
 
-A troca de exercício ou conta aborta a requisição e invalida seu identificador de geração na interface. Uma resposta antiga não pode preencher o chat da nova questão. O backend cancela a leitura do stream quando há desconexão; o encerramento interno do cálculo do provedor depende do Workers AI. Minimizar e reabrir preserva a conversa quando o contexto continua o mesmo.
+A troca de exercício ou conta aborta a requisição e invalida seu identificador de geração na interface. Uma resposta antiga não pode preencher o chat da nova questão. O backend cancela a leitura do stream e sinaliza o cancelamento da chamada HTTP à OpenAI quando há desconexão; isso não garante estorno de processamento já realizado pelo provedor. Minimizar e reabrir preserva a conversa quando o contexto continua o mesmo.
 
 ## 4. Armazenamento e memória
 
-Migração: `supabase/tutor.sql`. Cria somente tabelas novas:
+Migração: `supabase/tutor.sql`. Reaproveita as duas tabelas das capturas, preserva seus dados e cria somente duas tabelas auxiliares:
 
 | Tabela | Finalidade |
 | --- | --- |
-| `tutor_conversations` | Proprietário, contexto/versionamento, resumo e sequência de mensagens |
-| `tutor_messages` | Mensagens ordenadas, papel, texto e data |
-| `tutor_requests` | Reserva de geração, identificador idempotente, estado e resposta concluída |
-| `tutor_usage` | Identificador da conta e datas de uso para quotas, sem conteúdo das perguntas |
+| `ai_conversations` | Proprietário, contexto/versionamento, resumo e sequência de mensagens |
+| `ai_messages` | Mensagens ordenadas, papel, texto e data |
+| `ai_requests` | Reserva de geração, identificador idempotente, estado e resposta concluída |
+| `ai_usage` | Identificador da conta e datas de uso para quotas, sem conteúdo das perguntas |
 
-RLS permite ao usuário autenticado consultar somente suas conversas e mensagens. Ele não pode forjar mensagens de IA nem chamar o RPC privilegiado. Escritas, quotas e exclusões passam pelo Worker e pelo RPC `tutor_action`, exclusivo de `service_role`. A identidade usada no RPC vem da sessão verificada, nunca do corpo enviado pelo navegador.
+RLS permite ao usuário autenticado consultar somente suas conversas e mensagens. Ele não pode forjar mensagens de IA nem chamar o RPC privilegiado. Escritas, quotas e exclusões passam pela Edge Function e pelo RPC `tutor_action`, exclusivo de `service_role`. A identidade usada no RPC vem da sessão verificada, nunca do corpo enviado pelo navegador.
 
-Os históricos ficam no Supabase até exclusão da conversa ou da conta; não foi criada uma promessa de expiração automática. Apagar a conversa remove suas mensagens, resumo e respostas de idempotência, mas preserva contagens de uso para não permitir contornar limites. O chat não grava histórico no `localStorage` nem o inclui no backup de progresso. Rascunhos e dados visíveis são descartados ao trocar de conta.
+Os históricos ficam no Supabase até exclusão da conversa ou da conta; não foi criada uma promessa de expiração automática. Apagar a conversa remove suas mensagens, resumo e respostas de idempotência, mas preserva contagens de uso para não permitir contornar limites. O código gerado para colar no painel está em `supabase/functions/quick-endpoint/index.ts`; a fonte está em `server/tutor-edge.mjs`, `server/tutor-handler.mjs` e `server/tutor-openai.mjs`. O chat não grava histórico no `localStorage` nem o inclui no backup de progresso. Rascunhos e dados visíveis são descartados ao trocar de conta.
 
-O modelo recebe até 12 mensagens recentes, com limite agregado de aproximadamente 14 mil caracteres, e um resumo de até 3 mil caracteres. Cada atualização do resumo processa até 18 mil caracteres antigos, evitando chamadas desproporcionais em conversas longas. A consulta operacional recupera as 40 mensagens mais recentes; a interface pode paginar o restante. Depois de uma sequência muito extensa de falhas sem resposta concluída, parte da memória anterior pode exigir consulta manual pelo aluno. Não se promete memória ilimitada.
+O modelo recebe até 12 mensagens recentes, com limite agregado de aproximadamente 14 mil caracteres, e um resumo de até 3 mil caracteres. Mensagens antigas muito longas são limitadas a trechos de 6 mil caracteres apenas na memória enviada ao modelo; o texto original no banco e no histórico é preservado. Cada atualização do resumo processa até 18 mil caracteres antigos, evitando chamadas desproporcionais em conversas longas. A consulta operacional recupera as 40 mensagens mais recentes; a interface pode paginar o restante. Depois de uma sequência muito extensa de falhas sem resposta concluída, parte da memória anterior pode exigir consulta manual pelo aluno. Não se promete memória ilimitada.
 
 ## 5. Recuperação de conhecimento e cálculos
 
@@ -57,7 +57,7 @@ Há uma calculadora determinística limitada a números, parênteses, porcentage
 
 ## 6. Segurança e limites
 
-- Sessão verificada pelo Supabase, mesma origem, validação de tamanho e IDs, respostas `no-store` e segredos apenas no Worker.
+- Sessão verificada pelo Supabase, CORS limitado aos domínios configurados, validação de tamanho e IDs, respostas `no-store` e segredos apenas na Edge Function. O gateway JWT legado fica desativado porque o código valida o token diretamente em Auth; uma chamada sem sessão continua recebendo 401.
 - Limite de 8 gerações/minuto e 80/dia UTC por conta; teto global de 2.000 solicitações/dia UTC. Cada solicitação pode envolver uma chamada adicional de resumo, portanto esses limites não são um teto monetário.
 - Até 80 conversas e 2.000 mensagens por usuário. A interface permite excluir conversas. Quotas são aplicadas em transação, inclusive entre aparelhos.
 - Uma geração simultânea por conta; IDs idempotentes impedem repetir o modelo após sucesso. Falhas podem ser tentadas novamente com a mesma chave, sem duplicar a pergunta. Reservas abandonadas expiram após dois minutos.
@@ -77,7 +77,7 @@ O perfil e o progresso do aplicativo são dados educacionais sincronizados pelo 
 | API com provedor controlado | Streaming UTF-8, falhas, resumo, idempotência, quotas e validação antes de gerar |
 | `node tests/browser/tutor.cjs` | Passou no Chromium: texto livre, teclado, carregamento sob demanda, fórmulas, XSS, contexto, troca de conta, cancelamento, erro/retry e histórico |
 | Regressão `tests/browser/progress-sync.cjs` | Passou: login, token renovado, restauração, autosave, offline, conflito e isolamento entre contas |
-| Wrangler 4.156.0 `deploy --dry-run` | Passou: Worker empacotado com `AI` e `ASSETS`; não foi uma publicação |
+| Wrangler 4.156.0 `deploy --dry-run` | Passou: Worker do site empacotado com `ASSETS`; a função Supabase é gerada separadamente pelo esbuild; não foi uma execução real do provedor |
 | `npm audit --omit=dev` | Zero vulnerabilidades reportadas para as dependências de produção verificadas |
 
 As respostas do provedor foram simuladas exclusivamente nos testes automatizados de integração. Esses testes comprovam fluxo, segurança e isolamento, não compreensão semântica real.
@@ -97,11 +97,11 @@ As respostas do provedor foram simuladas exclusivamente nos testes automatizados
 
 ## 8. Limitações atuais
 
-Configurações externas e avaliação real pendentes impedem declarar o tutor concluído em produção. Não foram executados testes em Opera GX nativo, Safari, Firefox ou celulares físicos. Há validação de layout móvel no Chromium, incluindo janelas baixas; ela não mede a bateria de aparelhos reais. O tutor não recebe anexos de imagens, não navega na web, não possui busca vetorial e não garante precisão factual absoluta.
+Migração no banco real, publicação da Edge Function e avaliação real pendentes impedem declarar o tutor concluído em produção. Não foram executados testes em Opera GX nativo, Safari, Firefox ou celulares físicos. Há validação de layout móvel no Chromium, incluindo janelas baixas; ela não mede a bateria de aparelhos reais. O tutor não recebe anexos de imagens, não navega na web, não possui busca vetorial e não garante precisão factual absoluta.
 
 ## 9. Ativação externa
 
-Siga `docs/ATIVAR-TUTOR-IA.md`. É necessário executar a migração, publicar a integração, ter o binding/serviço Workers AI disponível, verificar o secret de runtime do Supabase e definir `TUTOR_ENABLED=true`. Sem acesso administrativo conectado a essas contas, não foi possível executar essas etapas ou consultar seu resultado daqui.
+Siga `docs/ATIVAR-TUTOR-IA.md`. É necessário executar a migração, publicar a integração, atualizar a Edge Function `quick-endpoint`, manter o secret OpenAI, configurar os domínios permitidos e definir `TUTOR_ENABLED=true` no Supabase. Sem acesso administrativo conectado a essas contas, não foi possível executar essas etapas ou consultar seu resultado daqui.
 
 ## 10. Próximas melhorias após a avaliação real
 

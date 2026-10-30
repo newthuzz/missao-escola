@@ -40,6 +40,8 @@ test('recent memory is bounded and old turns are available for model summarizati
  const all=Array.from({length:30},(_,i)=>({seq:i+1,role:i%2?'assistant':'user',content:'x'.repeat(1500)}));
  const m=memoryWindow(all,3);assert.ok(m.recent.length<=12);assert.ok(m.recent.reduce((n,x)=>n+x.content.length,0)<=14000);
  assert.equal(m.older[0].seq,4);assert.ok(m.older.at(-1).seq<m.recent[0].seq);assert.ok(m.older.reduce((n,x)=>n+x.content.length,0)<=18000);
+ const legacy=memoryWindow([{seq:1,role:'user',content:'x'.repeat(40000)},{seq:2,role:'assistant',content:'y'.repeat(40000)}]);
+ assert.ok(legacy.recent.reduce((n,x)=>n+x.content.length,0)<14000);assert.match(legacy.recent[0].content,/Trecho longo reduzido/);
 });
 test('free text, followups and topic changes reach the model without command routing',()=>{
  const context=authorizedContext({});

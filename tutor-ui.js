@@ -1,5 +1,6 @@
 import {getAccountToken,getAccountUser} from './account.js';
 import {exerciseVersion,contextKey} from './tutor-context.mjs';
+import {URL as SUPABASE_URL,KEY as SUPABASE_KEY} from './cloud-api.mjs';
 let mathLoading;
 async function renderMath(body,text) {
   if(!/\\[([]|\$\$/.test(text))return;
@@ -33,15 +34,15 @@ export function mountTutor(launcher) {
    <label for="tutor-message">Escreva sua dúvida<textarea id="tutor-message" rows="2" maxlength="3500" placeholder="Pergunte do seu jeito…"></textarea></label>
    <details><summary>Sua resposta ou etapa atual · opcional</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details>
    <div class="tutor-actions"><button class="primary-button" type="submit" id="tutor-send">Enviar</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div>
-   <p class="tutor-privacy">Mensagens são enviadas à IA do Cloudflare e salvas na sua conta. Evite dados pessoais. A IA pode errar.</p>
+   <p class="tutor-privacy">Mensagens são enviadas à OpenAI e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p>
   </form>`;
   document.body.append(panel);
   const $=id=>panel.querySelector('#'+id),log=$('tutor-messages'),field=$('tutor-message'),answerField=$('tutor-answer');
   let user=getAccountUser(),descriptor=read(),signature=contextKey(descriptor.context),epoch=0,sendController,loadController;
-  let conversationId=null,viewingHistory=false,busy=false,lastFailed=null,pendingNode=null,threads=[],earliestSeq=null;
+  let conversationId=null,viewingHistory=false,busy=false,lastFailed=null,pendingNode=null,threads=[],earliestSeq=null,ready=false;
   function read(){const value=window.TutorStudy.snapshot(),q=value.question;return {...value,context:{exerciseId:q?.id||null,version:q?exerciseVersion(q):null,mode:value.mode}};}
   function status(text,error=false){$('tutor-status').textContent=text;$('tutor-status').dataset.error=String(error);}
-  function controls(){field.disabled=viewingHistory;answerField.disabled=viewingHistory;$('tutor-send').disabled=busy||viewingHistory;$('tutor-login').hidden=Boolean(user);$('tutor-delete').disabled=!conversationId||busy;}
+  function controls(){field.disabled=viewingHistory;answerField.disabled=viewingHistory;$('tutor-send').disabled=busy||viewingHistory||!ready;$('tutor-login').hidden=Boolean(user);$('tutor-delete').disabled=!conversationId||busy;}
   function contextLabel(saved){
     const title=document.createElement('strong');title.textContent=viewingHistory?'Histórico · '+(saved?.title||'Conversa anterior'):descriptor.question?.question||'Conversa de estudo';
     const note=document.createElement('small');note.textContent=viewingHistory?'Somente leitura. Selecione “Conversa atual” para continuar.':(saved?.mode||descriptor.mode)==='diagnostic'?'Teste inicial · ajuda conceitual, sem gabarito.':'Pergunte sobre esta atividade ou outro assunto de estudo.';
@@ -70,7 +71,7 @@ export function mountTutor(launcher) {
   async function post(payload,signal){
     const expected=user,token=await getAccountToken();
     if(!expected||getAccountUser()!==expected)throw Error('A conta mudou. Entre novamente.');
-    const response=await fetch('/api/tutor',{method:'POST',cache:'no-store',signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(payload)});
+    const response=await fetch(SUPABASE_URL+'/functions/v1/quick-endpoint',{method:'POST',cache:'no-store',signal,headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY,Authorization:'Bearer '+token},body:JSON.stringify(payload)});
     if(getAccountUser()!==expected)throw new DOMException('Account changed','AbortError');
     if(!response.ok){const data=await response.json().catch(()=>null);throw Error(data?.error||'Não foi possível conectar ao tutor.');}
     return response;
@@ -78,20 +79,23 @@ export function mountTutor(launcher) {
   async function load(historyId=null){
     loadController?.abort();loadController=new AbortController();const activeController=loadController,ticket=++epoch;
     const timer=setTimeout(()=>activeController.abort(),25000);
-    conversationId=null;controls();contextLabel();
+    conversationId=null;ready=false;controls();contextLabel();
     if(!user){clearTimeout(timer);showMessages([]);status('Entre na sua conta para conversar e guardar seu histórico.');return;}
     status('Carregando conversa…');
     try{
       const response=await post({op:'state',context:descriptor.context,...(historyId?{conversationId:historyId}:{})},loadController.signal),data=await response.json();
       if(ticket!==epoch)return;
+      if(data.protocol!==2||!Array.isArray(data.messages))throw Error('O tutor ainda não está disponível. Tente novamente mais tarde.');
+      ready=data.available!==false;
       conversationId=data.conversation?.id||null;threads=data.conversations||[];showMessages(data.messages||[]);contextLabel(data.context||data.conversation?.context);listThreads();controls();
       earliestSeq=data.messages?.[0]?.seq||null;$('tutor-older').hidden=!data.hasMore;$('tutor-older').disabled=false;
+      $('tutor-retry').hidden=ready;
       status(data.available===false?'O tutor está indisponível no momento. Você pode tentar novamente mais tarde.':viewingHistory?'Você está consultando uma conversa anterior.':'Você pode perguntar sem escolher uma sugestão.');
-    }catch(error){if(ticket!==epoch)return;status(error.name==='AbortError'?'A conexão demorou. Tente carregar a conversa novamente.':error.message,true);$('tutor-retry').hidden=false;controls();}
+    }catch(error){if(ticket!==epoch)return;status(error.name==='AbortError'?'A conexão demorou. Tente carregar a conversa novamente.':error.message==='Mensagem inválida'?'O tutor ainda não está disponível. Tente novamente mais tarde.':error.message,true);$('tutor-retry').hidden=false;controls();}
     finally{clearTimeout(timer);}
   }
   async function send(payload,retry=false){
-    if(busy||viewingHistory)return;
+    if(busy||viewingHistory||!ready)return;
     if(!user){status('Entre na sua conta para enviar sua pergunta.');return;}
     const ticket=++epoch;loadController?.abort();sendController=new AbortController();busy=true;lastFailed=null;$('tutor-retry').hidden=true;controls();
     const activeController=sendController,timer=setTimeout(()=>activeController.abort(),105000);
@@ -133,7 +137,7 @@ export function mountTutor(launcher) {
     }finally{clearTimeout(timer);if(ticket===epoch){busy=false;controls();if(complete)pendingNode=null;}}
   }
   panel.addEventListener('submit',event=>{
-    event.preventDefault();const message=field.value.trim();if(!message||busy||viewingHistory)return;
+    event.preventDefault();const message=field.value.trim();if(!message||busy||viewingHistory||!ready)return;
     if(!user){status('Entre na sua conta para enviar sua pergunta.');return;}
     const payload={message,answer:answerField.value.trim()||window.TutorStudy.snapshot().studentAnswer||'',requestId:crypto.randomUUID(),context:descriptor.context};
     field.value='';send(payload);
@@ -170,7 +174,7 @@ export function mountTutor(launcher) {
   });
   function toggle(force){
     const open=force??panel.hidden;panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.setAttribute('aria-label',open?'Minimizar Tutor IA':'Abrir Tutor IA');
-    if(open){descriptor=read();signature=contextKey(descriptor.context);if(!conversationId&&!busy)load();field.focus();}else launcher.focus();
+    if(open){descriptor=read();signature=contextKey(descriptor.context);if((!conversationId||!ready)&&!busy)load();field.focus();}else launcher.focus();
   }
   contextLabel();controls();showMessages([]);
   return {toggle};

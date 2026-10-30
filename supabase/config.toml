@@ -1,0 +1,4 @@
+# The handler verifies the user's bearer token remotely with Supabase Auth.
+# The legacy JWT gateway must not reject publishable/asymmetric-key requests first.
+[functions.quick-endpoint]
+verify_jwt = false
