@@ -2,43 +2,22 @@
 (() => {
   'use strict';
   const ns = 'http://www.w3.org/2000/svg';
-  const preferenceKey = 'missao-escola-island-motion';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = window.matchMedia('(max-width: 760px)');
   const connection = navigator.connection;
-  let card, button, inView = false, paused = false;
-  try { paused = localStorage.getItem(preferenceKey) === 'paused'; } catch {}
+  let card, inView = false;
 
   function update() {
     if (!card) return;
     const compact = mobile.matches || navigator.hardwareConcurrency <= 4 ||
       navigator.deviceMemory <= 4 || Boolean(connection?.saveData);
     card.dataset.lifeDetail = compact ? 'compact' : 'full';
-    card.dataset.lifeState = reduced.matches ? 'reduced' : paused ? 'paused' :
+    card.dataset.lifeState = reduced.matches ? 'reduced' :
       document.hidden || !inView ? 'hidden' : 'running';
-    button.disabled = reduced.matches;
-    button.setAttribute('aria-pressed', String(paused || reduced.matches));
-    button.textContent = reduced.matches ? 'Movimento reduzido' :
-      paused ? 'Retomar animações' : 'Pausar animações';
-    button.title = reduced.matches ? 'Preferência de acessibilidade do seu dispositivo respeitada.' :
-      'Controla somente os movimentos decorativos do mapa.';
   }
 
   function initialize() {
     card = document.querySelector('.journey-map');
-    const controls = document.createElement('div');
-    controls.className = 'map-motion-controls';
-    button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'map-motion-toggle';
-    button.setAttribute('aria-controls', 'map-art');
-    controls.append(button);
-    card.querySelector('.map-controls').before(controls);
-    button.addEventListener('click', () => {
-      paused = !paused;
-      try { localStorage.setItem(preferenceKey, paused ? 'paused' : 'running'); } catch {}
-      update();
-    });
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(entries => {
         inView = entries[0].isIntersecting;
@@ -66,12 +45,6 @@
       else query.addListener(update);
     }
     connection?.addEventListener?.('change', update);
-    window.addEventListener('storage', event => {
-      if (event.key === preferenceKey || event.key === null) {
-        paused = event.newValue === 'paused';
-        update();
-      }
-    });
     update();
   }
 

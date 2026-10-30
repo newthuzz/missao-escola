@@ -32,6 +32,8 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     await context.addInitScript(() => {
       Object.defineProperty(navigator, 'hardwareConcurrency', {get:() => 8});
       Object.defineProperty(navigator, 'deviceMemory', {get:() => 8});
+      // A retired manual-pause preference must not leave the map stuck after upgrade.
+      localStorage.setItem('missao-escola-island-motion', 'paused');
     });
     const original = await context.newPage(), page = await context.newPage(), errors = [];
     page.setDefaultTimeout(12000);
@@ -42,6 +44,7 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     await page.locator('#map-art').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     assert.equal(await page.locator('.journey-map').getAttribute('data-life-detail'), 'full');
+    assert.equal(await page.locator('.map-motion-controls,.map-motion-toggle').count(), 0);
     const kinds = ['garden','forest','crystal','moon','mountain','stars'], observations = [];
     fs.mkdirSync('/tmp/missao-islands', {recursive:true});
 
@@ -70,9 +73,7 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
       assert.ok(info.decorative && info.grouped);
       assert.ok(parseFloat(info.duration) >= 5 && parseFloat(info.duration) <= 9);
       observations.push(info);
-      await page.locator('.map-motion-toggle').click();
-      await page.locator('.journey-map').screenshot({path:`/tmp/missao-islands/${kinds[i]}-light.png`});
-      await page.locator('.map-motion-toggle').click();
+      await page.locator('.journey-map').screenshot({path:`/tmp/missao-islands/${kinds[i]}-light.png`,animations:'disabled'});
     }
     assert.equal(new Set(observations.map(x => x.delay)).size, 6);
     assert.equal(new Set(observations.map(x => x.duration)).size, 6);
@@ -105,13 +106,8 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     assert.match(await page.locator('#dialog-content').innerText(), /50 XP/); await page.keyboard.press('Escape');
     console.log('PASS shared screen displacement and moving hit targets; keyboard Enter/Space still open checkpoints');
 
-    await page.locator('.map-motion-toggle').click();
     const animationsPaused = () => page.evaluate(() => [...document.querySelectorAll('#map-art *')].every(n => getComputedStyle(n).animationName === 'none' || getComputedStyle(n).animationPlayState === 'paused'));
-    assert.ok(await animationsPaused());
     await page.reload();
-    assert.equal(await page.locator('.journey-map').getAttribute('data-life-state'), 'paused');
-    assert.ok(await animationsPaused());
-    await page.locator('.map-motion-toggle').click();
     await page.locator('#map-art').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     const cdp = await context.newCDPSession(page);
@@ -124,13 +120,13 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     };
     // A controlled browser comparison, not a claim about real low-end hardware.
     const running = await sample();
-    await page.locator('.map-motion-toggle').click();
-    const pausedMetrics = await sample();
-    await page.locator('.map-motion-toggle').click();
+    await page.emulateMedia({reducedMotion:'reduce'});
+    const reducedMetrics = await sample();
+    await page.emulateMedia({reducedMotion:'no-preference'});
     await cdp.send('Emulation.setCPUThrottlingRate', {rate:1});
-    fs.writeFileSync('/tmp/missao-islands/performance.json', JSON.stringify({windowSeconds:2,cpuThrottle:4,running,paused:pausedMetrics},null,2));
+    fs.writeFileSync('/tmp/missao-islands/performance.json', JSON.stringify({windowSeconds:2,cpuThrottle:4,running,reduced:reducedMetrics},null,2));
     assert.equal(running.LayoutCount, 0, 'Decorative animation must not recalculate layout');
-    console.log('PASS no layout recalculation during animation; 4x CPU throttling measurements', {running,paused:pausedMetrics});
+    console.log('PASS no layout recalculation during animation; 4x CPU throttling measurements', {running,reduced:reducedMetrics});
     await page.locator('.side-nav [data-page="aprendizagem"]').click();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'hidden');
     assert.ok(await animationsPaused());
@@ -140,11 +136,10 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     await page.setViewportSize({width:1440,height:500});
     await page.evaluate(() => window.scrollTo({top:document.body.scrollHeight, behavior:'instant'}));
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'hidden');
-    console.log('PASS pause persistence, stop on navigation and offscreen, resume on return');
+    console.log('PASS no manual-pause control or stale preference; stop on navigation and offscreen, resume on return');
 
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'reduced');
-    assert.ok(await page.locator('.map-motion-toggle').isDisabled());
     assert.equal(await page.evaluate(() => document.querySelector('#map-art').getAnimations({subtree:true}).length), 0);
     await page.emulateMedia({reducedMotion:'no-preference'});
     await page.setViewportSize({width:390,height:844});
@@ -165,9 +160,9 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     });
     const basic = await low.newPage(); await basic.goto(origin);
     assert.equal(await basic.locator('.journey-map').getAttribute('data-life-detail'), 'compact');
-    await basic.locator('.map-motion-toggle').click();
-    assert.equal(await basic.locator('.journey-map').getAttribute('data-life-state'), 'paused');
-    console.log('PASS low CPU hint reduces effects; pause remains usable when storage is blocked');
+    await basic.locator('#map-art').scrollIntoViewIfNeeded();
+    await basic.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
+    console.log('PASS low CPU hint reduces effects; animation remains usable when storage is blocked');
     const fallback = await browser.newContext();
     await fallback.addInitScript(() => { delete window.IntersectionObserver; });
     const legacy = await fallback.newPage(); await legacy.goto(origin);

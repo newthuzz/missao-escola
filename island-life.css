@@ -3,14 +3,6 @@
 .life-breeze { transform-box:fill-box; transform-origin:50% 100%; }
 .life-wing { transform-box:fill-box; transform-origin:center; }
 .life-pond-ring { transform-box:fill-box; transform-origin:center; }
-.map-motion-controls { display:flex; justify-content:center; margin:0 18px 10px; }
-.map-motion-toggle {
-  min-height:44px; padding:8px 14px; border:1px solid var(--line);
-  border-radius:10px; background:var(--panel); color:var(--muted); font-size:.875rem;
-}
-.map-motion-toggle:hover { border-color:var(--brand); color:var(--ink); }
-.map-motion-toggle:disabled { opacity:.8; cursor:default; }
-.map-motion-toggle:focus-visible { outline:3px solid var(--brand); outline-offset:3px; }
 .life-ready[data-life-detail="compact"] .life-secondary { display:none; }
 
 @media (prefers-reduced-motion:no-preference) {
