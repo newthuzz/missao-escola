@@ -131,3 +131,15 @@ html[data-theme] .profile-orb.has-mascot { background:transparent; border:0; box
 html[data-theme="light"] .streak-total span,
 html[data-theme="light"] .level-value small,
 html[data-theme="light"] .top-pill small { color:var(--muted); }
+
+/* Explicit scheme prevents browser auto-darkening from fighting the app theme.
+   Do not disable forced-colors accessibility modes. */
+html[data-theme="light"] { color-scheme:light; color-scheme:only light; }
+html[data-theme="dark"] { color-scheme:dark; color-scheme:only dark; }
+html[data-theme] input,html[data-theme] select,html[data-theme] textarea { accent-color:var(--brand); }
+/* Older Chromium versions keep these fallbacks when color-mix is unavailable. */
+@supports not (color:color-mix(in srgb,white,black)) {
+ html[data-theme] .primary-button { box-shadow:0 3px 0 var(--brand); }
+ html[data-theme] .nav-link.active { border-color:var(--brand); }
+ html[data-theme] .study-choice-button:hover { background:var(--brand-soft); }
+}
