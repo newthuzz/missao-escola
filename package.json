@@ -1,0 +1,11 @@
+{
+  "name": "missao-escola",
+  "private": true,
+  "scripts": {
+    "test": "node tests/cloud-api.test.mjs && node tests/social-api.test.mjs && node tests/social-db.test.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.13"
+  }
+}

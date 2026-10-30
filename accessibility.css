@@ -77,3 +77,8 @@ dialog { max-height:85dvh; overflow-y:auto; }
   .week-day { min-width:0; }
   .week-day b { width:1.6rem; height:1.6rem; }
 }
+#social-features { margin-top:1.25rem; }
+#social-features h3 { margin-top:1.5rem; }
+#social-features .social-row { flex-wrap:wrap; gap:.75rem; }
+#social-features input, #social-features select { width:100%; }
+#social-features .social-code { overflow-wrap:anywhere; }
