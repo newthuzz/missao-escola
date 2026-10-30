@@ -2,7 +2,7 @@
   "name": "missao-escola",
   "private": true,
   "scripts": {
-    "test": "node tests/cloud-api.test.mjs && node tests/social-api.test.mjs && node tests/social-db.test.mjs",
+    "test": "node tests/cloud-api.test.mjs && node tests/social-api.test.mjs && node tests/social-db.test.mjs && node tests/adaptive.test.cjs",
     "build": "node scripts/build.mjs"
   },
   "devDependencies": {

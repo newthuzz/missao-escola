@@ -1,0 +1,332 @@
+{
+  "checks": [
+    {
+      "name": "Criar perfil pela interface e restaurar após recarregar",
+      "passed": true,
+      "detail": {
+        "name": "Aluno Auditoria",
+        "age": 13,
+        "grade": 7,
+        "difficulties": [
+          "matematica"
+        ]
+      }
+    },
+    {
+      "name": "Diagnóstico completo com uma pergunta pulada",
+      "passed": true,
+      "detail": {
+        "questions": 8,
+        "observations": 7
+      }
+    },
+    {
+      "name": "Caminho dirigido: início, exemplo, três práticas e conclusão",
+      "passed": true,
+      "detail": {
+        "practices": 3
+      }
+    },
+    {
+      "name": "Erro seguido de acerto não vira acerto independente no histórico",
+      "passed": true,
+      "detail": {
+        "questionId": "learn-p-coesao-2",
+        "date": "2026-10-30",
+        "correct": false,
+        "helped": false,
+        "source": "practice",
+        "grade": 7,
+        "confidence": null
+      }
+    },
+    {
+      "name": "Dica é registrada como ajuda",
+      "passed": true
+    },
+    {
+      "name": "Preferências opcionais ajustam duração e tema sem exigir cadastro extra",
+      "passed": true
+    },
+    {
+      "name": "Novo caminho varia e repetir mantém a sequência sem apagar histórico",
+      "passed": true
+    },
+    {
+      "name": "Pré-requisito pode ser checado e unidade desejada continua acessível",
+      "passed": true
+    },
+    {
+      "name": "Confiança, dica gradual e feedback específico funcionam sem duplicar evidência",
+      "passed": true
+    },
+    {
+      "name": "Falha de armazenamento mantém memória e permite recuperação",
+      "passed": true
+    },
+    {
+      "name": "Editar ano escolar reinicia plano e diagnóstico sem apagar respostas",
+      "passed": true
+    },
+    {
+      "name": "Preferências e evidências continuam após recarregar",
+      "passed": true
+    },
+    {
+      "name": "Migração preserva uma cópia v1 anterior e mantém o histórico",
+      "passed": true
+    },
+    {
+      "name": "Preferências acessíveis pelo teclado e exportação de cópia funciona",
+      "passed": true
+    },
+    {
+      "name": "Layout perfil 1280px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout aprendizagem 1280px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout diagnostico 1280px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout perfil 390px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout aprendizagem 390px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout diagnostico 390px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout perfil 320px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout aprendizagem 320px sem transbordamento horizontal",
+      "passed": true
+    },
+    {
+      "name": "Layout diagnostico 320px sem transbordamento horizontal",
+      "passed": true
+    }
+  ],
+  "performance": [
+    {
+      "slowdown": 1,
+      "count": 0,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 0.2,
+          "maxMs": 0.3
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.1,
+          "maxMs": 0.1
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0.1
+        }
+      ]
+    },
+    {
+      "slowdown": 1,
+      "count": 500,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 0.2,
+          "maxMs": 0.5
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.1,
+          "maxMs": 0.1
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0
+        }
+      ]
+    },
+    {
+      "slowdown": 1,
+      "count": 2000,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 0.2,
+          "maxMs": 0.3
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.1,
+          "maxMs": 0.2
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0.1
+        }
+      ]
+    },
+    {
+      "slowdown": 1,
+      "count": 5000,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 0.3,
+          "maxMs": 0.5
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.1,
+          "maxMs": 0.2
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0.1
+        }
+      ]
+    },
+    {
+      "slowdown": 4,
+      "count": 0,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 1,
+          "maxMs": 2.6
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.1,
+          "maxMs": 0.9
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0
+        }
+      ]
+    },
+    {
+      "slowdown": 4,
+      "count": 500,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0.1
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 1.1,
+          "maxMs": 1.5
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.1,
+          "maxMs": 1
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0.1
+        }
+      ]
+    },
+    {
+      "slowdown": 4,
+      "count": 2000,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 1.1,
+          "maxMs": 1.2
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.2,
+          "maxMs": 1.1
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0.1
+        }
+      ]
+    },
+    {
+      "slowdown": 4,
+      "count": 5000,
+      "operations": [
+        {
+          "op": "renderPersonalization",
+          "medianMs": 0,
+          "maxMs": 0
+        },
+        {
+          "op": "renderPlan",
+          "medianMs": 1.3,
+          "maxMs": 5.6
+        },
+        {
+          "op": "renderQuestion",
+          "medianMs": 0.4,
+          "maxMs": 1
+        },
+        {
+          "op": "saveLearner",
+          "medianMs": 0,
+          "maxMs": 0
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "samePlan": false
+}

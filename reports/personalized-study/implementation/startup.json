@@ -1,0 +1,86 @@
+[
+  {
+    "variant": "before",
+    "run": 0,
+    "domContentLoadedMs": 1017.1999999992549,
+    "loadMs": 1038.5999999996275,
+    "bytes": 630413
+  },
+  {
+    "variant": "before",
+    "run": 1,
+    "domContentLoadedMs": 1001.2000000011176,
+    "loadMs": 1028.4000000003725,
+    "bytes": 630413
+  },
+  {
+    "variant": "before",
+    "run": 2,
+    "domContentLoadedMs": 1327.4000000003725,
+    "loadMs": 1354.2999999988824,
+    "bytes": 630413
+  },
+  {
+    "variant": "before",
+    "run": 3,
+    "domContentLoadedMs": 817,
+    "loadMs": 836.1999999992549,
+    "bytes": 630413
+  },
+  {
+    "variant": "before",
+    "run": 4,
+    "domContentLoadedMs": 909.5,
+    "loadMs": 929.5,
+    "bytes": 630413
+  },
+  {
+    "variant": "before",
+    "run": 5,
+    "domContentLoadedMs": 927.5999999996275,
+    "loadMs": 950.8999999985099,
+    "bytes": 630413
+  },
+  {
+    "variant": "after",
+    "run": 0,
+    "domContentLoadedMs": 926.2000000011176,
+    "loadMs": 948.4000000003725,
+    "bytes": 660001
+  },
+  {
+    "variant": "after",
+    "run": 1,
+    "domContentLoadedMs": 924.5,
+    "loadMs": 945.5,
+    "bytes": 660001
+  },
+  {
+    "variant": "after",
+    "run": 2,
+    "domContentLoadedMs": 963,
+    "loadMs": 988.7999999988824,
+    "bytes": 660001
+  },
+  {
+    "variant": "after",
+    "run": 3,
+    "domContentLoadedMs": 958,
+    "loadMs": 978.6999999992549,
+    "bytes": 660001
+  },
+  {
+    "variant": "after",
+    "run": 4,
+    "domContentLoadedMs": 982,
+    "loadMs": 1005,
+    "bytes": 660001
+  },
+  {
+    "variant": "after",
+    "run": 5,
+    "domContentLoadedMs": 887.4000000003725,
+    "loadMs": 907.4000000003725,
+    "bytes": 660001
+  }
+]

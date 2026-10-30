@@ -1,0 +1,258 @@
+[
+  {
+    "variant": "before",
+    "count": 0,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 0.02,
+    "maxMs": 0.063
+  },
+  {
+    "variant": "before",
+    "count": 0,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 0.015,
+    "maxMs": 0.068
+  },
+  {
+    "variant": "before",
+    "count": 0,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 0.137,
+    "maxMs": 4.005
+  },
+  {
+    "variant": "before",
+    "count": 0,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 0.11,
+    "maxMs": 0.155
+  },
+  {
+    "variant": "before",
+    "count": 500,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 1.014,
+    "maxMs": 1.42
+  },
+  {
+    "variant": "before",
+    "count": 500,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 0.795,
+    "maxMs": 0.959
+  },
+  {
+    "variant": "before",
+    "count": 500,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 1.163,
+    "maxMs": 1.406
+  },
+  {
+    "variant": "before",
+    "count": 500,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 1.303,
+    "maxMs": 1.514
+  },
+  {
+    "variant": "before",
+    "count": 2000,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 3.117,
+    "maxMs": 3.418
+  },
+  {
+    "variant": "before",
+    "count": 2000,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 3.219,
+    "maxMs": 3.882
+  },
+  {
+    "variant": "before",
+    "count": 2000,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 4.447,
+    "maxMs": 4.817
+  },
+  {
+    "variant": "before",
+    "count": 2000,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 4.169,
+    "maxMs": 4.54
+  },
+  {
+    "variant": "before",
+    "count": 5000,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 7.628,
+    "maxMs": 8.404
+  },
+  {
+    "variant": "before",
+    "count": 5000,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 7.473,
+    "maxMs": 8.05
+  },
+  {
+    "variant": "before",
+    "count": 5000,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 9.371,
+    "maxMs": 10.039
+  },
+  {
+    "variant": "before",
+    "count": 5000,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 9.059,
+    "maxMs": 10.648
+  },
+  {
+    "variant": "after",
+    "count": 0,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 0.001,
+    "maxMs": 0.002
+  },
+  {
+    "variant": "after",
+    "count": 0,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 0.139,
+    "maxMs": 0.208
+  },
+  {
+    "variant": "after",
+    "count": 0,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 0.082,
+    "maxMs": 0.123
+  },
+  {
+    "variant": "after",
+    "count": 0,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 0.079,
+    "maxMs": 0.158
+  },
+  {
+    "variant": "after",
+    "count": 500,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 0.001,
+    "maxMs": 0.001
+  },
+  {
+    "variant": "after",
+    "count": 500,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 1.074,
+    "maxMs": 1.811
+  },
+  {
+    "variant": "after",
+    "count": 500,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 0.061,
+    "maxMs": 0.105
+  },
+  {
+    "variant": "after",
+    "count": 500,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 0.498,
+    "maxMs": 0.923
+  },
+  {
+    "variant": "after",
+    "count": 2000,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 0.001,
+    "maxMs": 0.001
+  },
+  {
+    "variant": "after",
+    "count": 2000,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 3.369,
+    "maxMs": 4.175
+  },
+  {
+    "variant": "after",
+    "count": 2000,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 0.083,
+    "maxMs": 0.133
+  },
+  {
+    "variant": "after",
+    "count": 2000,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 1.432,
+    "maxMs": 1.814
+  },
+  {
+    "variant": "after",
+    "count": 5000,
+    "operation": "recommend",
+    "mode": "warm",
+    "medianMs": 0.001,
+    "maxMs": 0.001
+  },
+  {
+    "variant": "after",
+    "count": 5000,
+    "operation": "recommend",
+    "mode": "cold",
+    "medianMs": 8.04,
+    "maxMs": 8.978
+  },
+  {
+    "variant": "after",
+    "count": 5000,
+    "operation": "makePlan",
+    "mode": "warm",
+    "medianMs": 0.106,
+    "maxMs": 0.132
+  },
+  {
+    "variant": "after",
+    "count": 5000,
+    "operation": "makePlan",
+    "mode": "cold",
+    "medianMs": 3.385,
+    "maxMs": 4.887
+  }
+]
