@@ -1,0 +1,133 @@
+@font-face { font-family:'Missao Anton'; src:url('./assets/fonts/Anton-Regular.woff') format('woff'); font-weight:400; font-style:normal; font-display:swap; }
+html { --brand:#72d7ad; --brand-ink:#0b3022; --brand-soft:#234b43; }
+html[data-theme="dark"] { --bg:#101b30; --panel:#223650; --panel-2:#283e58; --line:#3d526d; --ink:#edf2f7; --muted:#b3c2d2; --blue:#72d7ad; --cyan:#72d7ad; --mint:#72d7ad; --blue-soft:#234b43; --mint-soft:#234b43; }
+html[data-theme="light"] { --brand:#197548; --brand-ink:#fff; --brand-soft:#e7f4eb; --bg:#f7faf8; --panel:#fff; --panel-2:#f0f7f2; --line:#d2e2d8; --ink:#193b2c; --muted:#526b5d; --blue:#197548; --cyan:#197548; --mint:#197548; --navy:#193b2c; --blue-soft:#e7f4eb; --mint-soft:#e7f4eb; --lilac-soft:#eef4f0; --peach-soft:#fff3df; }
+.brand-name, .brand-lockup strong, .mobile-brand { font-family:'Missao Anton','Arial Narrow',Impact,sans-serif; font-weight:400; letter-spacing:.025em; }
+.brand-lockup strong { font-size:2rem; line-height:1.18; white-space:nowrap; color:var(--ink); }
+.brand-lockup { gap:.6rem; }
+.brand-lockup small { letter-spacing:.07em; font-size:.875rem; line-height:1.6; margin-top:.6rem; }
+.brand-mark { color:var(--brand); flex-shrink:0; }
+.app-footer>.brand-name { font-size:1.5rem; color:var(--ink); }
+.mobile-brand { color:var(--ink); font-size:1.8rem; line-height:1.2; }
+html[data-theme] .primary-button { background:var(--brand); border-color:var(--brand); color:var(--brand-ink); box-shadow:0 3px 0 color-mix(in srgb,var(--brand) 75%,#09271c); }
+html[data-theme] .primary-button:hover { background:color-mix(in srgb,var(--brand) 85%,var(--panel)); }
+html[data-theme] .nav-link.active { background:var(--brand-soft); color:var(--brand); border-color:color-mix(in srgb,var(--brand) 55%,var(--line)); box-shadow:inset 3px 0 var(--brand); }
+html[data-theme] .nav-link.active strong, html[data-theme] .nav-link.active>span:first-child { color:var(--brand); }
+html[data-theme] .nav-link.active small { color:var(--ink); }
+html[data-theme] .profile-dock { border-color:var(--brand); background:var(--panel); color:var(--ink); }
+html[data-theme] .profile-dock b { background:var(--brand-soft); color:var(--brand); border-color:var(--brand); }
+html[data-theme] .theme-toggle { background:var(--panel); color:var(--ink); border-color:var(--line); }
+html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color:var(--brand); border-color:var(--brand); }
+html[data-theme] .outline-button, html[data-theme] .quiet-button, html[data-theme] .mission-button { background:var(--panel-2); color:var(--ink); border-color:var(--line); }
+html[data-theme] .outline-button:hover, html[data-theme] .quiet-button:hover { background:var(--brand-soft); border-color:var(--brand); }
+html[data-theme] .text-button { color:var(--brand); }
+html[data-theme] .section-kicker { color:var(--brand); }
+html[data-theme] .tool-tab.active, html[data-theme] .routine-mode.active { border-color:var(--brand); background:var(--brand-soft); color:var(--ink); }
+html[data-theme] .tool-tab.active>span, html[data-theme] .routine-mode.active>span { color:var(--brand); background:var(--panel); }
+html[data-theme] .choice-list button.selected { background:var(--brand-soft); border-color:var(--brand); color:var(--ink); }
+html[data-theme] .subject-check:has(input:checked) { background:var(--brand-soft); border-color:var(--brand); color:var(--ink)!important; }
+html[data-theme] .subject-check { color:var(--ink)!important; }
+html[data-theme] input:focus-visible, html[data-theme] select:focus-visible, html[data-theme] textarea:focus-visible, :focus-visible { outline-color:var(--brand); }
+html[data-theme] .meter i { background:var(--brand); }
+html[data-theme] .daily-goal .meter i { background:var(--brand); }
+html[data-theme] .island-dot.active::after { background:var(--brand); }
+html[data-theme] .study-choice-button { background:var(--brand-soft); color:var(--ink); }
+html[data-theme] .study-choice-button:hover { background:color-mix(in srgb,var(--brand) 18%,var(--panel)); border-color:var(--brand); }
+html[data-theme] .study-choice-button>span, html[data-theme] .study-settings-icon { background:var(--brand-soft); color:var(--brand); }
+html[data-theme] .study-backup-tools { background:var(--panel-2); }
+html[data-theme] #study-settings .study-backup-actions .text-button { color:var(--brand); }
+html[data-theme] .study-choice-icon { color:var(--brand); background:var(--brand-soft); }
+html[data-theme="dark"] .priority-shortcuts>button, html[data-theme="dark"] .adaptive-insight { border-color:#426c64; }
+html[data-theme="dark"] .priority-shortcuts>button>span { color:var(--brand); }
+html[data-theme="dark"] .personal-route, html[data-theme="dark"] .diagnostic-invite { background:linear-gradient(120deg,#234b43,#223650); border-color:#4b7d6e; }
+html[data-theme="light"] .stars { background:radial-gradient(ellipse at 70% 0,#d9f1e660,transparent 65%); }
+/* Mascot is decorative next to meaningful copy; activities keep the main focus. */
+.brand-mascot { display:block; object-fit:contain; width:100%; height:100%; }
+.personal-route .lumi-mark.has-mascot { width:7rem; height:8rem; flex-shrink:0; border:0; background:transparent; box-shadow:none; padding:0; }
+.profile-orb.has-mascot { width:8rem; height:9rem; border:0; background:transparent; box-shadow:none; padding:0; }
+.diagnostic-orbit.has-mascot { width:6rem; height:7rem; margin:0 auto 1rem; background:transparent; }
+.diagnostic-result-hero>.has-mascot { display:block; width:6rem; height:7rem; margin:0 auto 1rem; }
+#practice-hint:not([hidden]) { padding-left:5rem; position:relative; }
+#practice-hint:not([hidden])::before { content:''; position:absolute; left:.5rem; top:.65rem; width:3.5rem; height:4rem; background:url('./assets/mascot/mascot.webp') center/contain no-repeat; pointer-events:none; }
+@media(max-width:760px) {
+ .mobile-brand { font-size:1.8rem; }
+ .personal-route .lumi-mark.has-mascot { width:4.75rem; height:6rem; }
+ .personal-route-copy { align-items:center; }
+ .profile-orb.has-mascot { width:5rem; height:6rem; }
+ .brand-lockup strong { font-size:1.8rem; }
+}
+html[data-theme="light"]{--bg:#f5fcf8;--panel:#fff;--panel-2:#effaf4;--line:#cceddb;--ink:#205b3c;--muted:#48916a;--blue:#41ba79;--cyan:#41ba79;--gold:#986b22;--mint:#237954;--navy:#205b3c;--blue-soft:#edf9f3;--mint-soft:#e4f4ec;--lilac-soft:#f2faf6;--peach-soft:#fff3df;color-scheme:light}
+html[data-theme="light"] body{background:#f5fcf8;color:#205b3c}
+html[data-theme="light"] .stars{opacity:.25;background:radial-gradient(ellipse at 60% 0,#dbf2e6,transparent 65%)}
+html[data-theme="light"] .sidebar,html[data-theme="light"] .topbar,html[data-theme="light"] .mobile-tools,html[data-theme="light"] .mobile-nav{background:#fff;border-color:#cceddb}
+html[data-theme="light"] .brand-lockup strong,html[data-theme="light"] .brand-lockup strong span,html[data-theme="light"] .mobile-brand,html[data-theme="light"] .breadcrumb strong,html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,html[data-theme="light"] h4,html[data-theme="light"] label,html[data-theme="light"] .routine-layout label,html[data-theme="light"] .profile-form-card label{color:#205b3c}
+html[data-theme="light"] .brand-mark,html[data-theme="light"] .text-button,html[data-theme="light"] .section-kicker,html[data-theme="light"] .map-compass,html[data-theme="light"] .mini-orbit,html[data-theme="light"] .sidebar-note>span,html[data-theme="light"] .routine-orbit{color:#2c7e52;text-shadow:none}
+html[data-theme="light"] .brand-lockup small,html[data-theme="light"] .nav-caption,html[data-theme="light"] .local-label,html[data-theme="light"] .breadcrumb>span,html[data-theme="light"] .breadcrumb>b,html[data-theme="light"] .date-label,html[data-theme="light"] .welcome-heading p,html[data-theme="light"] .page-intro p,html[data-theme="light"] .learning-header p,html[data-theme="light"] .welcome-heading h1 span{color:#3c7959}
+html[data-theme="light"] .surface-card,html[data-theme="light"] .tool-panel,html[data-theme="light"] .routine-calendar,html[data-theme="light"] .profile-form-card,html[data-theme="light"] .learning-profile-summary,html[data-theme="light"] .activity-card,html[data-theme="light"] .mission-card,html[data-theme="light"] .subject-strip,html[data-theme="light"] .evidence-card,html[data-theme="light"] .diagnostic-shell,html[data-theme="light"] .diagnostic-result-card,html[data-theme="light"] .diagnostic-review,html[data-theme="light"] .rank-card,html[data-theme="light"] .badge-item,html[data-theme="light"] .reward-card,html[data-theme="light"] .collection,html[data-theme="light"] .support-form,html[data-theme="light"] .sidebar-expedition{background:#fff;border-color:#cceddb;box-shadow:0 6px 22px #39a46b09;color:#205b3c}
+html[data-theme="light"] .nav-priority,html[data-theme="light"] .priority-shortcuts>button,html[data-theme="light"] .nav-priority.nav-study,html[data-theme="light"] .priority-shortcuts .study-shortcut,html[data-theme="light"] .nav-priority.nav-support,html[data-theme="light"] .priority-shortcuts>.support-shortcut{background:#f4fbf7;border-color:#cceddb;color:#205b3c;box-shadow:none}
+html[data-theme="light"] .nav-priority:hover,html[data-theme="light"] .nav-secondary:hover{background:#ebf8f1}
+html[data-theme="light"] .nav-priority.active,html[data-theme="light"] .nav-priority.nav-study.active,html[data-theme="light"] .nav-priority.nav-support.active,html[data-theme="light"] .nav-priority.nav-routine.active,html[data-theme="light"] .nav-secondary.active{background:#e7f7ee;border-color:#80d3a7;color:#2b7a50;box-shadow:inset 3px 0 #41ba79}
+html[data-theme="light"] .nav-priority>span:first-child,html[data-theme="light"] .priority-shortcuts>button>span,html[data-theme="light"] .nav-priority.nav-study>span:first-child,html[data-theme="light"] .nav-priority.nav-support>span:first-child,html[data-theme="light"] .priority-shortcuts .study-shortcut>span,html[data-theme="light"] .priority-shortcuts>.support-shortcut>span,html[data-theme="light"] .nav-secondary{color:#2c7e52}
+html[data-theme="light"] .nav-priority small,html[data-theme="light"] .nav-priority.nav-support small,html[data-theme="light"] .priority-shortcuts small{color:#3c7959;background:transparent}
+html[data-theme="light"] .nav-priority>b,html[data-theme="light"] .soft-pill,html[data-theme="light"] .island-tag,html[data-theme="light"] .plan-pills>span,html[data-theme="light"] .plan-pills>.personal-time,html[data-theme="light"] .adaptive-label,html[data-theme="light"] .routine-session-tags span{background:#edf9f3;color:#2b7c51;border-color:#c3ead5}
+html[data-theme="light"] .primary-button,html[data-theme="light"] .routine-home-row button{background:#41ba79;border-color:#41ba79;color:#fff;box-shadow:0 3px 0 #2e8356}
+html[data-theme="light"] .primary-button:hover{background:#379d67}
+html[data-theme="light"] .primary-button:disabled{background:#dff4e9;color:#447a5d;box-shadow:none;border-color:#bfe9d3}
+html[data-theme="light"] .outline-button,html[data-theme="light"] .mission-button,html[data-theme="light"] .quiet-button,html[data-theme="light"] .map-arrow,html[data-theme="light"] .routine-home-card>.outline-button,html[data-theme="light"] .support-quick .outline-button{background:#f4fbf7;border-color:#9fddbc;color:#2b7a50}
+html[data-theme="light"] .meter{background:#e2f5eb}
+html[data-theme="light"] .meter i{background:#5cc68d}
+html[data-theme="light"] .daily-goal .meter i{background:#5cc68d}
+html[data-theme="light"] .personal-route,html[data-theme="light"] .study-banner,html[data-theme="light"] .diagnostic-invite,html[data-theme="light"] .routine-home-card,html[data-theme="light"] .routine-manual-card,html[data-theme="light"] .routine-mode,html[data-theme="light"] .routine-week-stats>div,html[data-theme="light"] .routine-week-strip button,html[data-theme="light"] .routine-commitment-item,html[data-theme="light"] .routine-commitment-list-empty,html[data-theme="light"] .routine-empty-day,html[data-theme="light"] .rank-overview,html[data-theme="light"] .wallet{background:#effaf4;border-color:#c1e9d4;box-shadow:none;color:#205b3c}
+html[data-theme="light"] .personal-route p,html[data-theme="light"] .personal-route small,html[data-theme="light"] .personal-route .section-kicker,html[data-theme="light"] .study-banner p,html[data-theme="light"] .sidebar-expedition p,html[data-theme="light"] .sidebar-expedition small,html[data-theme="light"] .map-top p,html[data-theme="light"] .map-bottom small,html[data-theme="light"] .mission-card p,html[data-theme="light"] .streak-card>p,html[data-theme="light"] .daily-goal span,html[data-theme="light"] .freeze-row,html[data-theme="light"] .level-footer,html[data-theme="light"] .level-meter>div:last-child,html[data-theme="light"] .level-value small,html[data-theme="light"] .daily-chest p,html[data-theme="light"] .gentle-note p,html[data-theme="light"] .tool-tab small,html[data-theme="light"] .adaptive-insight,html[data-theme="light"] .learning-controls label,html[data-theme="light"] .subject-strip>div>small,html[data-theme="light"] .subject-select-wrap label,html[data-theme="light"] .personal-plan-step p,html[data-theme="light"] .practice-meta,html[data-theme="light"] .practice-note,html[data-theme="light"] .plan-finish p,html[data-theme="light"] .plan-empty p,html[data-theme="light"] .personal-plan-heading p,html[data-theme="light"] .example-card>p,html[data-theme="light"] .example-instructions,html[data-theme="light"] .diagnostic-invite p,html[data-theme="light"] .diagnostic-facts,html[data-theme="light"] .learning-profile-summary p,html[data-theme="light"] .learning-summary-row,html[data-theme="light"] .profile-privacy p,html[data-theme="light"] .subject-check small,html[data-theme="light"] .model-caveat,html[data-theme="light"] .evidence-stats,html[data-theme="light"] .evidence-card p,html[data-theme="light"] .profile-form-card fieldset>p,html[data-theme="light"] .diagnostic-top,html[data-theme="light"] .diagnostic-helper,html[data-theme="light"] .diagnostic-result-hero p,html[data-theme="light"] .diagnostic-result-card p,html[data-theme="light"] .diagnostic-review p,html[data-theme="light"] .routine-mode p,html[data-theme="light"] .routine-mode small,html[data-theme="light"] .routine-config-lead,html[data-theme="light"] .routine-field-note,html[data-theme="light"] .routine-settings-detail>p,html[data-theme="light"] .routine-commitment-heading p,html[data-theme="light"] .routine-state-bar,html[data-theme="light"] .routine-week-heading p,html[data-theme="light"] .routine-save-area p,html[data-theme="light"] .routine-explanation p,html[data-theme="light"] .routine-home-card>p,html[data-theme="light"] .routine-home-row small,html[data-theme="light"] .routine-home-card .home-routine-status,html[data-theme="light"] .routine-commitment-item small,html[data-theme="light"] .routine-week-stats small,html[data-theme="light"] .routine-day-title small,html[data-theme="light"] .routine-session-time small,html[data-theme="light"] .routine-session-card p,html[data-theme="light"] .reward-card p,html[data-theme="light"] .badge-item small,html[data-theme="light"] .wallet p,html[data-theme="light"] .collection p,html[data-theme="light"] .activity-row small,html[data-theme="light"] .support-form .muted,html[data-theme="light"] .support-quick p,html[data-theme="light"] .support-step small{color:#3c7959}
+html[data-theme="light"] .daily-goal strong,html[data-theme="light"] .level-footer strong,html[data-theme="light"] .routine-home-row strong,html[data-theme="light"] .routine-home-row>span,html[data-theme="light"] .routine-week-stats strong,html[data-theme="light"] .routine-week-strip button>strong,html[data-theme="light"] .routine-session-time,html[data-theme="light"] .routine-session-card h4,html[data-theme="light"] .learning-summary-row strong,html[data-theme="light"] .routine-explanation strong,html[data-theme="light"] .gentle-note strong{color:#205b3c}
+html[data-theme="light"] .daily-chest{background:#fff;border-color:#d4f0e1}
+html[data-theme="light"] .week-day{color:#3c7959}
+html[data-theme="light"] .week-day b{background:#f2faf6;border-color:#cceddb;color:#3c7959}
+html[data-theme="light"] .week-day.today b{border-color:#41ba79;color:#2c7e52}
+html[data-theme="light"] .week-day.done b{background:#41ba79;border-color:#41ba79;color:#fff}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea,html[data-theme="light"] .profile-form-card input,html[data-theme="light"] .profile-form-card select,html[data-theme="light"] .routine-layout input,html[data-theme="light"] .routine-layout select{background:#fff;border-color:#a5e0c1;color:#205b3c;accent-color:#41ba79}
+html[data-theme="light"] input::placeholder,html[data-theme="light"] textarea::placeholder{color:#49795f}
+html[data-theme="light"] .tool-tab,html[data-theme="light"] .personal-plan-step,html[data-theme="light"] .practice-card,html[data-theme="light"] .worked-example,html[data-theme="light"] .subject-check,html[data-theme="light"] .routine-subject-choice,html[data-theme="light"] .routine-session-card,html[data-theme="light"] .routine-busy .routine-session-card{background:#f9fdfb;border-color:#cceddb;color:#205b3c}
+html[data-theme="light"] .tool-tab.active,html[data-theme="light"] .routine-mode.active,html[data-theme="light"] .routine-week-strip button.active,html[data-theme="light"] .diagnostic-question .choice-list button.selected,html[data-theme="light"] .rank-card.current,html[data-theme="light"] .subject-check:has(input:checked),html[data-theme="light"] .routine-subject-choice:has(input:checked){background:#e7f7ee;border-color:#80d3a7;color:#2b7a50!important;box-shadow:none}
+html[data-theme="light"] .tool-tab>span,html[data-theme="light"] .tool-tab.active>span,html[data-theme="light"] .tool-symbol,html[data-theme="light"] .step-number,html[data-theme="light"] .lumi-mark,html[data-theme="light"] .profile-orb,html[data-theme="light"] .routine-mode>span,html[data-theme="light"] .routine-mode.active>span,html[data-theme="light"] .routine-orbit,html[data-theme="light"] .level-emblem,html[data-theme="light"] .rank-medal,html[data-theme="light"] .mission-icon{background:#e8f7ef;border-color:#a9e1c3;color:#2c7e52;box-shadow:none}
+html[data-theme="light"] .choice-list button,html[data-theme="light"] .practice-card .choice-list button{background:#fff;border-color:#a5e0c1;color:#205b3c}
+html[data-theme="light"] .choice-list button:hover:not(:disabled){background:#effaf4;border-color:#41ba79}
+html[data-theme="light"] .ai-note,html[data-theme="light"] .tip-banner,html[data-theme="light"] .prototype-disclaimer,html[data-theme="light"] .adaptive-insight>span,html[data-theme="light"] .support-quick>article,html[data-theme="light"] .support-steps{background:#f2faf6;border-color:#c1e9d4;color:#2c7d51}
+html[data-theme="light"] .support-quote,html[data-theme="light"] .support-quick strong,html[data-theme="light"] .tip-banner strong,html[data-theme="light"] .worked-example p,html[data-theme="light"] .worked-example h3,html[data-theme="light"] .practice-card .hint-item{color:#205b3c}
+html[data-theme="light"] .practice-card .hint-item{background:#effaf4;border-color:#c1e9d4}
+html[data-theme="light"] .map-bottom{background:#effaf4;border-color:#cceddb}
+html[data-theme="light"] .journey-map{background:radial-gradient(ellipse at 50% 30%,#e9f7f0,transparent 70%),#fff;border-color:#c1e9d4}
+html[data-theme="light"] .map-top h2{color:#2b7a50}
+html[data-theme="light"] .world-caption{color:#3c7959}
+html[data-theme="light"] .island-dot{background:#b7e6cd}
+html[data-theme="light"] .island-dot.active{background:#41ba79}
+html[data-theme="light"] .mobile-nav button,html[data-theme="light"] .mobile-tools button{color:#3c7959}
+html[data-theme="light"] .mobile-nav button.active,html[data-theme="light"] .v5-mobile-nav button.mobile-study,html[data-theme="light"] .v5-mobile-nav button.mobile-study.active,html[data-theme="light"] .v4-mobile-nav button.mobile-support,html[data-theme="light"] .v4-mobile-nav button.mobile-support.active{background:#e8f7ef;color:#2b7a50;border-color:#a5dfc0}
+html[data-theme="light"] .profile-dock,html[data-theme="light"] .profile-dock.active{background:#eaf8f1;border-color:#41ba79;color:#205b3c;box-shadow:0 7px 25px #318d5c20}
+html[data-theme="light"] .profile-dock b{background:#41ba79;color:#fff;border-color:#41ba79}
+html[data-theme="light"] .profile-dock small,html[data-theme="light"] .profile-dock-arrow{color:#2c7d51}
+html[data-theme="light"] .theme-toggle{background:#fff;color:#2b7a50;border-color:#9fddbc}
+html[data-theme="light"] .app-footer,html[data-theme="light"] .freeze-row,html[data-theme="light"] .level-footer,html[data-theme="light"] .routine-home-row,html[data-theme="light"] .learning-summary-row,html[data-theme="light"] .personal-plan-heading,html[data-theme="light"] .plan-finish,html[data-theme="light"] .routine-save-area,html[data-theme="light"] .routine-settings-detail,html[data-theme="light"] .routine-commitment-heading,html[data-theme="light"] .activity-row{border-color:#cceddb}
+html[data-theme="light"] .app-footer,html[data-theme="light"] .app-footer>span{color:#3c7959}
+html[data-theme="light"] dialog{background:#fff;border-color:#9fddbc;color:#205b3c}
+html[data-theme="light"] dialog p,html[data-theme="light"] dialog ul{color:#3c7959}
+html[data-theme="light"] dialog::backdrop{background:#1e553888}
+html[data-theme="light"] .dialog-heading button{background:#edf9f3;border-color:#9fddbc;color:#205b3c}
+html[data-theme="light"] :focus-visible{outline-color:#41ba79}
+html[data-theme="light"] .subject-check,html[data-theme="light"] .subject-check>div,html[data-theme="light"] .subject-check>span{color:#266d47!important}
+html[data-theme="light"] legend,html[data-theme="light"] .profile-form-card legend small,html[data-theme="light"] .diagnostic-invite .section-kicker,html[data-theme="light"] .diagnostic-invite>small,html[data-theme="light"] .diagnostic-orbit,html[data-theme="light"] .routine-home-card .section-kicker,html[data-theme="light"] .routine-home-title>span,html[data-theme="light"] .worked-example .section-kicker{color:#3c7959}
+html[data-theme="light"] .social-box,html[data-theme="light"] .social-peer-travelers{background:#fff;border-color:#cceddb}
+html[data-theme="light"] .social-tabs button.active{background:#41ba79;color:#fff}html[data-theme="light"] { --bg:#f7faf8; --panel:#fff; --panel-2:#f0f7f2; --line:#d2e2d8; --ink:#193b2c; --muted:#526b5d; --blue:#197548; --cyan:#197548; --mint:#197548; --navy:#193b2c; --blue-soft:#e7f4eb; --mint-soft:#e7f4eb; }
+html[data-theme="light"] .sidebar, html[data-theme="light"] .topbar, html[data-theme="light"] .mobile-tools, html[data-theme="light"] .mobile-nav { background:#fff; border-color:var(--line); }
+html[data-theme="light"] .brand-name, html[data-theme="light"] .brand-lockup strong { color:#193b2c; }
+html[data-theme="light"] .primary-button { background:#197548; color:#fff; border-color:#197548; }
+html[data-theme="light"] .primary-button:hover { background:#135f3a; }
+html[data-theme] body { background:var(--bg); color:var(--ink); }
+
+html[data-theme="light"] .primary-button { color:#fff; }
+html[data-theme] .island-dot,html[data-theme] .island-dot.active { background:transparent; }
+html[data-theme] .profile-orb.has-mascot { background:transparent; border:0; box-shadow:none; }
+.brand-lockup strong { font-size:1.85rem; }
+html[data-theme="light"] .streak-total span,
+html[data-theme="light"] .level-value small,
+html[data-theme="light"] .top-pill small { color:var(--muted); }
