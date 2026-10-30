@@ -2,6 +2,8 @@
 
 Ambientação adicional dos seis cenários vetoriais existentes. As ilhas representam etapas de XP compartilhadas por todas as matérias; nenhuma foi associada a uma disciplina nova. O terreno, a trilha, os sete marcos, os nomes, o mascote e a progressão foram preservados.
 
+O mapa agora fica em **Minha jornada** (`#jornada`), acessível pela central ou navegação lateral. Sua ambientação só é inicializada quando essa página é aberta.
+
 ## Análise de cada cenário
 
 | Ilha e intenção educativa existente | Ambiente e elementos preservados | Paleta original do cenário | Ambientação adicionada e espaço usado |

@@ -3,7 +3,7 @@
  const oldPersonalization=renderPersonalization;
  let panelState='',panelLearner=null;
  renderPersonalization=function(){
-  const signature=JSON.stringify([learner.profile,learner.preferences,learner.observations.length,learner.observations.at(-1),today,state.subject,state.difficulty,progress.events.length,progress.purchases.length]);
+  const signature=JSON.stringify([learner.profile,learner.preferences,learner.plan?.date,learner.plan?.subject,learner.plan?.level,learner.plan?.started,learner.plan?.finished,learner.observations.length,learner.observations.at(-1),today,state.subject,state.difficulty,progress.events.length,progress.purchases.length]);
   if(panelLearner===learner&&panelState===signature)return;
   panelLearner=learner;panelState=signature;oldPersonalization();renderChoices();
  };

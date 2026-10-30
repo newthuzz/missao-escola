@@ -26,7 +26,7 @@
       observer.observe(document.getElementById('map-art'));
     } else {
       // Older browsers: stop on page changes even without IntersectionObserver.
-      const home = document.getElementById('page-inicio');
+      const home = card.closest('.page');
       inView = home.classList.contains('active');
       new MutationObserver(() => {
         inView = home.classList.contains('active');

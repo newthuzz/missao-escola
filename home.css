@@ -1,0 +1,75 @@
+/* A quiet landing page: one next action, a small goal and clear system names. */
+body[data-screen="inicio"] .top-stats .top-pill,
+body[data-screen="inicio"] .top-divider,
+body[data-screen="inicio"] .mobile-tools { display:none; }
+body[data-screen="inicio"] .topbar { min-height:4.5rem; }
+#page-inicio { max-width:1120px; margin:0 auto; }
+.central-heading { margin-bottom:1.5rem; }
+.central-heading h1 { font-size:clamp(1.75rem,2.6vw,2.25rem); line-height:1.25; letter-spacing:-.04em; margin:.45rem 0 .6rem; }
+.central-heading p { margin:0; color:var(--muted); font-size:.875rem; }
+.home-study { display:grid; grid-template-columns:5.5rem minmax(0,1fr) auto; align-items:center; gap:1.5rem; padding:1.75rem; border:1px solid var(--line); border-radius:1.5rem; background:var(--panel); box-shadow:0 8px 28px #06112408; }
+.home-study .lumi-mark { display:block; width:5.5rem; height:6.25rem; padding:0; border:0; background:transparent; box-shadow:none; }
+.home-study-copy h2 { font-size:1.8rem; line-height:1.25; margin:.45rem 0; }
+.home-study-copy p { margin:0; font-size:.875rem; color:var(--muted); }
+.home-study-actions { display:grid; justify-items:center; gap:.5rem; }
+.home-study-actions .primary-button { min-height:3.25rem; padding:.75rem 1.25rem; }
+.home-study-actions .text-button { font-size:.875rem; min-height:2.75rem; }
+.home-progress { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:1rem .25rem; margin-bottom:1.25rem; }
+.home-progress>span { color:var(--muted); font-size:.875rem; }
+.home-progress-track { width:12rem; max-width:40%; height:.375rem; flex-shrink:0; border-radius:1rem; overflow:hidden; background:var(--line); }
+.home-progress-track>span { display:block; width:0; height:100%; background:var(--brand); border-radius:inherit; }
+.central-systems>h2 { font-size:1rem; font-weight:600; margin:0 0 1rem; }
+.central-system-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+.central-system-card { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:1rem; padding:1.5rem; text-align:left; border:1px solid var(--line); border-radius:1.125rem; background:var(--panel); color:var(--ink); min-width:0; }
+.central-system-card:hover { border-color:var(--brand); background:var(--panel-2); }
+.central-system-icon { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:.875rem; color:var(--brand); background:var(--brand-soft); flex-shrink:0; }
+.central-system-icon svg { width:1.5rem; height:1.5rem; }
+.central-system-copy { display:grid; gap:.45rem; min-width:0; }
+.central-system-copy strong { font-size:1rem; line-height:1.4; }
+.central-system-copy small { font-size:.875rem; line-height:1.6; color:var(--muted); }
+.central-system-arrow { position:absolute; top:1.5rem; right:1.5rem; color:var(--muted); }
+.central-secondary { display:flex; justify-content:center; flex-wrap:wrap; gap:.5rem 1.5rem; margin-top:1.25rem; }
+.central-secondary .text-button { font-size:.875rem; min-height:2.75rem; padding:.4rem; color:var(--muted); }
+.central-secondary .text-button:hover { color:var(--brand); }
+.home-study :focus-visible,.central-systems :focus-visible,.central-secondary :focus-visible { outline:3px solid var(--brand); outline-offset:4px; }
+#page-recompensas .daily-chest { margin:0 0 1.5rem; text-align:left; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.5rem 1.5rem; }
+#page-recompensas .daily-chest .chest-art { display:none; }
+#page-recompensas .daily-chest>button { grid-column:2; grid-row:1/4; }
+#page-recompensas .daily-chest h2,#page-recompensas .daily-chest p { margin:0; }
+/* Short labels make the systems identifiable without repeating descriptions. */
+html[data-theme] .side-nav .nav-link { min-height:3rem; padding:.65rem .75rem; background:transparent; color:var(--ink); border-color:transparent; box-shadow:none; gap:.7rem; }
+html[data-theme] .side-nav .nav-link strong { font-size:1rem; font-weight:550; color:inherit; }
+html[data-theme] .side-nav .nav-link>span:first-child { font-size:1.5rem; color:var(--muted); }
+html[data-theme] .side-nav .nav-link.active { background:var(--brand-soft); border-color:var(--line); color:var(--brand); box-shadow:inset 3px 0 var(--brand); }
+html[data-theme] .side-nav .nav-link.active>span:first-child { color:var(--brand); }
+html[data-theme] .side-nav .nav-link:hover { background:var(--panel-2); }
+.sidebar>.nav-caption { margin:1.5rem .75rem .5rem; }
+.side-nav .secondary-caption { margin:1rem .75rem .35rem; }
+.sidebar .local-label { margin-top:1.5rem; line-height:1.5; }
+html[data-theme] .mobile-nav button { background:transparent; border-color:transparent; color:var(--muted); box-shadow:none; }
+html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color:var(--brand); border-color:var(--line); }
+#page-jornada .streak-card { grid-row:auto; }
+@media(max-width:1100px) {
+ .home-study { grid-template-columns:4.5rem minmax(0,1fr); }
+ .home-study .lumi-mark { width:4.5rem; height:5.25rem; }
+ .home-study-actions { grid-column:1/-1; display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem 1rem; }
+ .central-system-card { padding:1.25rem; }
+}
+@media(max-width:1050px) { #page-jornada .dashboard-aside { grid-template-columns:1fr; } }
+@media(max-width:760px) {
+ .central-heading { margin-bottom:1.25rem; }
+ .home-study { grid-template-columns:minmax(0,1fr) 4rem; gap:1rem; padding:1.25rem; border-radius:1.25rem; }
+ .home-study .lumi-mark { grid-column:2; grid-row:1; width:4rem; height:4.75rem; }
+ .home-study-copy { grid-column:1; grid-row:1; }
+ .home-study-copy h2 { font-size:1.5rem; }
+ .home-study-actions { grid-row:2; }
+ .home-progress { gap:1rem; margin-bottom:1rem; }
+ .home-progress-track { width:6rem; max-width:30%; }
+ .central-system-grid { grid-template-columns:1fr; gap:.75rem; }
+ .central-system-card { flex-direction:row; align-items:center; gap:1rem; padding:1rem; }
+ .central-system-copy { flex:1; padding-right:1rem; gap:.2rem; }
+ .central-system-arrow { position:static; }
+ .central-secondary { gap:.25rem .75rem; margin-top:.75rem; }
+ #page-recompensas .daily-chest { grid-template-columns:1fr; }
+ #page-recompensas .daily-chest>button { grid-column:1; grid-row:auto; justify-self:start; }
+}

@@ -41,6 +41,7 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     page.on('pageerror', e => errors.push(e.message));
     await original.goto(origin + '/baseline/');
     await page.goto(origin + '/');
+    await page.locator('#page-inicio [data-go="jornada"]').click();
     await page.locator('#map-art').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     assert.equal(await page.locator('.journey-map').getAttribute('data-life-detail'), 'full');
@@ -111,6 +112,12 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     await page.locator('#map-art').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     const cdp = await context.newCDPSession(page);
+    // Measure steady animation after navigation, font loading and page entrance.
+    await page.evaluate(async()=>{
+      await document.fonts.ready;
+      await Promise.allSettled(document.querySelector('#page-jornada').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations!==Infinity).map(a=>a.finished));
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    });
     await cdp.send('Performance.enable');
     await cdp.send('Emulation.setCPUThrottlingRate', {rate:4});
     const sample = async () => {
@@ -130,11 +137,13 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
     await page.locator('.side-nav [data-page="aprendizagem"]').click();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'hidden');
     assert.ok(await animationsPaused());
-    await page.locator('.side-nav [data-page="inicio"]').click();
+    await page.locator('.side-nav [data-page="jornada"]').click();
     await page.locator('#map-art').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
-    await page.setViewportSize({width:1440,height:500});
+    // The journey is shorter now; use a short viewport so the entire map can leave it.
+    await page.setViewportSize({width:1440,height:250});
     await page.evaluate(() => window.scrollTo({top:document.body.scrollHeight, behavior:'instant'}));
+    assert.ok(await page.evaluate(()=>document.getElementById('map-art').getBoundingClientRect().bottom<=0));
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'hidden');
     console.log('PASS no manual-pause control or stale preference; stop on navigation and offscreen, resume on return');
 
@@ -158,17 +167,17 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
       Object.defineProperty(navigator, 'hardwareConcurrency', {get:() => 2});
       Object.defineProperty(window, 'localStorage', {get(){throw new DOMException('Blocked', 'SecurityError');}});
     });
-    const basic = await low.newPage(); await basic.goto(origin);
+    const basic = await low.newPage(); await basic.goto(origin);await basic.locator('#page-inicio [data-go="jornada"]').click();
     assert.equal(await basic.locator('.journey-map').getAttribute('data-life-detail'), 'compact');
     await basic.locator('#map-art').scrollIntoViewIfNeeded();
     await basic.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     console.log('PASS low CPU hint reduces effects; animation remains usable when storage is blocked');
     const fallback = await browser.newContext();
     await fallback.addInitScript(() => { delete window.IntersectionObserver; });
-    const legacy = await fallback.newPage(); await legacy.goto(origin);
+    const legacy = await fallback.newPage(); await legacy.goto(origin);await legacy.locator('#page-inicio [data-go="jornada"]').click();
     await legacy.locator('.side-nav [data-page="aprendizagem"]').click();
     await legacy.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'hidden');
-    await legacy.locator('.side-nav [data-page="inicio"]').click();
+    await legacy.locator('.side-nav [data-page="jornada"]').click();
     await legacy.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     console.log('PASS browsers without IntersectionObserver stop and resume on page navigation');
     assert.deepEqual(errors, []);

@@ -9,7 +9,7 @@ const snapshot=()=>({progress,learner,routine});
 const page=document.createElement('section');page.id='page-social';page.className='page';page.setAttribute('aria-label','Minha conta');
 document.querySelector('.app-footer').before(page);labels.social='Minha conta';
 const nav=document.createElement('button');nav.className='nav-link nav-secondary';nav.dataset.page='social';nav.textContent='☁ Minha conta';document.querySelector('.side-nav').append(nav);
-document.querySelector('.mobile-tools').insertAdjacentHTML('beforeend','<button data-go="social">☁ Conta</button>');
+document.querySelector('.mobile-nav').insertAdjacentHTML('beforeend','<button data-page="social" aria-label="Conta, amigos e liga"><span aria-hidden="true">☁</span><span>Conta</span></button>');
 function stopSync(){clearTimeout(syncTimer);sync?.stop();sync=null;}
 function store(value){
  if(session?.user?.id!==value?.user?.id)stopSync();session=value;
