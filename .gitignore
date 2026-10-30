@@ -4,3 +4,4 @@ node_modules/
 .env.*
 .wrangler/
 dist/
+tutor-live-results.json

@@ -2,10 +2,14 @@
   "name": "missao-escola",
   "private": true,
   "scripts": {
-    "test": "node tests/cloud-api.test.mjs && node tests/social-api.test.mjs && node tests/social-db.test.mjs && node tests/adaptive.test.cjs && node tests/worker.test.mjs && node tests/progress-sync.test.mjs",
-    "build": "node scripts/build.mjs"
+    "test": "node tests/cloud-api.test.mjs && node tests/social-api.test.mjs && node tests/social-db.test.mjs && node tests/adaptive.test.cjs && node tests/worker.test.mjs && node tests/progress-sync.test.mjs && npm run test:tutor",
+    "build": "node scripts/build.mjs",
+    "test:tutor": "node tests/tutor-core.test.mjs && node tests/tutor-api.test.mjs && node tests/tutor-db.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.13"
+  },
+  "dependencies": {
+    "katex": "0.19.1"
   }
 }

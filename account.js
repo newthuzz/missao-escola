@@ -14,7 +14,10 @@ function stopSync(){clearTimeout(syncTimer);sync?.stop();sync=null;}
 function store(value){
  if(session?.user?.id!==value?.user?.id)stopSync();session=value;
  try{if(value)localStorage.setItem(SESSION_KEY,JSON.stringify(value));else localStorage.removeItem(SESSION_KEY);}catch{}
+ window.dispatchEvent(new CustomEvent('missao-account-change'));
 }
+export {token as getAccountToken};
+export const getAccountUser=()=>session?.user?.id||null;
 async function token(){
  if(!session?.access_token)throw Error('Entre na sua conta primeiro.');
  if(!session.expires_at||session.expires_at<Date.now()/1000+60){
@@ -101,7 +104,7 @@ document.addEventListener('input',event=>{if(event.target.closest('#profile-form
 document.addEventListener('change',event=>{if(event.target.closest('#profile-form,#study-settings'))formDirty=true;});
 document.addEventListener('submit',event=>{if(['profile-form','study-settings'].includes(event.target.id)){formDirty=false;scheduleSync();}});
 window.addEventListener('storage',event=>{
- if(event.key===SESSION_KEY){let next=null;try{next=JSON.parse(event.newValue);}catch{}const changed=session?.user?.id!==next?.user?.id;session=next;if(changed){backup=null;startSync();renderAccount();}}
+ if(event.key===SESSION_KEY){let next=null;try{next=JSON.parse(event.newValue);}catch{}const changed=session?.user?.id!==next?.user?.id;session=next;if(changed){backup=null;startSync();renderAccount();window.dispatchEvent(new CustomEvent('missao-account-change'));}}
  if([KEY,PERSONAL_KEY,ROUTINE_KEY].includes(event.key))scheduleSync();
 });
 window.addEventListener('online',()=>sync?.tick());window.addEventListener('focus',()=>sync?.tick());
