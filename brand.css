@@ -48,8 +48,11 @@ html[data-theme="light"] .stars { background:radial-gradient(ellipse at 70% 0,#d
 .profile-orb.has-mascot { width:8rem; height:9rem; border:0; background:transparent; box-shadow:none; padding:0; }
 .diagnostic-orbit.has-mascot { width:6rem; height:7rem; margin:0 auto 1rem; background:transparent; }
 .diagnostic-result-hero>.has-mascot { display:block; width:6rem; height:7rem; margin:0 auto 1rem; }
-#practice-hint:not([hidden]) { padding-left:5rem; position:relative; }
-#practice-hint:not([hidden])::before { content:''; position:absolute; left:.5rem; top:.65rem; width:3.5rem; height:4rem; background:url('./assets/mascot/mascot.webp') center/contain no-repeat; pointer-events:none; }
+#practice-hint:not([hidden]) { padding-left:5rem; min-height:5.5rem; position:relative; }
+#practice-hint:not([hidden])::before { content:''; position:absolute; left:.5rem; top:.65rem; width:3.5rem; height:4rem; background:url('./assets/mascot/mascot-thinking.webp') center/contain no-repeat; pointer-events:none; }
+.mascot-moment { display:block; float:right; width:5.5rem; height:6rem; margin:0 0 .75rem 1rem; pointer-events:none; }
+#summary-content>article.example-card, #plan-result .plan-finish { display:flow-root; }
+@media(max-width:760px) { .mascot-moment { width:3.5rem; height:4rem; margin-left:.75rem; } }
 @media(max-width:760px) {
  .mobile-brand { font-size:1.8rem; }
  .personal-route .lumi-mark.has-mascot { width:4.75rem; height:6rem; }

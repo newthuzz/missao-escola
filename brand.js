@@ -1,14 +1,27 @@
-// Keep the guide mascot next to welcome/help content, never over the exercise.
+// Match the guide's pose to the activity, without covering questions or controls.
 (()=>{
- const mascot='<img class="brand-mascot" src="./assets/mascot/mascot.webp" alt="" aria-hidden="true" width="160" height="192" decoding="async">';
+ const images={welcome:'mascot',studying:'mascot-studying',thinking:'mascot-thinking',celebrating:'mascot-celebrating'};
+ function mascot(pose){return `<img class="brand-mascot" data-mascot-pose="${pose}" src="./assets/mascot/${images[pose]}.webp" alt="" aria-hidden="true" width="88" height="96" decoding="async" loading="lazy">`;}
  function decorate(){
-  for(const selector of ['#personalized-route .lumi-mark','.profile-orb','.diagnostic-orbit','.diagnostic-result-hero>span:first-child']){
-   const spot=document.querySelector(selector);if(!spot||spot.querySelector('img'))continue;
-   spot.classList.add('has-mascot');spot.setAttribute('aria-hidden','true');spot.innerHTML=mascot;
+  for(const [selector,pose] of [
+   ['#personalized-route .lumi-mark','studying'],
+   ['.profile-orb','welcome'],
+   ['.diagnostic-orbit','thinking'],
+   ['.diagnostic-result-hero>span:first-child','celebrating']
+  ]){
+   const spot=document.querySelector(selector);if(!spot||spot.querySelector('img')?.dataset.mascotPose===pose)continue;
+   spot.classList.add('has-mascot');spot.setAttribute('aria-hidden','true');spot.innerHTML=mascot(pose);
+  }
+  for(const [selector,pose] of [
+   ['#summary-content>article.example-card','studying'],
+   ...(learner.plan?.finished?[['#plan-result .plan-finish','celebrating']]:[])
+  ]){
+   const spot=document.querySelector(selector);if(!spot||spot.querySelector('.mascot-moment'))continue;
+   spot.insertAdjacentHTML('afterbegin',`<span class="mascot-moment" aria-hidden="true">${mascot(pose)}</span>`);
   }
  }
- const personal=renderPersonalization;renderPersonalization=function(...args){const result=personal(...args);decorate();return result;};
- const diagnostic=renderDiagnostic;renderDiagnostic=function(...args){const result=diagnostic(...args);decorate();return result;};
- const diagnosticResult=renderDiagnosticResult;renderDiagnosticResult=function(...args){const result=diagnosticResult(...args);decorate();return result;};
+ for(const name of ['renderPersonalization','renderDiagnostic','renderDiagnosticResult','renderSummary','renderPlan']){
+  const previous=window[name];window[name]=function(...args){const result=previous.apply(this,args);decorate();return result;};
+ }
  decorate();
 })();
