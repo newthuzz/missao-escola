@@ -1,0 +1,41 @@
+/* One compact navigation row; personal controls stay with the header. */
+@media(max-width:760px) {
+ html { scroll-padding-top:10rem; }
+ .topbar { height:auto; min-height:0; padding:.65rem 1rem; gap:.6rem; flex-wrap:wrap; }
+ body[data-screen="inicio"] .topbar { min-height:0; }
+ .topbar .mobile-brand { font-size:1.5rem; line-height:1.3; flex:1; min-width:0; }
+ .topbar .top-stats { gap:.4rem; flex-wrap:wrap; justify-content:flex-end; }
+ .topbar .theme-toggle { min-height:2.75rem; padding:.4rem .65rem; font-size:.875rem; white-space:nowrap; }
+ .mobile-header-actions { flex:0 0 100%; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:.65rem; }
+ .mobile-header-actions .profile-dock,.mobile-header-actions .tutor-launcher {
+  position:static; width:100%; height:auto; min-height:2.875rem; min-width:0; padding:.35rem .65rem; margin:0;
+  display:flex; align-items:center; justify-content:flex-start; gap:.5rem; border:1px solid var(--line); border-radius:.75rem;
+  background:var(--panel); color:var(--ink); box-shadow:none;
+ }
+ .mobile-header-actions .profile-dock::after,.mobile-header-actions .tutor-launcher::after { content:none; }
+ .mobile-header-actions .profile-dock>b { width:2rem; height:2rem; flex-shrink:0; font-size:1.1rem; }
+ .mobile-header-actions .profile-dock>span:not(.profile-dock-arrow),.mobile-header-actions .tutor-launcher>span:nth-child(2) { display:block; min-width:0; }
+ .mobile-header-actions .profile-dock span strong,.mobile-header-actions .tutor-launcher strong { font-size:.875rem; overflow-wrap:anywhere; }
+ .mobile-header-actions .profile-dock small { font-size:.875rem; margin:0; line-height:1.3; }
+ .mobile-header-actions .profile-dock-arrow,.mobile-header-actions .tutor-launcher small { display:none; }
+ .mobile-header-actions .tutor-launcher>span:first-child { width:2rem; height:2.25rem; }
+ html[data-theme] .mobile-nav { grid-template-columns:repeat(6,minmax(0,1fr)); gap:0; padding:.4rem .2rem calc(.4rem + env(safe-area-inset-bottom)); }
+ html[data-theme] .mobile-nav button { padding:.4rem 0; min-height:3.5rem; gap:.3rem; font-size:.875rem; line-height:1.2; letter-spacing:-.025em; border-radius:.65rem; }
+ html[data-theme] .mobile-nav button>span:first-child { font-size:1.35rem; }
+ .content-wrap { padding:1.25rem 1rem calc(6.5rem + env(safe-area-inset-bottom)); }
+ .central-heading h1 { font-size:1.65rem; }
+ .central-heading p { line-height:1.65; }
+ .home-study { gap:1rem .75rem; padding:1.25rem; }
+ .home-study .section-kicker { font-size:.875rem; letter-spacing:.06em; }
+ .home-study-actions { display:grid; grid-template-columns:1fr; justify-items:stretch; width:100%; gap:.5rem; }
+ .home-study-actions button { width:100%; text-align:center; }
+ .home-progress { align-items:flex-start; flex-direction:column; gap:.65rem; padding:1rem .25rem 1.5rem; margin:0; }
+ .home-progress .home-progress-track { width:100%; max-width:none; }
+ .central-system-grid { gap:1rem; }
+ .central-system-card { padding:1.1rem; }
+ .central-system-copy small { line-height:1.55; }
+ .central-secondary { gap:.5rem 1rem; margin-top:1.25rem; }
+ #tutor-panel.tutor-panel { top:.5rem; bottom:calc(5rem + env(safe-area-inset-bottom)); height:auto; max-height:none; right:.5rem; width:calc(100% - 1rem); border-radius:1rem; }
+ .tool-tabs { gap:.5rem; }
+ .tool-tab { min-width:0; overflow-wrap:anywhere; }
+}
