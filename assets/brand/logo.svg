@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" fill="none">
+  <title>Missão Escola — capelo verde com lâmpada amarela</title>
+  <defs>
+    <linearGradient id="cap" x1="170" y1="30" x2="370" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0d9c53"/>
+      <stop offset="1" stop-color="#008849"/>
+    </linearGradient>
+    <radialGradient id="bulb" cx="0" cy="0" r="1" gradientTransform="translate(280 208) rotate(90) scale(100 90)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffe76a"/>
+      <stop offset="1" stop-color="#ffdb43"/>
+    </radialGradient>
+    <filter id="glow" x="-35%" y="-40%" width="170%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="15"/>
+    </filter>
+    <path id="cap-shape" d="M263 39Q280 30 297 39L510 151Q524 158 510 166L297 279Q280 288 263 279L50 166Q36 158 50 151Z M132 232L263 301Q280 310 297 301L428 232V306Q428 326 409 337L315 379Q280 394 245 379L151 337Q132 326 132 306Z M78 175H91V253H78Z M84 245A21 21 0 1 0 84 287A21 21 0 1 0 84 245 M72 279L61 331Q60 338 70 338H98Q108 338 106 331L95 279Z"/>
+  </defs>
+  <use href="#cap-shape" fill="#00be68" opacity=".45" filter="url(#glow)"/>
+  <use href="#cap-shape" fill="url(#cap)"/>
+  <path d="M280 120C241 120 211 151 211 189C211 214 222 230 237 247C244 256 247 264 248 273Q249 279 255 279H305Q311 279 312 273C313 264 316 256 323 247C338 230 349 214 349 189C349 151 319 120 280 120Z" fill="url(#bulb)"/>
+  <path d="M274 279L267 208C264 177 245 186 245 199C245 210 257 217 271 217H289C303 217 315 210 315 199C315 186 296 177 293 208L286 279" stroke="#cc9400" stroke-width="8"/>
+</svg>
