@@ -1,24 +1,37 @@
 import {getAccountToken,getAccountUser} from './account.js';
 import {exerciseVersion,contextKey} from './tutor-context.mjs';
 import {URL as SUPABASE_URL,KEY as SUPABASE_KEY} from './cloud-api.mjs';
+// Minimal emphasis only: generated HTML is always kept as literal text.
+function readableText(parent,text){
+  for(const piece of text.split(/(\*\*[^*\n]{1,180}\*\*)/g)){
+    if(piece.startsWith('**')&&piece.endsWith('**')&&piece.length>4){
+      const strong=document.createElement('strong');strong.textContent=piece.slice(2,-2);parent.append(strong);
+    }else parent.append(document.createTextNode(piece));
+  }
+}
 let mathLoading;
 async function renderMath(body,text) {
+  body.replaceChildren();readableText(body,text);
   if(!/\\[([]|\$\$/.test(text))return;
   if(!mathLoading){
     const css=document.createElement('link');css.rel='stylesheet';css.href='./assets/katex/katex.min.css';document.head.append(css);
     mathLoading=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='./assets/katex/katex.min.js';script.onload=resolve;script.onerror=reject;document.head.append(script);}).catch(()=>{mathLoading=null;});
   }
   await mathLoading;if(!window.katex||!body.isConnected)return;
-  const fragment=document.createDocumentFragment();let end=0;
-  const pattern=/\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]|\$\$([\s\S]*?)\$\$/g;
-  for(const match of text.matchAll(pattern)){
-    fragment.append(document.createTextNode(text.slice(end,match.index)));
-    const span=document.createElement('span');
-    try{window.katex.render(match[1]??match[2]??match[3],span,{displayMode:match[1]===undefined,throwOnError:false,trust:false,strict:'warn',maxExpand:100,maxSize:20});}
-    catch{span.textContent=match[0];}
-    fragment.append(span);end=match.index+match[0].length;
+  const walker=document.createTreeWalker(body,NodeFilter.SHOW_TEXT),nodes=[];
+  while(walker.nextNode())nodes.push(walker.currentNode);
+  for(const node of nodes){
+    const value=node.data,fragment=document.createDocumentFragment();let end=0;
+    const pattern=/\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]|\$\$([\s\S]*?)\$\$/g;
+    for(const match of value.matchAll(pattern)){
+      fragment.append(document.createTextNode(value.slice(end,match.index)));
+      const span=document.createElement('span');
+      try{window.katex.render(match[1]??match[2]??match[3],span,{displayMode:match[1]===undefined,throwOnError:false,trust:false,strict:'warn',maxExpand:100,maxSize:20});}
+      catch{span.textContent=match[0];}
+      fragment.append(span);end=match.index+match[0].length;
+    }
+    fragment.append(document.createTextNode(value.slice(end)));node.replaceWith(fragment);
   }
-  fragment.append(document.createTextNode(text.slice(end)));body.replaceChildren(fragment);
 }
 export function mountTutor(launcher) {
   const panel=document.createElement('section');panel.id='tutor-panel';panel.className='tutor-panel';panel.hidden=true;
@@ -30,7 +43,7 @@ export function mountTutor(launcher) {
   <div class="tutor-messages" id="tutor-messages" role="log" aria-live="off" aria-label="Mensagens do tutor"></div>
   <p class="tutor-status" id="tutor-status" role="status" aria-live="polite"></p>
   <form class="tutor-form" id="tutor-form">
-   <div class="tutor-suggestions" aria-label="Sugestões opcionais"><button type="button" data-tutor-suggestion="Explique de outro jeito, com um exemplo.">Outro exemplo</button><button type="button" data-tutor-suggestion="Quero uma dica conceitual para começar.">Uma dica</button></div>
+   <div class="tutor-suggestions" aria-label="Sugestões opcionais"><button type="button" data-tutor-suggestion="Explique de outro jeito, com um exemplo.">Outro exemplo</button><button type="button" data-tutor-suggestion="Quero uma dica conceitual para começar.">Uma dica</button><button type="button" data-tutor-suggestion="Explique com mais detalhes a sua última resposta, em passos curtos.">Mais detalhes</button></div>
    <label for="tutor-message">Escreva sua dúvida<textarea id="tutor-message" rows="2" maxlength="3500" placeholder="Pergunte do seu jeito…"></textarea></label>
    <details><summary>Sua resposta ou etapa atual · opcional</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details>
    <div class="tutor-actions"><button class="primary-button" type="submit" id="tutor-send">Enviar</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div>

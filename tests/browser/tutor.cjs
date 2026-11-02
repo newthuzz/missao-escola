@@ -27,7 +27,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    if(state.delay)await new Promise(resolve=>state.release=resolve);
    try{
     if(state.fail)return await route.fulfill({headers:{'Access-Control-Allow-Origin':origin},status:503,json:{error:'Modelo indisponível. Tente novamente.'}});
-    return await route.fulfill({headers:{'Access-Control-Allow-Origin':origin},contentType:'text/event-stream',body:'event: start\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context})+'\n\nevent: delta\ndata: '+JSON.stringify({text:'Explicação da IA: '})+'\n\nevent: done\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context,text:'Explicação da IA: \\(\\frac{1}{2} + \\frac{1}{2} = 1\\). <img src=x onerror=alert(1)>',checks:[]})+'\n\n'});
+    return await route.fulfill({headers:{'Access-Control-Allow-Origin':origin},contentType:'text/event-stream',body:'event: start\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context})+'\n\nevent: delta\ndata: '+JSON.stringify({text:'Explicação da IA: '})+'\n\nevent: done\ndata: '+JSON.stringify({conversationId:C,requestId:body.requestId,context:body.context,text:'Explicação da IA: **Ideia principal**.\n\n**\\(\\frac{1}{2} + \\frac{1}{2} = 1\\)**. <img src=x onerror=alert(1)>',checks:[]})+'\n\n'});
    }catch{} // An intentionally cancelled old context must never render.
   });
   const page=await context.newPage(),errors=[],assets=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>assets.push(r.url()));page.setDefaultTimeout(15000);
@@ -36,11 +36,15 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await page.locator('#tutor-launcher').click();await page.locator('#tutor-message').waitFor({state:'visible'});
   await page.waitForFunction(()=>document.querySelector('#tutor-status').textContent.includes('sem escolher'));
   assert.ok(assets.some(u=>u.endsWith('/tutor-ui.js')));assert.ok(!assets.some(u=>u.includes('/katex/')));
+  await page.getByRole('button',{name:'Mais detalhes',exact:true}).click();
+  assert.match(await page.locator('#tutor-message').inputValue(),/mais detalhes/);
   const field=page.locator('#tutor-message');await field.fill('Se um poema tivesse apenas pausas, ainda poderia ter ritmo?');await field.press('Shift+Enter');await field.type('Quero entender.');
   assert.match(await field.inputValue(),/\n/);await field.press('Enter');
   await page.waitForFunction(()=>document.querySelector('#tutor-status').textContent.includes('Resposta disponível'));
   await page.locator('.tutor-message-body .katex').waitFor();
   assert.equal(await page.locator('.tutor-message-body img').count(),0);
+  assert.equal(await page.locator('.tutor-message-body strong').first().innerText(),'Ideia principal');
+  assert.ok(await page.locator('.tutor-message-body strong .katex').count());
   assert.ok(calls.some(c=>c.body.op==='send'&&c.body.message.includes('poema')));
   assert.ok(calls.filter(c=>c.body.op==='send').every(c=>c.body.context.exerciseId===null));
   console.log('PASS lazy chat/math, arbitrary text, Shift+Enter/Enter, native stream handling, safe text rendering and formulas');
