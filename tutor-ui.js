@@ -36,18 +36,18 @@ async function renderMath(body,text) {
 export function mountTutor(launcher) {
   const panel=document.createElement('section');panel.id='tutor-panel';panel.className='tutor-panel';panel.hidden=true;
   panel.setAttribute('aria-labelledby','tutor-heading');
-  panel.innerHTML=`<header class="tutor-header"><div class="tutor-identity"><img class="tutor-mascot" src="./assets/mascot/mascot-thinking.webp" alt="" aria-hidden="true" width="42" height="48" decoding="async"><h2 id="tutor-heading">Tutor IA</h2></div><button type="button" id="tutor-minimize" aria-label="Minimizar tutor">−</button></header>
+  panel.innerHTML=`<header class="tutor-header"><div class="tutor-identity"><img class="tutor-mascot" src="./assets/mascot/mascot-thinking.webp" alt="" aria-hidden="true" width="42" height="48" decoding="async"><div class="tutor-title"><h2 id="tutor-heading">Tutor IA</h2><small>Um passo de cada vez</small></div></div><button type="button" id="tutor-minimize" aria-label="Minimizar tutor">−</button></header>
   <div class="tutor-context" id="tutor-context"></div>
-  <div class="tutor-history"><label>Conversas<select id="tutor-history" aria-label="Histórico do tutor"><option value="">Conversa atual</option></select></label><button type="button" id="tutor-delete" disabled>Apagar</button></div>
+  <div class="tutor-history"><label><span>Histórico</span><select id="tutor-history" aria-label="Histórico do tutor"><option value="">Conversa atual</option></select></label><button type="button" id="tutor-delete" disabled>Apagar</button></div>
   <button type="button" class="text-button tutor-load-older" id="tutor-older" hidden>Ver mensagens anteriores</button>
   <div class="tutor-messages" id="tutor-messages" role="log" aria-live="off" aria-label="Mensagens do tutor"></div>
   <p class="tutor-status" id="tutor-status" role="status" aria-live="polite"></p>
   <form class="tutor-form" id="tutor-form">
    <div class="tutor-suggestions" aria-label="Sugestões opcionais"><button type="button" data-tutor-suggestion="Explique de outro jeito, com um exemplo.">Outro exemplo</button><button type="button" data-tutor-suggestion="Quero uma dica conceitual para começar.">Uma dica</button><button type="button" data-tutor-suggestion="Explique com mais detalhes a sua última resposta, em passos curtos.">Mais detalhes</button></div>
-   <label for="tutor-message">Escreva sua dúvida<textarea id="tutor-message" rows="2" maxlength="3500" placeholder="Pergunte do seu jeito…"></textarea></label>
-   <details><summary>Sua resposta ou etapa atual · opcional</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details>
-   <div class="tutor-actions"><button class="primary-button" type="submit" id="tutor-send">Enviar</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div>
-   <p class="tutor-privacy">Mensagens são enviadas ao provedor de IA e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p>
+   <label for="tutor-message">Sua mensagem<textarea id="tutor-message" rows="2" maxlength="3500" placeholder="Pergunte do seu jeito…"></textarea></label>
+   <div class="tutor-compose-footer"><details><summary>Adicionar minha tentativa</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details>
+   <div class="tutor-actions"><button class="primary-button" type="submit" id="tutor-send">Enviar <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 17 17 7M7 7h10v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div></div>
+   <details class="tutor-privacy-details"><summary>Sobre suas mensagens</summary><p class="tutor-privacy">Mensagens são enviadas ao provedor de IA e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p></details>
   </form>`;
   document.body.append(panel);
   const $=id=>panel.querySelector('#'+id),log=$('tutor-messages'),field=$('tutor-message'),answerField=$('tutor-answer');
