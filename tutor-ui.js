@@ -34,7 +34,7 @@ export function mountTutor(launcher) {
    <label for="tutor-message">Escreva sua dúvida<textarea id="tutor-message" rows="2" maxlength="3500" placeholder="Pergunte do seu jeito…"></textarea></label>
    <details><summary>Sua resposta ou etapa atual · opcional</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details>
    <div class="tutor-actions"><button class="primary-button" type="submit" id="tutor-send">Enviar</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div>
-   <p class="tutor-privacy">Mensagens são enviadas à OpenAI e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p>
+   <p class="tutor-privacy">Mensagens são enviadas ao provedor de IA e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p>
   </form>`;
   document.body.append(panel);
   const $=id=>panel.querySelector('#'+id),log=$('tutor-messages'),field=$('tutor-message'),answerField=$('tutor-answer');

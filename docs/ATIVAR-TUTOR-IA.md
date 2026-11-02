@@ -1,3 +1,5 @@
+> Para testar sem créditos OpenAI, siga [Ativar o tutor com Groq](ATIVAR-TUTOR-GROQ.md). A escolha do provedor é feita no Supabase.
+
 # Tutorial completo — Tutor IA com Supabase e OpenAI
 
 Esta versão aproveita o que aparece nas suas capturas: `ai_conversations`, `ai_messages`, a função **quick-endpoint** e o secret **OPENAI_API_KEY**. O site continua no Cloudflare. O tutor roda no Supabase e chama a OpenAI, com o modelo `gpt-5-mini`.

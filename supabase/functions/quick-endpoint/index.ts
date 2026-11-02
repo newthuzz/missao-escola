@@ -255,6 +255,126 @@ function createOpenAI(key) {
   } };
 }
 
+// server/tutor-groq.mjs
+var GROQ_MODEL = "openai/gpt-oss-20b";
+var encoder2 = new TextEncoder();
+function createGroq(key, model = GROQ_MODEL) {
+  return { async run({ messages, maxOutputTokens, stream, signal }) {
+    const lifetime = new AbortController(), abort = () => lifetime.abort();
+    if (signal?.aborted) abort();
+    else signal?.addEventListener("abort", abort, { once: true });
+    const timer = setTimeout(abort, stream ? 75e3 : 24e3);
+    const cleanup = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+    };
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        signal: lifetime.signal,
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages,
+          stream: Boolean(stream),
+          max_completion_tokens: maxOutputTokens,
+          ...model.startsWith("openai/gpt-oss-") ? { reasoning_effort: "low", include_reasoning: false } : {}
+        })
+      });
+      if (!response.ok) {
+        console.error("Tutor Groq HTTP", response.status);
+        throw new TutorError(response.status === 429 ? "A Groq atingiu o limite de uso. Aguarde um pouco e tente novamente." : response.status === 401 ? "A chave da Groq n\xE3o foi aceita. Confira GROQ_API_KEY no Supabase." : response.status === 403 || response.status === 404 ? "O modelo n\xE3o est\xE1 dispon\xEDvel nesta conta Groq. Confira GROQ_MODEL no Supabase." : "N\xE3o foi poss\xEDvel obter uma resposta da Groq. Tente novamente.", 502);
+      }
+      if (!stream) {
+        const result = await response.json(), choice = result.choices?.[0];
+        if (choice?.finish_reason !== "stop") throw new TutorError("A Groq n\xE3o concluiu a resposta. Tente novamente.", 502);
+        const text = choice.message?.content;
+        if (typeof text !== "string" || !text.trim()) throw new TutorError("A Groq n\xE3o retornou uma explica\xE7\xE3o. Tente novamente.", 502);
+        cleanup();
+        return { response: text };
+      }
+      if (!response.body) throw new TutorError("A conex\xE3o com a Groq foi interrompida.", 502);
+      const reader = response.body.getReader();
+      let closed = false;
+      return new ReadableStream({
+        start(controller) {
+          (async () => {
+            let buffer = "", completed = false, sawDone = false;
+            const decoder = new TextDecoder();
+            const consume = (block) => {
+              const data = block.split("\n").filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trimStart()).join("\n");
+              if (!data) return;
+              if (data === "[DONE]") {
+                sawDone = true;
+                return;
+              }
+              if (sawDone) throw Error("Unexpected trailing event");
+              const event = JSON.parse(data);
+              if (event.error) throw new TutorError("A Groq interrompeu a resposta. Tente novamente.", 502);
+              const choice = event.choices?.[0];
+              if (!choice) return;
+              const text = choice.delta?.content;
+              if (typeof text === "string" && text) controller.enqueue(encoder2.encode("data: " + JSON.stringify({ response: text }) + "\n\n"));
+              if (choice.finish_reason) {
+                if (choice.finish_reason !== "stop") throw new TutorError(choice.finish_reason === "length" ? "A resposta atingiu o limite de tamanho. Tente uma pergunta mais curta." : "A Groq n\xE3o concluiu a resposta. Tente novamente.", 502);
+                completed = true;
+              }
+            };
+            try {
+              for (; ; ) {
+                const part = await reader.read();
+                if (part.done) break;
+                buffer += decoder.decode(part.value, { stream: true }).replace(/\r/g, "");
+                if (buffer.length > 1e6) throw Error("Invalid stream");
+                const blocks = buffer.split("\n\n");
+                buffer = blocks.pop();
+                for (const block of blocks) consume(block);
+              }
+              buffer += decoder.decode();
+              if (buffer.trim()) consume(buffer);
+              if (!completed || !sawDone) throw new TutorError("A conex\xE3o com a Groq terminou antes de concluir. Tente novamente.", 502);
+              if (!closed) {
+                controller.enqueue(encoder2.encode("data: [DONE]\n\n"));
+                closed = true;
+                controller.close();
+              }
+            } catch (error) {
+              if (!closed) {
+                closed = true;
+                controller.error(error);
+              }
+              lifetime.abort();
+              await reader.cancel().catch(() => {
+              });
+            } finally {
+              cleanup();
+            }
+          })();
+        },
+        cancel() {
+          closed = true;
+          lifetime.abort();
+          cleanup();
+          return reader.cancel().catch(() => {
+          });
+        }
+      });
+    } catch (error) {
+      cleanup();
+      lifetime.abort();
+      throw error;
+    }
+  } };
+}
+
+// server/tutor-provider.mjs
+function tutorProvider(env) {
+  const name = (env.TUTOR_PROVIDER || "openai").trim().toLowerCase();
+  if (name === "groq") return { name, model: env.GROQ_MODEL?.trim() || GROQ_MODEL, configured: Boolean(env.GROQ_API_KEY?.trim()), create: () => createGroq(env.GROQ_API_KEY, env.GROQ_MODEL?.trim() || GROQ_MODEL) };
+  if (name === "openai") return { name, model: MODEL, configured: Boolean(env.OPENAI_API_KEY?.trim()), create: () => createOpenAI(env.OPENAI_API_KEY) };
+  throw new TutorError("Provedor do tutor inv\xE1lido. Confira TUTOR_PROVIDER no Supabase.", 503);
+}
+
 // server/tutor-handler.mjs
 var headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
 var reply = (body, status = 200) => Response.json(body, { status, headers });
@@ -341,9 +461,10 @@ async function onRequest({ request, env, waitUntil }) {
     const backupResponse = await fetch(base + "/rest/v1/learner_backups?select=snapshot&limit=1", { headers: { apikey: publicKey, Authorization: auth }, signal: AbortSignal.timeout(1e4) });
     if (!backupResponse.ok) throw new TutorError("N\xE3o foi poss\xEDvel consultar seu perfil salvo.", 502);
     const backups = await backupResponse.json(), context = authorizedContext(body.context, backups[0]?.snapshot || {});
-    if (body.op === "state") return reply({ ...await rpc("state", { context_key: context.key }), context, protocol: 2, available: env.TUTOR_ENABLED === "true" && Boolean(env.OPENAI_API_KEY) });
-    if (env.TUTOR_ENABLED !== "true" || !env.OPENAI_API_KEY) throw new TutorError("O tutor est\xE1 indispon\xEDvel no momento. Tente novamente mais tarde.", 503);
-    const provider = createOpenAI(env.OPENAI_API_KEY);
+    const selected = tutorProvider(env);
+    if (body.op === "state") return reply({ ...await rpc("state", { context_key: context.key }), context, protocol: 2, available: env.TUTOR_ENABLED === "true" && selected.configured, provider: selected.name, model: selected.model });
+    if (env.TUTOR_ENABLED !== "true" || !selected.configured) throw new TutorError("O tutor est\xE1 indispon\xEDvel no momento. Tente novamente mais tarde.", 503);
+    const provider = selected.create();
     if (!uuid(body.requestId) || typeof body.message !== "string" || !body.message.trim() || body.message.length > 3500 || typeof (body.answer ?? "") !== "string" || (body.answer || "").length > 2500) throw new TutorError("Escreva uma pergunta de at\xE9 3.500 caracteres e uma resposta de at\xE9 2.500.");
     const message = body.message.trim(), answer = (body.answer || "").trim();
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify([context.key, message, answer])));
@@ -357,13 +478,13 @@ async function onRequest({ request, env, waitUntil }) {
       disconnected = true;
       abort.abort();
     }, { once: true });
-    const encoder2 = new TextEncoder();
+    const encoder3 = new TextEncoder();
     const stream = new ReadableStream({
       start(controller) {
         const emit = (event, data) => {
           if (!disconnected) {
             try {
-              controller.enqueue(encoder2.encode(`event: ${event}
+              controller.enqueue(encoder3.encode(`event: ${event}
 data: ${JSON.stringify(data)}
 
 `));
@@ -427,7 +548,7 @@ data: ${JSON.stringify(data)}
             if (!text.trim()) throw Error("Empty model response");
             if (abort.signal.aborted) throw Error("Generation aborted");
             await rpc("finish", { request_id: body.requestId, response: text, summary, summary_seq: summarySeq });
-            emit("done", { conversationId: reserved.conversation.id, context, requestId: body.requestId, text, checks, model: MODEL });
+            emit("done", { conversationId: reserved.conversation.id, context, requestId: body.requestId, text, checks, model: selected.model, provider: selected.name });
           } catch (error) {
             await reader?.cancel().catch(() => {
             });
@@ -479,6 +600,9 @@ if (typeof Deno !== "undefined" && Deno.serve) {
     SUPABASE_ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY"),
     SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
     OPENAI_API_KEY: Deno.env.get("OPENAI_API_KEY"),
+    TUTOR_PROVIDER: Deno.env.get("TUTOR_PROVIDER"),
+    GROQ_API_KEY: Deno.env.get("GROQ_API_KEY"),
+    GROQ_MODEL: Deno.env.get("GROQ_MODEL"),
     TUTOR_ENABLED: Deno.env.get("TUTOR_ENABLED"),
     TUTOR_ALLOWED_ORIGINS: Deno.env.get("TUTOR_ALLOWED_ORIGINS")
   }, waitUntil: typeof EdgeRuntime !== "undefined" ? (promise) => EdgeRuntime.waitUntil(promise) : void 0 }));

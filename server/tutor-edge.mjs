@@ -16,6 +16,7 @@ if(typeof Deno!=='undefined'&&Deno.serve){
   Deno.serve(request=>handleEdgeRequest({request,env:{
     SUPABASE_URL:Deno.env.get('SUPABASE_URL'),SUPABASE_ANON_KEY:Deno.env.get('SUPABASE_ANON_KEY'),
     SUPABASE_SERVICE_ROLE_KEY:Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),OPENAI_API_KEY:Deno.env.get('OPENAI_API_KEY'),
+    TUTOR_PROVIDER:Deno.env.get('TUTOR_PROVIDER'),GROQ_API_KEY:Deno.env.get('GROQ_API_KEY'),GROQ_MODEL:Deno.env.get('GROQ_MODEL'),
     TUTOR_ENABLED:Deno.env.get('TUTOR_ENABLED'),TUTOR_ALLOWED_ORIGINS:Deno.env.get('TUTOR_ALLOWED_ORIGINS')
   },waitUntil:typeof EdgeRuntime!=='undefined'?promise=>EdgeRuntime.waitUntil(promise):undefined}));
 }

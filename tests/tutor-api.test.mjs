@@ -10,6 +10,17 @@ async function harness(run,options={}) {
  globalThis.fetch=async(url,init)=>{
   if(url.includes('/auth/v1/user'))return Response.json(options.badAuth?{}:{id:USER,email:'private@example.test'},{status:options.badAuth?401:200});
   if(url.includes('/learner_backups'))return Response.json([{snapshot:{learner:{profile:{grade:7,name:'PRIVATE NAME'},...(options.diagnostic?{diagnostic:{questionIds:[q.id],finished:false}}:{})},progress:{events:[]}}}]);
+  if(url==='https://api.groq.com/openai/v1/chat/completions'){
+   const body=JSON.parse(init.body);inputs.push({model:body.model,input:{stream:body.stream,messages:body.messages},body});
+   assert.equal(init.headers.Authorization,'Bearer private-groq-test-key');
+   assert.equal(body.model,'openai/gpt-oss-20b');assert.equal(body.include_reasoning,false);assert.equal(body.reasoning_effort,'low');
+   assert.equal(body.max_completion_tokens,body.stream?3000:1400);
+   if(options.providerError)return Response.json({error:{message:'secret provider body'}},{status:429});
+   if(!body.stream)return Response.json({choices:[{message:{content:'Resumo contextual'},finish_reason:'stop'}]});
+   const events=[{choices:[{delta:{reasoning:'PRIVATE REASONING',content:'Explicação com frações: '},finish_reason:null}]},{choices:[{delta:{content:'ação e razão.'},finish_reason:options.groqFinish||'stop'}]}];
+   const raw=events.map(e=>'data: '+JSON.stringify(e)+'\r\n\r\n').join('')+(options.groqNoDone?'':'data: [DONE]\r\n\r\n');
+   return new Response(new ReadableStream({start(c){const bytes=new TextEncoder().encode(raw);for(let i=0;i<bytes.length;i+=3)c.enqueue(bytes.slice(i,i+3));c.close();}}));
+  }
   if(url==='https://api.openai.com/v1/responses'){
    const body=JSON.parse(init.body);inputs.push({model:body.model,input:{stream:body.stream,messages:[{role:'system',content:body.instructions},...body.input]},body});
    assert.equal(body.model,'gpt-5-mini');assert.equal(body.store,false);assert.equal(body.reasoning.effort,'low');assert.equal(body.temperature,undefined);
@@ -25,7 +36,7 @@ async function harness(run,options={}) {
   if(data.p_op==='state')return Response.json({conversation:null,messages:[],conversations:[]});
   return Response.json({saved:true});
  };
- const env={SUPABASE_SERVICE_ROLE_KEY:'server-secret',TUTOR_ENABLED:'true',OPENAI_API_KEY:'private-test-key',TUTOR_ALLOWED_ORIGINS:'https://school.example'};
+ const env={SUPABASE_SERVICE_ROLE_KEY:'server-secret',TUTOR_ENABLED:'true',OPENAI_API_KEY:'private-test-key',TUTOR_ALLOWED_ORIGINS:'https://school.example',...(options.groq?{TUTOR_PROVIDER:'groq',GROQ_API_KEY:options.noGroqKey?'':'private-groq-test-key'}:{})};
  try{return await run({env,calls,inputs,tasks,handle:body=>onRequest({request:request(body),env,waitUntil:p=>tasks.push(p)})});}
  finally{await Promise.all(tasks);globalThis.fetch=original;}
 }
@@ -76,4 +87,28 @@ test('CORS accepts configured site and preflight, rejects unknown sites',()=>har
  const response=await onRequest({request:new Request('https://project.supabase.co/functions/v1/quick-endpoint',{method:'OPTIONS',headers:{Origin:'https://school.example'}}),env});
  assert.equal(response.status,204);assert.equal(response.headers.get('Access-Control-Allow-Origin'),'https://school.example');
  const denied=await onRequest({request:new Request('https://project.supabase.co/functions/v1/quick-endpoint',{method:'OPTIONS',headers:{Origin:'https://evil.example'}}),env});assert.equal(denied.status,403);
+}));
+
+test('Groq streams UTF-8 content, hides reasoning and reports its actual model',()=>harness(async({handle,calls,inputs})=>{
+ const text=await(await handle(payload)).text();assert.match(text,/event: done/);assert.match(text,/ação e razão/);
+ assert.match(text,/openai\/gpt-oss-20b/);assert.ok(!text.includes('PRIVATE REASONING'));assert.ok(!text.includes('private-groq-test-key'));
+ assert.equal(inputs.length,1);assert.equal(calls.find(c=>c.p_op==='finish').p_body.response,'Explicação com frações: ação e razão.');
+},{groq:true}));
+test('Groq also generates the bounded conversation summary',()=>harness(async({handle,calls,inputs})=>{
+ const text=await(await handle(payload)).text();assert.match(text,/event: done/);assert.equal(inputs.length,2);
+ assert.equal(calls.find(c=>c.p_op==='finish').p_body.summary,'Resumo contextual');
+},{groq:true,history:Array.from({length:24},(_,i)=>({seq:i+1,role:i%2?'assistant':'user',content:'Previous turn '+i}))}));
+test('Groq missing key never falls back to a configured OpenAI key',()=>harness(async({handle,inputs})=>{
+ const state=await(await handle({op:'state',context:{}})).json();assert.equal(state.available,false);assert.equal(state.provider,'groq');
+ assert.equal((await handle(payload)).status,503);assert.equal(inputs.length,0);
+},{groq:true,noGroqKey:true}));
+test('Groq quota errors are actionable and do not save a completed answer',()=>harness(async({handle,calls})=>{
+ const text=await(await handle(payload)).text();assert.match(text,/Groq atingiu o limite/);assert.ok(!text.includes('secret provider body'));assert.ok(!calls.some(c=>c.p_op==='finish'));
+},{groq:true,providerError:true}));
+for(const options of [{groqFinish:'length'},{groqNoDone:true}])test('Groq incomplete output is never saved: '+JSON.stringify(options),()=>harness(async({handle,calls})=>{
+ const text=await(await handle(payload)).text();assert.match(text,/event: error/);assert.ok(!text.includes('event: done'));assert.ok(calls.some(c=>c.p_op==='fail'));assert.ok(!calls.some(c=>c.p_op==='finish'));
+},{groq:true,...options}));
+
+test('unknown provider fails closed without using either key',()=>harness(async({env,handle,inputs})=>{
+ env.TUTOR_PROVIDER='unknown';assert.equal((await handle(payload)).status,503);assert.equal(inputs.length,0);
 }));

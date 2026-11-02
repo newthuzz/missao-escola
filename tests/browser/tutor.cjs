@@ -11,6 +11,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await context.addInitScript(({id})=>localStorage.setItem('missao-escola-supabase-session',JSON.stringify({access_token:'token-a',refresh_token:'refresh-a',expires_at:Date.now()/1000+3600,user:{id,email:'a@example.test'}})),{id:A});
   await context.route('https://pxnvttqsgjnakeukttdr.supabase.co/**',async route=>{
    const req=route.request(),url=req.url();
+   if(url.includes('/auth/v1/user'))return route.fulfill({json:{id:A,email:'a@example.test'}});
    if(url.includes('/learner_backups'))return route.fulfill({json:[]});
    if(url.includes('/save_learner_backup'))return route.fulfill({json:[{revision:1,snapshot:req.postDataJSON().p_snapshot,updated_at:new Date().toISOString()}]});
    if(url.includes('/social_action'))return route.fulfill({json:{registered:false}});
@@ -30,7 +31,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    }catch{} // An intentionally cancelled old context must never render.
   });
   const page=await context.newPage(),errors=[],assets=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>assets.push(r.url()));page.setDefaultTimeout(15000);
-  await page.goto(origin);await page.waitForFunction(()=>document.querySelector('#page-social'));
+  await page.goto(origin);await page.waitForFunction(()=>document.querySelector('#page-social'));await page.locator('#app-splash').waitFor({state:'detached'});
   assert.ok(!assets.some(u=>u.endsWith('/tutor-ui.js')||u.includes('/katex/')));
   await page.locator('#tutor-launcher').click();await page.locator('#tutor-message').waitFor({state:'visible'});
   await page.waitForFunction(()=>document.querySelector('#tutor-status').textContent.includes('sem escolher'));

@@ -7,7 +7,7 @@ test('generated single-file function registers Deno.serve and preserves auth wit
  globalThis.Deno={serve:handler=>{serve=handler;},env:{get:name=>env[name]}};
  try{
   const path=new URL('../supabase/functions/quick-endpoint/index.ts',import.meta.url);
-  const source=fs.readFileSync(path,'utf8');assert.ok(!/^import\s/m.test(source));assert.ok(source.includes('gpt-5-mini'));
+  const source=fs.readFileSync(path,'utf8');assert.ok(!/^import\s/m.test(source));assert.ok(source.includes('gpt-5-mini'));assert.ok(source.includes('api.groq.com/openai/v1/chat/completions'));assert.ok(source.includes('Deno.env.get("GROQ_API_KEY")'));assert.ok(source.includes('Deno.env.get("TUTOR_PROVIDER")'));
   await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));assert.equal(typeof serve,'function');
   const response=await serve(new Request('https://project.supabase.co/functions/v1/quick-endpoint',{method:'POST',headers:{Origin:'https://school.example'},body:'{}'}));
   assert.equal(response.status,401);assert.equal(response.headers.get('Access-Control-Allow-Origin'),'https://school.example');

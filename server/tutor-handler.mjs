@@ -1,6 +1,6 @@
 import {URL as DEFAULT_URL,KEY as PUBLIC_KEY} from '../cloud-api.mjs';
-import {MODEL,TutorError,authorizedContext,memoryWindow,modelMessages,arithmeticChecks} from './tutor-core.mjs';
-import {createOpenAI} from './tutor-openai.mjs';
+import {TutorError,authorizedContext,memoryWindow,modelMessages,arithmeticChecks} from './tutor-core.mjs';
+import {tutorProvider} from './tutor-provider.mjs';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>Response.json(body,{status,headers});
 const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -52,9 +52,10 @@ export async function onRequest({request,env,waitUntil}) {
     const backupResponse=await fetch(base+'/rest/v1/learner_backups?select=snapshot&limit=1',{headers:{apikey:publicKey,Authorization:auth},signal:AbortSignal.timeout(10000)});
     if(!backupResponse.ok)throw new TutorError('Não foi possível consultar seu perfil salvo.',502);
     const backups=await backupResponse.json(),context=authorizedContext(body.context,backups[0]?.snapshot||{});
-    if(body.op==='state')return reply({...await rpc('state',{context_key:context.key}),context,protocol:2,available:env.TUTOR_ENABLED==='true'&&Boolean(env.OPENAI_API_KEY)});
-    if(env.TUTOR_ENABLED!=='true'||!env.OPENAI_API_KEY)throw new TutorError('O tutor está indisponível no momento. Tente novamente mais tarde.',503);
-    const provider=createOpenAI(env.OPENAI_API_KEY);
+    const selected=tutorProvider(env);
+    if(body.op==='state')return reply({...await rpc('state',{context_key:context.key}),context,protocol:2,available:env.TUTOR_ENABLED==='true'&&selected.configured,provider:selected.name,model:selected.model});
+    if(env.TUTOR_ENABLED!=='true'||!selected.configured)throw new TutorError('O tutor está indisponível no momento. Tente novamente mais tarde.',503);
+    const provider=selected.create();
     if(!uuid(body.requestId)||typeof body.message!=='string'||!body.message.trim()||body.message.length>3500||typeof (body.answer??'')!=='string'||(body.answer||'').length>2500)throw new TutorError('Escreva uma pergunta de até 3.500 caracteres e uma resposta de até 2.500.');
     const message=body.message.trim(),answer=(body.answer||'').trim();
     const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([context.key,message,answer])));
@@ -93,7 +94,7 @@ export async function onRequest({request,env,waitUntil}) {
             if(!text.trim())throw Error('Empty model response');
             if(abort.signal.aborted)throw Error('Generation aborted');
             await rpc('finish',{request_id:body.requestId,response:text,summary,summary_seq:summarySeq});
-            emit('done',{conversationId:reserved.conversation.id,context,requestId:body.requestId,text,checks,model:MODEL});
+            emit('done',{conversationId:reserved.conversation.id,context,requestId:body.requestId,text,checks,model:selected.model,provider:selected.name});
           }catch(error){
             await reader?.cancel().catch(()=>{});
             await rpc('fail',{request_id:body.requestId}).catch(()=>{});
