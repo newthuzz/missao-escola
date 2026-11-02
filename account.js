@@ -1,5 +1,5 @@
 import {mountSocial} from './social.js';
-import {request, saveBackup} from './cloud-api.mjs';
+import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
 const SESSION_KEY='missao-escola-supabase-session', META_KEY='missao-escola-cloud-sync-v1';
 let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null;
@@ -110,4 +110,34 @@ window.addEventListener('storage',event=>{
 window.addEventListener('online',()=>sync?.tick());window.addEventListener('focus',()=>sync?.tick());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync?.tick();});
 setInterval(()=>{if(!document.hidden)sync?.tick();},20000);
-renderAccount();startSync();if(location.hash==='#social')navigate('social',false);
+async function prepareInitialAccount(){
+ let message='',access=null;
+ if(session?.access_token){
+  const userId=session.user?.id,controller=new AbortController();let timer;
+  try{
+   // Use the existing refresh path; never trust only a saved access token.
+   await Promise.race([
+    (async()=>{
+     access=await token();
+     const response=await fetch(SUPABASE_URL+'/auth/v1/user',{
+      headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${access}`},
+      cache:'no-store',signal:controller.signal
+     });
+     if(!response.ok){const error=Error('Não foi possível verificar a sessão.');error.status=response.status;throw error;}
+     const user=await response.json();
+     if(session?.access_token===access&&session?.user?.id===userId)store({...session,user});
+    })(),
+    new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('A verificação da conta demorou.'));},4500);})
+   ]);
+  }catch(error){
+   if((error.status===400||error.status===401)&&session?.access_token===access){
+    stopSync();store(null);message='Sua sessão expirou. Entre novamente; seus estudos locais foram mantidos.';
+   }else message='Não foi possível verificar a conta agora. Seus estudos locais continuam disponíveis.';
+  }finally{clearTimeout(timer);}
+ }
+ renderAccount(message);startSync();
+ if(location.hash==='#social')navigate('social',false);
+}
+renderAccount();
+const initialAccountReady=prepareInitialAccount();
+window.MissaoStartup?.waitForAuthentication(initialAccountReady);

@@ -8,6 +8,7 @@ const root=path.resolve(__dirname,'../../dist');
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
   const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
   await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>document.querySelector('.mobile-nav [data-page="social"]'));
+  await page.locator('#app-splash').waitFor({state:'detached'});
   const home=page.locator('#page-inicio');
   assert.ok(await home.isVisible());assert.equal(await home.locator('.primary-button').count(),1);assert.equal(await home.locator('.central-system-card').count(),3);
   for(const selector of ['.journey-map','.streak-card','.level-card','.daily-chest','.mission-card'])assert.equal(await home.locator(selector).count(),0);
