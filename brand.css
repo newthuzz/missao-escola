@@ -149,8 +149,11 @@ html[data-theme] input,html[data-theme] select,html[data-theme] textarea { accen
 }
 
 /* Capelo and light bulb identity, shared by desktop and mobile navigation. */
-.brand-lockup { grid-template-columns:4rem minmax(0,1fr); align-items:center; gap:.5rem; }
-.brand-mark { display:block; width:4rem; height:3rem; }
+.brand-lockup { grid-template-columns:3.25rem minmax(0,1fr); align-items:center; gap:.5rem; }
+.brand-lockup>span:last-child { display:contents; }
+.brand-lockup strong { grid-column:2; grid-row:1; font-size:1.65rem; line-height:1.12; }
+.brand-lockup small { grid-column:1 / -1; margin:0; font-size:.625rem; line-height:1.5; letter-spacing:.04em; text-align:center; }
+.brand-mark { display:block; grid-column:1; grid-row:1; width:3.25rem; height:2.4375rem; }
 .brand-logo { display:block; width:100%; height:auto; object-fit:contain; flex-shrink:0; }
 .mobile-brand { align-items:center; gap:.5rem; }
 .mobile-brand>.brand-logo { width:3rem; height:2.25rem; }
