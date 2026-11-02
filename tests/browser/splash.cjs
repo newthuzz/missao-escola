@@ -11,8 +11,8 @@ const root=path.resolve(__dirname,'../../dist');
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
-  for(const scenario of ['public','authenticated','expired','offline','slow-auth','slow-resources','mobile','reduced','slow-cpu']){
-   const context=await browser.newContext({viewport:{width:scenario==='mobile'?360:1280,height:900},reducedMotion:scenario==='reduced'?'reduce':'no-preference'});
+  for(const scenario of ['public','authenticated','expired','offline','slow-auth','slow-resources','mobile','landscape','reduced','slow-cpu']){
+   const context=await browser.newContext({viewport:{width:scenario==='mobile'?360:scenario==='landscape'?640:1280,height:scenario==='landscape'?360:900},reducedMotion:scenario==='reduced'?'reduce':'no-preference'});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    if(['authenticated','expired','offline','slow-auth'].includes(scenario))await page.addInitScript(()=>localStorage.setItem('missao-escola-supabase-session',JSON.stringify({access_token:'test-token',refresh_token:'test-refresh',expires_at:Date.now()/1000+3600,user:{id:'test-user',email:'test@example.com'}})));
    await page.route('**/*.supabase.co/**',async route=>{
@@ -32,6 +32,24 @@ const root=path.resolve(__dirname,'../../dist');
    await page.locator('#app-splash').waitFor({state:'visible'});
    assert.equal(await page.locator('#app-splash img').getAttribute('src'),'./assets/brand/logo.svg');
    assert.equal(await page.locator('#app-splash [src*="mascot"]').count(),0);
+   assert.equal(await page.locator('.app-splash-name').innerText(),'Missão Escola');
+   if(scenario==='public'){
+    const sequence=await page.evaluate(()=>{
+     const logo=document.querySelector('.app-splash-logo'),name=document.querySelector('.app-splash-name');
+     const a=logo.getAnimations()[0],b=name.getAnimations()[0];a.pause();b.pause();
+     a.currentTime=400;b.currentTime=400;
+     const first={logo:+getComputedStyle(logo).opacity,name:+getComputedStyle(name).opacity};
+     a.currentTime=850;b.currentTime=1250;
+     const during={logo:+getComputedStyle(logo).opacity,name:+getComputedStyle(name).opacity,x:new DOMMatrixReadOnly(getComputedStyle(name).transform).m41};
+     b.currentTime=1800;
+     const box=name.getBoundingClientRect(),parent=name.parentElement.getBoundingClientRect();
+     const end={opacity:+getComputedStyle(name).opacity,offset:Math.abs(box.x+box.width/2-parent.x-parent.width/2)};
+     a.currentTime=0;b.currentTime=0;a.play();b.play();return {first,during,end};
+    });
+    assert.ok(sequence.first.logo>0&&sequence.first.name===0,'Logo appears before the name');
+    assert.ok(sequence.during.logo===1&&sequence.during.name>0&&sequence.during.x<0,'Name moves from the left while the logo stays visible');
+    assert.ok(sequence.end.opacity===1&&sequence.end.offset<1,'Name finishes centered');
+   }
    if(scenario==='authenticated'){
     await page.waitForTimeout(400);assert.equal(await page.locator('.app-shell').isVisible(),false);
    }
@@ -40,7 +58,12 @@ const root=path.resolve(__dirname,'../../dist');
    assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),false);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    if(scenario==='expired')assert.equal(await page.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')),null);
-   if(scenario==='offline')assert.ok(await page.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')));
+   if(scenario==='offline'){
+    assert.ok(await page.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')));
+    await page.locator('.startup-notice button').getByText('Tentar novamente',{exact:true}).waitFor({state:'visible'});
+    await page.getByRole('button',{name:'Fechar',exact:true}).click();
+    assert.equal(await page.locator('.startup-notice').count(),0);
+   }
    if(scenario==='slow-auth')assert.ok(Date.now()-started<7500,'A hung authentication request must not block the page.');
    if(scenario==='public'){
     await page.locator('.side-nav [data-page="social"]').click();assert.ok(await page.locator('#account-form').isVisible());

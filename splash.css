@@ -4,15 +4,27 @@ html.app-starting .app-splash { display:grid!important; position:fixed; inset:0;
 .app-splash-backdrop { position:absolute; inset:0; z-index:-1; background:radial-gradient(ellipse at 50% 45%,#193b48 0,#101b30 55%,#080f24 100%); transition:opacity 1s ease; }
 .app-splash-backdrop::after { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,#c8dfdc 1px,transparent 1.5px),radial-gradient(circle,#76b6a1 1px,transparent 1.5px); background-size:137px 173px,229px 251px; background-position:22px 33px,91px 127px; opacity:.35; animation:splash-stars 3.2s ease-in-out infinite alternate; }
 .app-splash-logo { display:block; width:clamp(160px,38vw,240px); height:auto; object-fit:contain; will-change:transform,opacity; animation:splash-logo-in .85s cubic-bezier(.2,.7,.2,1) both; }
-.app-splash-status { position:absolute; top:calc(50% + 115px); left:1rem; right:1rem; margin:0; text-align:center; color:#c7dcd6; font: .875rem/1.6 'Segoe UI',system-ui,sans-serif; transition:opacity .25s; }
+.app-splash-brand { display:flex; flex-direction:column; align-items:center; gap:.75rem; max-width:calc(100vw - 2rem); }
+.app-splash-name { margin:0; color:#edf2f7; font:400 clamp(1.75rem,7vw,2.5rem)/1.2 'Missao Anton','Arial Narrow',system-ui,sans-serif; letter-spacing:.025em; text-align:center; animation:splash-name-in 1s cubic-bezier(.2,.7,.2,1) .85s both; }
+.app-splash-status { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 html.app-starting:not(.app-entering) :is(.app-shell,.mobile-nav,.skip-link) { visibility:hidden; }
 html.app-entering :is(.app-shell,.mobile-nav) { animation:splash-page-in 1s ease both; }
 .splash-handoff { visibility:hidden; }
 .app-splash.is-leaving .app-splash-backdrop,.app-splash.is-leaving .app-splash-status { opacity:0; }
 @keyframes splash-stars { to { opacity:.6; } }
 @keyframes splash-logo-in { from { opacity:0; transform:translateY(12px) scale(.94); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes splash-name-in { from { opacity:0; transform:translateX(-28px); } 90%,to { opacity:1; transform:translateX(0); } }
 @keyframes splash-page-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+.startup-notice { position:fixed; z-index:60; left:1rem; right:1rem; bottom:6rem; width:fit-content; max-width:calc(100vw - 2rem); margin:0 auto; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; padding:1rem; border:1px solid var(--line); border-radius:.75rem; color:var(--ink); background:var(--panel); font-size:.875rem; }
+.startup-notice p { flex:1 1 12rem; margin:0; }
+.startup-notice button { border:1px solid var(--line); border-radius:.5rem; padding:.5rem .75rem; color:var(--ink); background:var(--panel-2); }
 @media(prefers-reduced-motion:reduce) {
- .app-splash-logo,.app-splash-backdrop::after,html.app-entering :is(.app-shell,.mobile-nav) { animation:none; }
+ .app-splash-logo,.app-splash-name,.app-splash-backdrop::after,html.app-entering :is(.app-shell,.mobile-nav) { animation:none; }
  .app-splash-backdrop,.app-splash-status { transition-duration:.12s; }
+}
+
+@media(max-height:420px) {
+ .app-splash-logo { width:128px; }
+ .app-splash-brand { gap:.4rem; }
+ .app-splash-name { font-size:1.5rem; }
 }

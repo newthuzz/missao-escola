@@ -111,7 +111,7 @@ window.addEventListener('online',()=>sync?.tick());window.addEventListener('focu
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync?.tick();});
 setInterval(()=>{if(!document.hidden)sync?.tick();},20000);
 async function prepareInitialAccount(){
- let message='',access=null;
+ let message='',access=null,connectionError=false;
  if(session?.access_token){
   const userId=session.user?.id,controller=new AbortController();let timer;
   try{
@@ -132,11 +132,12 @@ async function prepareInitialAccount(){
   }catch(error){
    if((error.status===400||error.status===401)&&session?.access_token===access){
     stopSync();store(null);message='Sua sessão expirou. Entre novamente; seus estudos locais foram mantidos.';
-   }else message='Não foi possível verificar a conta agora. Seus estudos locais continuam disponíveis.';
+   }else{connectionError=true;message='Não foi possível verificar a conta agora. Seus estudos locais continuam disponíveis.';}
   }finally{clearTimeout(timer);}
  }
  renderAccount(message);startSync();
  if(location.hash==='#social')navigate('social',false);
+ return {connectionError};
 }
 renderAccount();
 const initialAccountReady=prepareInitialAccount();
