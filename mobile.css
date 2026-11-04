@@ -55,6 +55,7 @@
  html.tutor-keyboard-open .tutor-header { padding:.4rem .75rem; }
  html.tutor-keyboard-open .tutor-title small,
  html.tutor-keyboard-open .tutor-context small,
+ html.tutor-keyboard-open .tutor-tools,
  html.tutor-keyboard-open .tutor-history,
  html.tutor-keyboard-open .tutor-suggestions,
  html.tutor-keyboard-open .tutor-privacy-details { display:none; }

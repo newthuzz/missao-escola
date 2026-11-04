@@ -35,31 +35,34 @@ async function renderMath(body,text) {
 }
 export function mountTutor(launcher) {
   const panel=document.createElement('section');panel.id='tutor-panel';panel.className='tutor-panel';panel.hidden=true;
-  panel.setAttribute('aria-labelledby','tutor-heading');
-  panel.innerHTML=`<header class="tutor-header"><div class="tutor-identity"><img class="tutor-mascot" src="./assets/mascot/mascot-thinking.webp" alt="" aria-hidden="true" width="42" height="48" decoding="async"><div class="tutor-title"><h2 id="tutor-heading">Tutor IA</h2><small>Um passo de cada vez</small></div></div><button type="button" id="tutor-minimize" aria-label="Minimizar tutor">−</button></header>
+  panel.setAttribute('aria-labelledby','tutor-heading');panel.tabIndex=-1;
+  panel.innerHTML=`<header class="tutor-header"><div class="tutor-identity"><img class="tutor-mascot" src="./assets/mascot/mascot-thinking.webp" alt="" aria-hidden="true" width="30" height="36" decoding="async"><h2 id="tutor-heading">Tutor IA</h2></div><div class="tutor-header-actions"><button type="button" id="tutor-options" aria-expanded="false" aria-controls="tutor-tools">Conversas</button><button type="button" id="tutor-minimize" aria-label="Minimizar tutor">−</button></div></header>
+  <div id="tutor-tools" class="tutor-tools" hidden>
+   <div class="tutor-history"><label><span>Histórico</span><select id="tutor-history" aria-label="Histórico do tutor"><option value="">Conversa atual</option></select></label><button type="button" id="tutor-delete" disabled>Apagar</button></div>
+   <details class="tutor-privacy-details"><summary>Sobre suas mensagens</summary><p class="tutor-privacy">Mensagens são enviadas ao provedor de IA e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p></details>
+  </div>
   <div class="tutor-context" id="tutor-context"></div>
-  <div class="tutor-history"><label><span>Histórico</span><select id="tutor-history" aria-label="Histórico do tutor"><option value="">Conversa atual</option></select></label><button type="button" id="tutor-delete" disabled>Apagar</button></div>
   <button type="button" class="text-button tutor-load-older" id="tutor-older" hidden>Ver mensagens anteriores</button>
   <div class="tutor-messages" id="tutor-messages" role="log" aria-live="off" aria-label="Mensagens do tutor"></div>
   <p class="tutor-status" id="tutor-status" role="status" aria-live="polite"></p>
   <form class="tutor-form" id="tutor-form">
-   <div class="tutor-suggestions" aria-label="Sugestões opcionais"><button type="button" data-tutor-suggestion="Explique de outro jeito, com um exemplo.">Outro exemplo</button><button type="button" data-tutor-suggestion="Quero uma dica conceitual para começar.">Uma dica</button><button type="button" data-tutor-suggestion="Explique com mais detalhes a sua última resposta, em passos curtos.">Mais detalhes</button></div>
-   <label for="tutor-message">Sua mensagem<textarea id="tutor-message" rows="2" maxlength="3500" placeholder="Pergunte do seu jeito…"></textarea></label>
-   <div class="tutor-compose-footer"><details><summary>Adicionar minha tentativa</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details>
-   <div class="tutor-actions"><button class="primary-button" type="submit" id="tutor-send">Enviar <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 17 17 7M7 7h10v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div></div>
-   <details class="tutor-privacy-details"><summary>Sobre suas mensagens</summary><p class="tutor-privacy">Mensagens são enviadas ao provedor de IA e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p></details>
+   <div class="tutor-compose-row"><label class="tutor-sr-only" for="tutor-message">Sua mensagem</label><textarea id="tutor-message" rows="1" maxlength="3500" placeholder="Escreva sua dúvida…"></textarea><button class="primary-button" type="submit" id="tutor-send" title="Enviar mensagem"><span class="tutor-sr-only">Enviar</span><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m6 11 6-6 6 6M12 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+   <div class="tutor-actions"><button type="button" class="text-button" id="tutor-extra-toggle" aria-expanded="false" aria-controls="tutor-extra">Mais opções</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div>
+   <div class="tutor-extra" id="tutor-extra" hidden><div class="tutor-suggestions" aria-label="Sugestões opcionais"><button type="button" data-tutor-suggestion="Explique de outro jeito, com um exemplo.">Outro exemplo</button><button type="button" data-tutor-suggestion="Quero uma dica conceitual para começar.">Uma dica</button><button type="button" data-tutor-suggestion="Explique com mais detalhes a sua última resposta, em passos curtos.">Mais detalhes</button></div><details><summary>Adicionar minha tentativa</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details></div>
   </form>`;
   document.body.append(panel);
   const $=id=>panel.querySelector('#'+id),log=$('tutor-messages'),field=$('tutor-message'),answerField=$('tutor-answer');
   let user=getAccountUser(),descriptor=read(),signature=contextKey(descriptor.context),epoch=0,sendController,loadController;
   let conversationId=null,viewingHistory=false,busy=false,lastFailed=null,pendingNode=null,threads=[],earliestSeq=null,ready=false;
   function read(){const value=window.TutorStudy.snapshot(),q=value.question;return {...value,context:{exerciseId:q?.id||null,version:q?exerciseVersion(q):null,mode:value.mode}};}
-  function status(text,error=false){$('tutor-status').textContent=text;$('tutor-status').dataset.error=String(error);}
+  function status(text,error=false,quiet=false){$('tutor-status').textContent=text;$('tutor-status').dataset.error=String(error);$('tutor-status').dataset.quiet=String(quiet&&!error);}
   function controls(){field.disabled=viewingHistory;answerField.disabled=viewingHistory;$('tutor-send').disabled=busy||viewingHistory||!ready;$('tutor-login').hidden=Boolean(user);$('tutor-delete').disabled=!conversationId||busy;}
   function contextLabel(saved){
     const title=document.createElement('strong');title.textContent=viewingHistory?'Histórico · '+(saved?.title||'Conversa anterior'):descriptor.question?.question||'Conversa de estudo';
     const note=document.createElement('small');note.textContent=viewingHistory?'Somente leitura. Selecione “Conversa atual” para continuar.':(saved?.mode||descriptor.mode)==='diagnostic'?'Teste inicial · ajuda conceitual, sem gabarito.':'Pergunte sobre esta atividade ou outro assunto de estudo.';
-    $('tutor-context').replaceChildren(title,note);
+    const diagnostic=(saved?.mode||descriptor.mode)==='diagnostic';
+    $('tutor-context').hidden=!viewingHistory&&!descriptor.question&&!diagnostic;
+    $('tutor-context').replaceChildren(title,...(viewingHistory||diagnostic?[note]:[]));
   }
   function listThreads(){
     const select=$('tutor-history'),selected=select.value;select.replaceChildren(new Option('Conversa atual',''));
@@ -69,17 +72,15 @@ export function mountTutor(launcher) {
   function bubble(role,text){
     log.querySelector('.tutor-empty')?.remove();
     const article=document.createElement('article');article.className='tutor-message';article.dataset.role=role;
+    article.setAttribute('aria-label',role==='user'?'Sua mensagem':'Resposta do tutor');
     const label=document.createElement('strong');label.textContent=role==='user'?'Você':'Tutor IA';
-    if(role==='assistant'){
-      const avatar=document.createElement('img');avatar.src='./assets/mascot/mascot.webp';avatar.alt='';avatar.setAttribute('aria-hidden','true');avatar.className='tutor-message-avatar';avatar.width=22;avatar.height=26;avatar.decoding='async';label.prepend(avatar);
-    }
     const body=document.createElement('div');body.className='tutor-message-body';body.textContent=text;
     article.append(label,body);log.append(article);
     return {article,body};
   }
   function showMessages(messages){
     log.replaceChildren();
-    if(!messages.length){const p=document.createElement('p');p.className='tutor-empty';p.textContent='Escreva uma pergunta livre. As sugestões são opcionais. Para uma questão de fora do site, inclua o enunciado na mensagem.';log.append(p);}
+    if(!messages.length){const p=document.createElement('p');p.className='tutor-empty';p.textContent='Qual é a sua dúvida? Se for uma atividade de fora do site, inclua o enunciado.';log.append(p);}
     for(const m of messages){const node=bubble(m.role,m.content);if(m.role==='assistant')renderMath(node.body,m.content);}
     log.scrollTop=log.scrollHeight;
   }
@@ -106,7 +107,7 @@ export function mountTutor(launcher) {
       conversationId=data.conversation?.id||null;threads=data.conversations||[];showMessages(data.messages||[]);contextLabel(data.context||data.conversation?.context);listThreads();controls();
       earliestSeq=data.messages?.[0]?.seq||null;$('tutor-older').hidden=!data.hasMore;$('tutor-older').disabled=false;
       $('tutor-retry').hidden=ready;
-      status(data.available===false?'O tutor está indisponível no momento. Você pode tentar novamente mais tarde.':viewingHistory?'Você está consultando uma conversa anterior.':'Você pode perguntar sem escolher uma sugestão.');
+      status(data.available===false?'O tutor está indisponível no momento. Você pode tentar novamente mais tarde.':viewingHistory?'Você está consultando uma conversa anterior.':'Você pode perguntar sem escolher uma sugestão.',data.available===false,data.available!==false);
     }catch(error){if(ticket!==epoch)return;status(error.name==='AbortError'?'A conexão demorou. Tente carregar a conversa novamente.':error.message==='Mensagem inválida'?'O tutor ainda não está disponível. Tente novamente mais tarde.':error.message,true);$('tutor-retry').hidden=false;controls();}
     finally{clearTimeout(timer);}
   }
@@ -130,7 +131,7 @@ export function mountTutor(launcher) {
       if(name==='done'){
         complete=true;conversationId=data.conversationId;output.data=data.text;delete node.article.dataset.incomplete;renderMath(node.body,data.text);
         if(data.checks?.length){const checked=document.createElement('small');checked.className='tutor-checks';checked.textContent='Calculadora: '+data.checks.map(c=>c.expression+' = '+c.result).join('; ')+'. Apenas estas operações foram conferidas.';node.article.append(checked);}
-        status('Resposta disponível. Você pode continuar a conversa.');
+        status('Resposta disponível. Você pode continuar a conversa.',false,true);
       }
     };
     try{
@@ -156,11 +157,14 @@ export function mountTutor(launcher) {
     event.preventDefault();const message=field.value.trim();if(!message||busy||viewingHistory||!ready)return;
     if(!user){status('Entre na sua conta para enviar sua pergunta.');return;}
     const payload={message,answer:answerField.value.trim()||window.TutorStudy.snapshot().studentAnswer||'',requestId:crypto.randomUUID(),context:descriptor.context};
-    field.value='';send(payload);
+    field.value='';fitMessage();send(payload);
   });
+  function fitMessage(){field.style.height='auto';field.style.height=Math.min(96,field.scrollHeight+2)+'px';}
+  field.addEventListener('input',fitMessage);
   field.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();$('tutor-form').requestSubmit();}});
   panel.addEventListener('click',event=>{
-    const suggestion=event.target.closest('[data-tutor-suggestion]');if(suggestion){field.value=suggestion.dataset.tutorSuggestion;field.focus();}
+    const suggestion=event.target.closest('[data-tutor-suggestion]');if(suggestion){field.value=suggestion.dataset.tutorSuggestion;$('tutor-extra').hidden=true;$('tutor-extra-toggle').setAttribute('aria-expanded','false');field.focus();fitMessage();}
+    for(const [button,target] of [['tutor-options','tutor-tools'],['tutor-extra-toggle','tutor-extra']]){if(event.target.closest('#'+button)){const region=$(target);region.hidden=!region.hidden;$(button).setAttribute('aria-expanded',String(!region.hidden));}}
     if(event.target.closest('#tutor-minimize'))toggle(false);
     if(event.target.closest('#tutor-login')){toggle(false);window.navigate('social');}
     if(event.target.closest('#tutor-retry')){if(lastFailed)send(lastFailed,true);else load(viewingHistory?$('tutor-history').value:null);}
@@ -179,18 +183,18 @@ export function mountTutor(launcher) {
       post({op:'delete',conversationId:id}).then(()=>{if(ticket!==epoch)return;viewingHistory=false;$('tutor-history').value='';load();}).catch(error=>{if(ticket===epoch)status(error.message,true);});
     }
   });
-  $('tutor-history').addEventListener('change',()=>{const id=$('tutor-history').value;cancel();viewingHistory=Boolean(id);showMessages([]);load(id||null);});
+  $('tutor-history').addEventListener('change',()=>{const id=$('tutor-history').value;$('tutor-tools').hidden=true;$('tutor-options').setAttribute('aria-expanded','false');cancel();viewingHistory=Boolean(id);showMessages([]);load(id||null);});
   panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();toggle(false);}});
   window.addEventListener('missao-study-context',()=>{
     const next=read(),key=contextKey(next.context);descriptor=next;
-    if(key===signature)return;signature=key;cancel();viewingHistory=false;conversationId=null;field.value='';answerField.value='';showMessages([]);contextLabel();controls();if(!panel.hidden)load();
+    if(key===signature)return;signature=key;cancel();viewingHistory=false;conversationId=null;field.value='';answerField.value='';fitMessage();showMessages([]);contextLabel();controls();if(!panel.hidden)load();
   });
   window.addEventListener('missao-account-change',()=>{
-    const next=getAccountUser();if(next===user)return;cancel();user=next;viewingHistory=false;conversationId=null;threads=[];field.value='';answerField.value='';showMessages([]);listThreads();controls();if(!panel.hidden)load();
+    const next=getAccountUser();if(next===user)return;cancel();user=next;viewingHistory=false;conversationId=null;threads=[];field.value='';answerField.value='';fitMessage();showMessages([]);listThreads();controls();if(!panel.hidden)load();
   });
   function toggle(force){
     const open=force??panel.hidden;panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.setAttribute('aria-label',open?'Minimizar Tutor IA':'Abrir Tutor IA');
-    if(open){descriptor=read();signature=contextKey(descriptor.context);if((!conversationId||!ready)&&!busy)load();field.focus();}else launcher.focus();
+    if(open){descriptor=read();signature=contextKey(descriptor.context);if((!conversationId||!ready)&&!busy)load();if(matchMedia('(pointer: coarse)').matches)panel.focus({preventScroll:true});else field.focus();}else launcher.focus();
   }
   contextLabel();controls();showMessages([]);
   return {toggle};

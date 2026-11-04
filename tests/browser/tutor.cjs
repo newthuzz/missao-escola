@@ -36,6 +36,10 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await page.locator('#tutor-launcher').click();await page.locator('#tutor-message').waitFor({state:'visible'});
   await page.waitForFunction(()=>document.querySelector('#tutor-status').textContent.includes('sem escolher'));
   assert.ok(assets.some(u=>u.endsWith('/tutor-ui.js')));assert.ok(!assets.some(u=>u.includes('/katex/')));
+  assert.ok(await page.locator('#tutor-history').isHidden());assert.ok(await page.locator('.tutor-suggestions').isHidden());
+  const initialSpace=await page.locator('#tutor-messages').boundingBox(),initialPanel=await page.locator('#tutor-panel').boundingBox();
+  assert.ok(initialSpace.height>=initialPanel.height*.6,'Conversation should occupy most of the default panel');
+  await page.locator('#tutor-extra-toggle').click();
   await page.getByRole('button',{name:'Mais detalhes',exact:true}).click();
   assert.match(await page.locator('#tutor-message').inputValue(),/mais detalhes/);
   const field=page.locator('#tutor-message');await field.fill('Se um poema tivesse apenas pausas, ainda poderia ter ritmo?');await field.press('Shift+Enter');await field.type('Quero entender.');
@@ -77,9 +81,11 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   const beforeLegacySend=calls.filter(c=>c.body.op==='send').length;await field.fill('Não gastar com endpoint antigo');await field.press('Enter');assert.equal(calls.filter(c=>c.body.op==='send').length,beforeLegacySend);
   state.legacy=false;await page.locator('#tutor-retry').click();await page.waitForFunction(()=>!document.querySelector('#tutor-send').disabled);console.log('PASS old backend cannot trigger paid generations before protocol upgrade');
   state.history=true;await page.locator('#tutor-minimize').click();await page.locator('#tutor-launcher').click();await page.waitForFunction(()=>document.querySelector('#tutor-history').options.length>1);
+  await page.locator('#tutor-options').click();
   await page.locator('#tutor-history').selectOption(C);await page.waitForFunction(()=>document.querySelector('#tutor-context').textContent.includes('Somente leitura'));
   assert.ok(await field.isDisabled());assert.match(await page.locator('#tutor-messages').innerText(),/anterior privada/);
   await page.locator('#tutor-older').click();await page.waitForFunction(()=>document.querySelector('#tutor-messages').textContent.includes('Mensagem mais antiga'));assert.match(await page.locator('#tutor-messages').innerText(),/anterior privada/);assert.ok(await page.locator('#tutor-older').isHidden());
+  await page.locator('#tutor-options').click();
   await page.locator('#tutor-history').selectOption('');await page.waitForFunction(()=>!document.querySelector('#tutor-message').disabled);
   console.log('PASS previous conversations can be consulted without sending to the wrong exercise');
   await page.locator('#tutor-message').blur();
@@ -89,7 +95,10 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    await page.locator('#tutor-send').scrollIntoViewIfNeeded();const sendBox=await page.locator('#tutor-send').boundingBox();assert.ok(sendBox.y>=0&&sendBox.y+sendBox.height<=height);
    if(width<=760){const dock=await page.locator('#tutor-launcher').boundingBox(),nav=await page.locator('.mobile-nav').boundingBox();assert.ok(dock.y+dock.height<nav.y);}
   }
-  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/missao-tutor-mobile.png'});
+  await page.setViewportSize({width:390,height:844});
+  const mobileSpace=await page.locator('#tutor-messages').boundingBox(),mobilePanel=await page.locator('#tutor-panel').boundingBox();
+  assert.ok(mobileSpace.height>=mobilePanel.height*.5,'Messages should have at least half of the mobile panel');
+  await page.screenshot({path:'/tmp/missao-tutor-mobile.png'});
   // Safari's native keyboard cannot be launched by desktop Chromium. Simulate
   // its smaller visual viewport independently of the unchanged layout viewport.
   for(const selector of ['#tutor-message','#tutor-answer','#student-name','#student-grade','#subject-select','#difficulty-level','#library-search']){
@@ -119,6 +128,12 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   assert.ok(await page.locator('.mobile-nav').isVisible());assert.equal(await field.inputValue(),'Minha dúvida continua aqui');
   console.log('PASS 16px mobile fields, keyboard viewport/pan, reachable send, manual zoom and draft preservation');
   await field.focus();await page.keyboard.press('Escape');assert.ok(await page.locator('#tutor-panel').isHidden());
-  assert.deepEqual(errors,[]);console.log('PASS responsive panel, Escape, no browser errors. Provider responses were mocked; semantic quality was not tested.');
+  const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await touch.route('**/*.supabase.co/**',r=>r.abort());const touchPage=await touch.newPage();
+  await touchPage.goto(origin,{waitUntil:'domcontentloaded'});await touchPage.locator('#app-splash').waitFor({state:'detached'});
+  await touchPage.locator('#tutor-launcher').click();await touchPage.locator('#tutor-panel').waitFor({state:'visible'});
+  assert.equal(await touchPage.evaluate(()=>document.activeElement.id),'tutor-panel','Opening on touch should prioritize reading instead of opening the keyboard');
+  await touch.close();
+  assert.deepEqual(errors,[]);console.log('PASS compact drawers, expanded message area, touch reading focus, responsive panel and Escape. Provider responses were mocked.');
  }finally{await browser?.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
