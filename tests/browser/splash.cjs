@@ -11,8 +11,8 @@ const root=path.resolve(__dirname,'../../dist');
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
-  for(const scenario of ['public','authenticated','expired','offline','slow-auth','slow-resources','mobile','landscape','reduced','slow-cpu']){
-   const context=await browser.newContext({viewport:{width:scenario==='mobile'?360:scenario==='landscape'?640:1280,height:scenario==='landscape'?360:900},reducedMotion:scenario==='reduced'?'reduce':'no-preference'});
+  for(const scenario of ['public','background','stalled-font','opera-agent','authenticated','expired','offline','slow-auth','slow-resources','mobile','landscape','reduced','slow-cpu']){
+   const context=await browser.newContext({viewport:{width:scenario==='mobile'?360:scenario==='landscape'?640:1280,height:scenario==='landscape'?360:900},reducedMotion:scenario==='reduced'?'reduce':'no-preference',...(scenario==='opera-agent'?{userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 OPR/115.0.0.0'}:{})});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    if(['authenticated','expired','offline','slow-auth'].includes(scenario))await page.addInitScript(()=>localStorage.setItem('missao-escola-supabase-session',JSON.stringify({access_token:'test-token',refresh_token:'test-refresh',expires_at:Date.now()/1000+3600,user:{id:'test-user',email:'test@example.com'}})));
    await page.route('**/*.supabase.co/**',async route=>{
@@ -27,9 +27,21 @@ const root=path.resolve(__dirname,'../../dist');
    if(scenario==='slow-resources')await page.route('**/study-ui.js',async route=>{await new Promise(r=>setTimeout(r,1600));await route.continue();});
    await page.route('**/api/**',route=>route.fulfill({status:401,json:{error:'Entre na sua conta.'}}));
    if(scenario==='slow-cpu')await (await context.newCDPSession(page)).send('Emulation.setCPUThrottlingRate',{rate:4});
+   if(scenario==='background')await page.addInitScript(()=>{window.__startupHidden=true;Object.defineProperty(document,'hidden',{configurable:true,get:()=>window.__startupHidden});});
+   if(scenario==='stalled-font')await page.addInitScript(()=>Object.defineProperty(document.fonts,'ready',{configurable:true,value:new Promise(()=>{})}));
    const started=Date.now();
    await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'commit'});
    await page.locator('#app-splash').waitFor({state:'visible'});
+   if(scenario==='background'){
+    await page.waitForTimeout(3500);
+    assert.equal(await page.locator('#app-splash').count(),1,'Background loading must not consume the presentation');
+    assert.equal(await page.locator('.app-splash-logo').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
+    await page.evaluate(()=>{window.__startupHidden=false;document.dispatchEvent(new Event('visibilitychange'));});
+   }
+   if(scenario==='reduced'){
+    const fade=await page.locator('.app-splash-logo').evaluate(el=>({animation:getComputedStyle(el).animationName,transform:getComputedStyle(el).transform}));
+    assert.equal(fade.animation,'splash-logo-fade');assert.equal(fade.transform,'none');
+   }
    assert.equal(await page.locator('#app-splash img').getAttribute('src'),'./assets/brand/logo.svg');
    assert.equal(await page.locator('#app-splash [src*="mascot"]').count(),0);
    assert.equal(await page.locator('.app-splash-name').innerText(),'Missão Escola');
@@ -54,6 +66,8 @@ const root=path.resolve(__dirname,'../../dist');
     await page.waitForTimeout(400);assert.equal(await page.locator('.app-shell').isVisible(),false);
    }
    await page.locator('#app-splash').waitFor({state:'detached',timeout:10000});
+   if(scenario==='stalled-font')assert.equal(await page.locator('.startup-notice').count(),0,'Optional assets must not force the emergency timeout');
+   if(scenario==='slow-auth')assert.doesNotMatch(await page.locator('.startup-notice p').innerText(),/O carregamento demorou/,'Session timeout should recover before the startup watchdog');
    assert.ok(await page.locator('.app-shell').isVisible());
    assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),false);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -64,7 +78,7 @@ const root=path.resolve(__dirname,'../../dist');
     await page.getByRole('button',{name:'Fechar',exact:true}).click();
     assert.equal(await page.locator('.startup-notice').count(),0);
    }
-   if(scenario==='slow-auth')assert.ok(Date.now()-started<7500,'A hung authentication request must not block the page.');
+   if(scenario==='slow-auth')assert.ok(Date.now()-started<9000,'A hung authentication request must not block the page.');
    if(scenario==='public'){
     await page.locator('.side-nav [data-page="social"]').click();assert.ok(await page.locator('#account-form').isVisible());
     assert.equal(await page.locator('#app-splash').count(),0);

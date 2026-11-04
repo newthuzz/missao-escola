@@ -3,11 +3,12 @@
  'use strict';
  const root=document.documentElement;
  root.classList.add('app-starting');
- let authentication=Promise.resolve(),finished=false,locked=[],retryMessage='';
+ let authentication=Promise.resolve(),finished=false,locked=[],retryMessage='',watchdog=null;
  window.MissaoStartup={waitForAuthentication(promise){authentication=promise;}};
  function finish(){
   if(finished)return;finished=true;clearTimeout(watchdog);
-  root.classList.remove('app-starting','app-entering');
+  root.classList.remove('app-starting','app-entering','app-background');
+  document.removeEventListener('visibilitychange',visibilityChanged);
   document.querySelectorAll('.splash-handoff').forEach(el=>el.classList.remove('splash-handoff'));
   for(const el of locked)el.inert=false;
   document.querySelector('#app-splash')?.remove();
@@ -20,8 +21,22 @@
    notice.append(message,retry,close);document.body.append(notice);
   }
  }
- // Also releases the page if a module, font, image or network request hangs.
- const watchdog=setTimeout(()=>{retryMessage='O carregamento demorou. Você pode continuar ou tentar novamente.';finish();},8000);
+ // Only consume startup time while the tab is visible. Background tabs must
+ // not finish the presentation before the user has had a chance to see it.
+ function visibilityChanged(){
+  root.classList.toggle('app-background',document.hidden);clearTimeout(watchdog);
+  if(!document.hidden&&!finished)watchdog=setTimeout(()=>{retryMessage='O carregamento demorou. Você pode continuar ou tentar novamente.';finish();},8000);
+ }
+ function whenVisible(){
+  if(!document.hidden)return Promise.resolve();
+  return new Promise(resolve=>{const visible=()=>{if(!document.hidden){document.removeEventListener('visibilitychange',visible);resolve();}};document.addEventListener('visibilitychange',visible);});
+ }
+ // Font display is already allowed to fall back. A delayed font or image
+ // decoder must not freeze the presentation or use up the emergency timeout.
+ function assetReady(promise){
+  return new Promise(resolve=>{const timer=setTimeout(resolve,1500);Promise.resolve(promise).then(()=>{clearTimeout(timer);resolve();},()=>{clearTimeout(timer);resolve();});});
+ }
+ document.addEventListener('visibilitychange',visibilityChanged);visibilityChanged();
  document.addEventListener('DOMContentLoaded',async()=>{
   if(finished)return;
   const splash=document.querySelector('#app-splash'),logo=splash?.querySelector('img'),name=splash?.querySelector('.app-splash-name');
@@ -29,13 +44,14 @@
   locked=[...document.querySelectorAll('.app-shell,.mobile-nav,.skip-link')].filter(el=>!el.inert);
   locked.forEach(el=>el.inert=true);
   try{
+   await whenVisible();if(finished)return;
    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
    // CSS starts the entrance as soon as the logo is parsed, even while
    // essential scripts are still downloading. Never restart it when ready.
-   const entrance=reduced?null:logo.getAnimations().find(animation=>animation.animationName==='splash-logo-in');
-   const nameEntrance=reduced?null:name?.getAnimations().find(animation=>animation.animationName==='splash-name-in');
-   const ready=await Promise.allSettled([authentication,document.fonts?.ready,logo.decode(),entrance?.finished,nameEntrance?.finished]);
-   if(finished)return;
+   const entrance=logo.getAnimations().find(animation=>/^splash-logo-(in|fade)$/.test(animation.animationName));
+   const nameEntrance=name?.getAnimations().find(animation=>/^splash-name-(in|fade)$/.test(animation.animationName));
+   const ready=await Promise.allSettled([authentication,assetReady(document.fonts?.ready),assetReady(logo.decode()),entrance?.finished,nameEntrance?.finished]);
+   await whenVisible();if(finished)return;
    if(ready[0].status==='rejected'||ready[0].value?.connectionError)retryMessage='Não foi possível verificar a conexão. Seus estudos locais continuam disponíveis.';
    entrance?.cancel();
    nameEntrance?.cancel();
