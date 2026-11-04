@@ -82,6 +82,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await page.locator('#tutor-older').click();await page.waitForFunction(()=>document.querySelector('#tutor-messages').textContent.includes('Mensagem mais antiga'));assert.match(await page.locator('#tutor-messages').innerText(),/anterior privada/);assert.ok(await page.locator('#tutor-older').isHidden());
   await page.locator('#tutor-history').selectOption('');await page.waitForFunction(()=>!document.querySelector('#tutor-message').disabled);
   console.log('PASS previous conversations can be consulted without sending to the wrong exercise');
+  await page.locator('#tutor-message').blur();
   for(const [width,height] of [[390,844],[390,600],[844,390]]){
    await page.setViewportSize({width,height});const bounds=await page.locator('#tutor-panel').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -89,7 +90,35 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    if(width<=760){const dock=await page.locator('#tutor-launcher').boundingBox(),nav=await page.locator('.mobile-nav').boundingBox();assert.ok(dock.y+dock.height<nav.y);}
   }
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/missao-tutor-mobile.png'});
-  await page.locator('#tutor-message').focus();await page.keyboard.press('Escape');assert.ok(await page.locator('#tutor-panel').isHidden());
+  // Safari's native keyboard cannot be launched by desktop Chromium. Simulate
+  // its smaller visual viewport independently of the unchanged layout viewport.
+  for(const selector of ['#tutor-message','#tutor-answer','#student-name','#student-grade','#subject-select','#difficulty-level','#library-search']){
+   assert.ok(await page.locator(selector).evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16),selector+' must avoid iPhone focus zoom');
+  }
+  assert.ok(!/user-scalable\s*=\s*no|maximum-scale/i.test(await page.locator('meta[name="viewport"]').getAttribute('content')));
+  await field.focus();await field.fill('Minha dúvida continua aqui');
+  await page.evaluate(()=>{
+   const viewport=window.visualViewport;
+   Object.defineProperties(viewport,{height:{configurable:true,value:320},offsetTop:{configurable:true,value:24},scale:{configurable:true,value:1}});
+   viewport.dispatchEvent(new Event('resize'));
+  });
+  await page.waitForFunction(()=>document.documentElement.classList.contains('tutor-keyboard-open'));
+  assert.ok(await page.locator('.mobile-nav').isHidden());
+  await page.locator('#tutor-send').scrollIntoViewIfNeeded();
+  const keyboardBox=await page.locator('#tutor-panel').boundingBox(),send=await page.locator('#tutor-send').boundingBox();
+  assert.ok(keyboardBox.y>=24&&keyboardBox.y+keyboardBox.height<=344);
+  assert.ok(send.y>=24&&send.y+send.height<=344,'Send must stay above the keyboard');
+  await page.screenshot({path:'/tmp/missao-tutor-keyboard.png'});
+  await page.evaluate(()=>{Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:40});visualViewport.dispatchEvent(new Event('scroll'));});
+  await page.waitForFunction(()=>parseFloat(document.documentElement.style.getPropertyValue('--tutor-visible-top'))===40);
+  await page.evaluate(()=>{Object.defineProperty(visualViewport,'scale',{configurable:true,value:2});visualViewport.dispatchEvent(new Event('resize'));});
+  await page.waitForFunction(()=>!document.documentElement.classList.contains('tutor-keyboard-open'));
+  assert.equal(await page.evaluate(()=>visualViewport.scale),2,'Manual zoom must not be reset');
+  await page.evaluate(()=>{for(const key of ['height','offsetTop','scale'])delete visualViewport[key];visualViewport.dispatchEvent(new Event('resize'));});
+  await field.blur();await page.waitForFunction(()=>!document.documentElement.classList.contains('tutor-keyboard-open'));
+  assert.ok(await page.locator('.mobile-nav').isVisible());assert.equal(await field.inputValue(),'Minha dúvida continua aqui');
+  console.log('PASS 16px mobile fields, keyboard viewport/pan, reachable send, manual zoom and draft preservation');
+  await field.focus();await page.keyboard.press('Escape');assert.ok(await page.locator('#tutor-panel').isHidden());
   assert.deepEqual(errors,[]);console.log('PASS responsive panel, Escape, no browser errors. Provider responses were mocked; semantic quality was not tested.');
  }finally{await browser?.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

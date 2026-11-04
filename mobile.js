@@ -11,3 +11,31 @@
  }
  mobile.addEventListener('change',layout);layout();
 })();
+
+// iOS can pan the visual viewport when the keyboard opens while the layout
+// viewport stays tall. Fit the tutor to the visible area without changing zoom.
+(()=>{
+ const viewport=window.visualViewport;if(!viewport)return;
+ const root=document.documentElement,mobile=matchMedia('(max-width:760px)');
+ let baseline=Math.max(innerHeight,viewport.height),width=innerWidth,frame=0;
+ function update(){
+  frame=0;
+  if(Math.abs(innerWidth-width)>80){baseline=Math.max(innerHeight,viewport.height);width=innerWidth;}
+  else baseline=Math.max(baseline,innerHeight,viewport.height);
+  const field=document.activeElement,panel=field?.closest('#tutor-panel');
+  const editing=panel&&!panel.hidden&&field.matches('textarea,input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit])');
+  const keyboard=mobile.matches&&editing&&Math.abs(viewport.scale-1)<.05&&baseline-viewport.height>120;
+  root.classList.toggle('tutor-keyboard-open',Boolean(keyboard));
+  if(keyboard){
+   root.style.setProperty('--tutor-visible-top',viewport.offsetTop+'px');
+   root.style.setProperty('--tutor-visible-height',viewport.height+'px');
+  }else{
+   root.style.removeProperty('--tutor-visible-top');root.style.removeProperty('--tutor-visible-height');
+  }
+ }
+ function schedule(){if(!frame)frame=requestAnimationFrame(update);}
+ viewport.addEventListener('resize',schedule);viewport.addEventListener('scroll',schedule);
+ window.addEventListener('resize',schedule);mobile.addEventListener('change',schedule);
+ document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);
+ update();
+})();

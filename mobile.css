@@ -1,4 +1,10 @@
 /* One compact navigation row; personal controls stay with the header. */
+/* A 16px minimum avoids focus zoom on iPhone while preserving pinch zoom and
+   larger text preferences. Labels and buttons keep their own typography. */
+@media(max-width:760px), (hover:none) and (pointer:coarse) {
+ html[data-theme] input:not([type="checkbox"]):not([type="radio"]),
+ html[data-theme] select,html[data-theme] textarea { font-size:max(1rem,16px); }
+}
 @media(max-width:760px) {
  html { scroll-padding-top:10rem; }
  .topbar { height:auto; min-height:0; padding:.65rem 1rem; gap:.6rem; flex-wrap:wrap; }
@@ -38,4 +44,23 @@
  #tutor-panel.tutor-panel { top:.5rem; bottom:calc(5rem + env(safe-area-inset-bottom)); height:auto; max-height:none; right:.5rem; width:calc(100% - 1rem); border-radius:1rem; }
  .tool-tabs { gap:.5rem; }
  .tool-tab { min-width:0; overflow-wrap:anywhere; }
+}
+
+@media(max-width:760px) {
+ html.tutor-keyboard-open #tutor-panel.tutor-panel {
+  top:calc(var(--tutor-visible-top) + .5rem); bottom:auto;
+  height:calc(var(--tutor-visible-height) - 1rem); min-height:0; max-height:none;
+ }
+ html.tutor-keyboard-open .mobile-nav { visibility:hidden; pointer-events:none; }
+ html.tutor-keyboard-open .tutor-header { padding:.4rem .75rem; }
+ html.tutor-keyboard-open .tutor-title small,
+ html.tutor-keyboard-open .tutor-context small,
+ html.tutor-keyboard-open .tutor-history,
+ html.tutor-keyboard-open .tutor-suggestions,
+ html.tutor-keyboard-open .tutor-privacy-details { display:none; }
+ html.tutor-keyboard-open .tutor-context { max-height:3.25rem; margin:.4rem .75rem 0; padding:.4rem .5rem; }
+ html.tutor-keyboard-open .tutor-messages { min-height:48px; padding:.5rem .75rem; }
+ html.tutor-keyboard-open .tutor-form { max-height:60%; padding:.5rem .75rem; }
+ html.tutor-keyboard-open .tutor-form textarea { min-height:48px; max-height:96px; }
+ html.tutor-keyboard-open .tutor-status { padding-bottom:4px; }
 }
