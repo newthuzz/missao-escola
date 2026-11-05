@@ -1,0 +1,152 @@
+[
+  {
+    "print": "01-inicio",
+    "page": "inicio",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "02-estudo-entrada",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "03-ano-e-materia",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "04-exemplo",
+    "page": "aprendizagem",
+    "tool": "resumo",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "05-pratica",
+    "page": "aprendizagem",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "06-erro",
+    "page": "aprendizagem",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "07-acerto",
+    "page": "aprendizagem",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "case": "continue-from-home",
+    "tool": "recuperacao",
+    "firstAnswered": 1
+  },
+  {
+    "print": "08-retomada",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "09-final-topo",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "case": "finish-position",
+    "button": {
+      "x": 32,
+      "y": 2519.640625,
+      "width": 326,
+      "height": 43.59375
+    },
+    "hero": "Concluir estudo\n→"
+  },
+  {
+    "print": "10-final-etapas",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "11-conclusao",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "12-tutor-sem-conta",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "13-conta",
+    "page": "social",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "14-perfil",
+    "page": "perfil",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "15-desktop-conclusao",
+    "page": "aprendizagem",
+    "tool": "recuperacao",
+    "viewport": {
+      "width": 1366,
+      "height": 900
+    }
+  }
+]

@@ -1,0 +1,83 @@
+[
+  {
+    "print": "16-pratica-sem-aviso",
+    "page": "aprendizagem",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "17-respostas",
+    "page": "aprendizagem",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "18-rotina",
+    "page": "rotina",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "19-rotina-opcoes",
+    "page": "rotina",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "20-missoes",
+    "page": "missoes",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "21-apoio",
+    "page": "apoio",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "22-apoio-formulario",
+    "page": "apoio",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "23-conta-sem-aviso",
+    "page": "social",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "print": "24-estudo-desktop",
+    "page": "aprendizagem",
+    "tool": "exercicios",
+    "viewport": {
+      "width": 1366,
+      "height": 900
+    }
+  }
+]
