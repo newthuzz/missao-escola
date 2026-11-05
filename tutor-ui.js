@@ -41,13 +41,14 @@ export function mountTutor(launcher) {
    <div class="tutor-history"><label><span>Histórico</span><select id="tutor-history" aria-label="Histórico do tutor"><option value="">Conversa atual</option></select></label><button type="button" id="tutor-delete" disabled>Apagar</button></div>
    <details class="tutor-privacy-details"><summary>Sobre suas mensagens</summary><p class="tutor-privacy">Mensagens são enviadas ao provedor de IA e salvas na sua conta no Supabase. Evite dados pessoais. A IA pode errar.</p></details>
   </div>
+  <section id="tutor-access" class="tutor-access" aria-labelledby="tutor-access-title"><h3 id="tutor-access-title">Entre para conversar com o Tutor</h3><p id="tutor-access-note">Sua conta permite conversar e guardar o histórico. O perfil escolar escolhe os conteúdos; ele não substitui o login.</p><button class="primary-button" type="button" id="tutor-login">Entrar ou criar conta</button><button class="outline-button" type="button" id="tutor-load-retry" hidden>Carregar novamente</button></section>
   <div class="tutor-context" id="tutor-context"></div>
   <button type="button" class="text-button tutor-load-older" id="tutor-older" hidden>Ver mensagens anteriores</button>
   <div class="tutor-messages" id="tutor-messages" role="log" aria-live="off" aria-label="Mensagens do tutor"></div>
   <p class="tutor-status" id="tutor-status" role="status" aria-live="polite"></p>
   <form class="tutor-form" id="tutor-form">
    <div class="tutor-compose-row"><label class="tutor-sr-only" for="tutor-message">Sua mensagem</label><textarea id="tutor-message" rows="1" maxlength="3500" placeholder="Escreva sua dúvida…"></textarea><button class="primary-button" type="submit" id="tutor-send" title="Enviar mensagem"><span class="tutor-sr-only">Enviar</span><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m6 11 6-6 6 6M12 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-   <div class="tutor-actions"><button type="button" class="text-button" id="tutor-extra-toggle" aria-expanded="false" aria-controls="tutor-extra">Mais opções</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button><button class="text-button" type="button" id="tutor-login">Entrar na conta</button></div>
+   <div class="tutor-actions"><button type="button" class="text-button" id="tutor-extra-toggle" aria-expanded="false" aria-controls="tutor-extra">Mais opções</button><button class="outline-button" type="button" id="tutor-retry" hidden>Tentar novamente</button></div>
    <div class="tutor-extra" id="tutor-extra" hidden><div class="tutor-suggestions" aria-label="Sugestões opcionais"><button type="button" data-tutor-suggestion="Explique de outro jeito, com um exemplo.">Outro exemplo</button><button type="button" data-tutor-suggestion="Quero uma dica conceitual para começar.">Uma dica</button><button type="button" data-tutor-suggestion="Explique com mais detalhes a sua última resposta, em passos curtos.">Mais detalhes</button></div><details><summary>Adicionar minha tentativa</summary><label for="tutor-answer">Texto para o tutor analisar<textarea class="tutor-answer" id="tutor-answer" maxlength="2500" rows="2" placeholder="Cole sua resposta ou explique até onde chegou."></textarea></label></details></div>
   </form>`;
   document.body.append(panel);
@@ -56,7 +57,14 @@ export function mountTutor(launcher) {
   let conversationId=null,viewingHistory=false,busy=false,lastFailed=null,pendingNode=null,threads=[],earliestSeq=null,ready=false;
   function read(){const value=window.TutorStudy.snapshot(),q=value.question;return {...value,context:{exerciseId:q?.id||null,version:q?exerciseVersion(q):null,mode:value.mode}};}
   function status(text,error=false,quiet=false){$('tutor-status').textContent=text;$('tutor-status').dataset.error=String(error);$('tutor-status').dataset.quiet=String(quiet&&!error);}
-  function controls(){field.disabled=viewingHistory;answerField.disabled=viewingHistory;$('tutor-send').disabled=busy||viewingHistory||!ready;$('tutor-login').hidden=Boolean(user);$('tutor-delete').disabled=!conversationId||busy;}
+  function controls(){
+   const allowed=Boolean(user&&ready&&!viewingHistory);field.disabled=!allowed;answerField.disabled=!allowed;$('tutor-send').disabled=busy||!allowed;
+   $('tutor-form').hidden=!allowed;$('tutor-access').hidden=Boolean(user&&ready);$('tutor-options').hidden=!user;log.hidden=!user;
+   $('tutor-login').hidden=Boolean(user);$('tutor-load-retry').hidden=!user;
+   $('tutor-access-title').textContent=user?'A conversa ainda não está pronta':'Entre para conversar com o Tutor';
+   $('tutor-access-note').textContent=user?'Aguarde o carregamento. Se não conectar, tente novamente. Seu estudo continua disponível.':'Sua conta permite conversar e guardar o histórico. O perfil escolar escolhe os conteúdos; ele não substitui o login.';
+   $('tutor-delete').disabled=!conversationId||busy;
+  }
   function contextLabel(saved){
     const title=document.createElement('strong');title.textContent=viewingHistory?'Histórico · '+(saved?.title||'Conversa anterior'):descriptor.question?.question||'Conversa de estudo';
     const note=document.createElement('small');note.textContent=viewingHistory?'Somente leitura. Selecione “Conversa atual” para continuar.':(saved?.mode||descriptor.mode)==='diagnostic'?'Teste inicial · ajuda conceitual, sem gabarito.':'Pergunte sobre esta atividade ou outro assunto de estudo.';
@@ -84,7 +92,7 @@ export function mountTutor(launcher) {
     for(const m of messages){const node=bubble(m.role,m.content);if(m.role==='assistant')renderMath(node.body,m.content);}
     log.scrollTop=log.scrollHeight;
   }
-  function cancel(){epoch++;sendController?.abort();loadController?.abort();busy=false;pendingNode=null;lastFailed=null;$('tutor-retry').hidden=true;$('tutor-older').hidden=true;}
+  function cancel(){epoch++;sendController?.abort();loadController?.abort();busy=false;ready=false;pendingNode=null;lastFailed=null;$('tutor-retry').hidden=true;$('tutor-older').hidden=true;}
   async function post(payload,signal){
     const expected=user,token=await getAccountToken();
     if(!expected||getAccountUser()!==expected)throw Error('A conta mudou. Entre novamente.');
@@ -166,7 +174,8 @@ export function mountTutor(launcher) {
     const suggestion=event.target.closest('[data-tutor-suggestion]');if(suggestion){field.value=suggestion.dataset.tutorSuggestion;$('tutor-extra').hidden=true;$('tutor-extra-toggle').setAttribute('aria-expanded','false');field.focus();fitMessage();}
     for(const [button,target] of [['tutor-options','tutor-tools'],['tutor-extra-toggle','tutor-extra']]){if(event.target.closest('#'+button)){const region=$(target);region.hidden=!region.hidden;$(button).setAttribute('aria-expanded',String(!region.hidden));}}
     if(event.target.closest('#tutor-minimize'))toggle(false);
-    if(event.target.closest('#tutor-login')){toggle(false);window.navigate('social');}
+    if(event.target.closest('#tutor-login')){const context=window.TutorStudy.snapshot();try{sessionStorage.setItem('missao-tutor-return',JSON.stringify({page:window.TutorStudy.returnContext?.().page||'aprendizagem',questionId:context.question?.id||null}));}catch{}toggle(false);window.navigate('social');}
+    if(event.target.closest('#tutor-load-retry'))load();
     if(event.target.closest('#tutor-retry')){if(lastFailed)send(lastFailed,true);else load(viewingHistory?$('tutor-history').value:null);}
     if(event.target.closest('#tutor-older')&&conversationId&&earliestSeq){
       const ticket=epoch,control=$('tutor-older'),before=earliestSeq,id=conversationId;control.disabled=true;
@@ -194,8 +203,9 @@ export function mountTutor(launcher) {
   });
   function toggle(force){
     const open=force??panel.hidden;panel.hidden=!open;launcher.setAttribute('aria-expanded',String(open));launcher.setAttribute('aria-label',open?'Minimizar Tutor IA':'Abrir Tutor IA');
-    if(open){descriptor=read();signature=contextKey(descriptor.context);if((!conversationId||!ready)&&!busy)load();if(matchMedia('(pointer: coarse)').matches)panel.focus({preventScroll:true});else field.focus();}else launcher.focus();
+    if(open){descriptor=read();signature=contextKey(descriptor.context);if((!conversationId||!ready)&&!busy)load();if(matchMedia('(pointer: coarse)').matches)panel.focus({preventScroll:true});else if(user&&ready)field.focus();else panel.focus({preventScroll:true});}else launcher.focus();
   }
+  window.addEventListener('missao-account-ready',()=>{let saved;try{saved=JSON.parse(sessionStorage.getItem('missao-tutor-return'));sessionStorage.removeItem('missao-tutor-return');}catch{}if(!saved||!getAccountUser())return;window.navigate(saved.page||'aprendizagem');window.TutorStudy.restoreContext?.(saved);toggle(true);});
   contextLabel();controls();showMessages([]);
   return {toggle};
 }

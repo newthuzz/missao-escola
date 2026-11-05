@@ -7,6 +7,7 @@ const root=path.resolve(__dirname,'../../dist');
  try{
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
   const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+  await page.addInitScript(()=>localStorage.setItem('missao-escola-personal-v1',JSON.stringify({version:2,selectedGrade:7})));
   await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>document.querySelector('.mobile-nav [data-page="social"]'));
   await page.locator('#app-splash').waitFor({state:'detached'});
   const home=page.locator('#page-inicio');
@@ -31,16 +32,16 @@ const root=path.resolve(__dirname,'../../dist');
   // Resuming must preserve a partially completed plan, even when the next recommendation differs.
   const plan=await page.evaluate(()=>{
     learner.profile=A.profileInput({name:'Ana Teste',age:13,grade:7,difficulties:[]});
-    learner.plan=A.makePlan(learner,'matematica',today);learner.plan.started=true;learner.plan.answeredIds=[learner.plan.questionIds[0]];
+    learner.plan=A.makePlan(learner,'matematica',today);learner.plan.started=true;learner.plan.reviewed=true;learner.plan.answeredIds=[learner.plan.questionIds[0]];
     saveLearner();navigate('inicio');return structuredClone(learner.plan);
   });
   await home.getByRole('button',{name:'Continuar estudo'}).click();
-  assert.equal(await page.evaluate(()=>state.page),'aprendizagem');assert.deepEqual(await page.evaluate(()=>learner.plan),plan);
-  assert.equal(await page.locator('#tool-recuperacao').isVisible(),true);
+  assert.equal(await page.evaluate(()=>state.page),'aprendizagem');assert.deepEqual(await page.evaluate(()=>learner.plan.questionIds),plan.questionIds);assert.deepEqual(await page.evaluate(()=>learner.plan.answeredIds),plan.answeredIds);
+  assert.equal(await page.locator('#tool-exercicios').isVisible(),true);assert.equal(await page.evaluate(()=>state.currentQuestion.id),plan.questionIds[1]);
   console.log('PASS current study resumes with the same subject, exercise IDs and completed steps');
 
   await page.evaluate(()=>{J.award(progress,{id:'home-ui-test',date:today,xp:20,coins:0,label:'Teste',kind:'questao'});save();render();navigate('inicio');});
-  assert.match(await page.locator('#home-daily-summary').innerText(),/Meta de hoje concluída/);assert.equal(await page.locator('#home-daily-progress').getAttribute('aria-valuenow'),'20');
+  assert.match(await page.locator('#home-daily-summary').innerText(),/Meta diária de pontos atingida/);assert.equal(await page.locator('#home-daily-progress').getAttribute('aria-valuenow'),'20');
   const beforeChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));
   await home.locator('[data-go="recompensas"]').click();assert.ok(await page.locator('#claim-chest').isVisible());await page.locator('#claim-chest').click();assert.ok(await page.locator('#claim-chest').isDisabled());
   const afterChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));

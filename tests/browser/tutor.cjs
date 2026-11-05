@@ -31,6 +31,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    }catch{} // An intentionally cancelled old context must never render.
   });
   const page=await context.newPage(),errors=[],assets=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>assets.push(r.url()));page.setDefaultTimeout(15000);
+  await page.addInitScript(()=>localStorage.setItem('missao-escola-personal-v1',JSON.stringify({version:2,selectedGrade:7})));
   await page.goto(origin);await page.waitForFunction(()=>document.querySelector('#page-social'));await page.locator('#app-splash').waitFor({state:'detached'});
   assert.ok(!assets.some(u=>u.endsWith('/tutor-ui.js')||u.includes('/katex/')));
   await page.locator('#tutor-launcher').click();await page.locator('#tutor-message').waitFor({state:'visible'});
@@ -62,7 +63,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await page.waitForTimeout(100);assert.equal((await page.evaluate(()=>state.helped)),true);
   assert.equal(calls.filter(c=>c.body.op==='send').at(-1).body.context.exerciseId,question);
   const sent=calls.filter(c=>c.body.op==='send').length;await field.fill('Não enviar duas vezes');await field.press('Enter');assert.equal(calls.filter(c=>c.body.op==='send').length,sent);
-  await page.evaluate(()=>nextQuestion());
+  await page.evaluate(()=>{state.currentQuestion=null;renderQuestion();});
   await page.waitForFunction(id=>state.currentQuestion.id!==id,question);await page.waitForTimeout(50);state.release();state.delay=false;
   await page.waitForTimeout(150);assert.ok(!(await page.locator('#tutor-messages').innerText()).includes('Pq essa conta'));
   assert.ok(!(await page.locator('#tutor-messages').innerText()).includes('Explicação da IA'));
@@ -77,9 +78,9 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   await page.waitForTimeout(100);state.release();state.delay=false;await page.waitForTimeout(100);
   assert.ok(!(await page.locator('#tutor-messages').innerText()).includes('conta A'));assert.ok(!(await page.locator('#tutor-messages').innerText()).includes('Explicação da IA'));
   console.log('PASS account switch clears drafts/history and suppresses late responses');
-  state.legacy=true;await page.evaluate(()=>navigate('inicio'));await page.locator('#tutor-retry').waitFor({state:'visible'});assert.ok(await page.locator('#tutor-send').isDisabled());
-  const beforeLegacySend=calls.filter(c=>c.body.op==='send').length;await field.fill('Não gastar com endpoint antigo');await field.press('Enter');assert.equal(calls.filter(c=>c.body.op==='send').length,beforeLegacySend);
-  state.legacy=false;await page.locator('#tutor-retry').click();await page.waitForFunction(()=>!document.querySelector('#tutor-send').disabled);console.log('PASS old backend cannot trigger paid generations before protocol upgrade');
+  state.legacy=true;await page.locator('#tutor-minimize').click();await page.evaluate(()=>navigate('inicio'));await page.locator('#tutor-launcher').click();await page.locator('#tutor-load-retry').waitFor({state:'visible'});assert.ok(await page.locator('#tutor-send').isDisabled());
+  const beforeLegacySend=calls.filter(c=>c.body.op==='send').length;assert.ok(await field.isHidden());assert.equal(calls.filter(c=>c.body.op==='send').length,beforeLegacySend);
+  state.legacy=false;await page.locator('#tutor-load-retry').click();await page.waitForFunction(()=>!document.querySelector('#tutor-send').disabled);console.log('PASS old backend cannot trigger paid generations before protocol upgrade');
   state.history=true;await page.locator('#tutor-minimize').click();await page.locator('#tutor-launcher').click();await page.waitForFunction(()=>document.querySelector('#tutor-history').options.length>1);
   await page.locator('#tutor-options').click();
   await page.locator('#tutor-history').selectOption(C);await page.waitForFunction(()=>document.querySelector('#tutor-context').textContent.includes('Somente leitura'));

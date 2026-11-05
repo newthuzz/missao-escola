@@ -51,9 +51,9 @@ function applySnapshot(value){
  J.reconcileStreak(next.progress,today);
  persistSnapshot(next);
  progress=next.progress;learner=next.learner;routine=next.routine;routineWorking=structuredClone(routine);routineDirty=false;formDirty=false;
- state.currentQuestion=null;state.practiceSeen=[];state.planPractice=false;
+ state.subject=A.studyState(learner,today).subject;state.currentQuestion=null;state.practiceSeen=[];state.planPractice=false;
  if(!learner.profile){document.querySelector('#profile-form').reset();}
- fillProfile();render();renderPlan();renderQuestion();renderSummary();renderDiagnostic();if(routineInitialized)fillRoutineFields();
+ fillProfile();render();renderPlan();renderQuestion();renderSummary();renderDiagnostic();if(routineInitialized)fillRoutineFields();if(state.page==='aprendizagem'){if(learner.plan?.finished)window.showStudyResult?.();else if(learner.plan?.started)window.resumeStudy?.(false);}
 }
 function canApply(){return !routineDirty&&!formDirty&&!document.activeElement?.matches('input,textarea,select');}
 function startSync(){
@@ -64,7 +64,7 @@ function startSync(){
   writeMeta:value=>localStorage.setItem(META_KEY,JSON.stringify(value)),canApply,onStatus:showSync,
   fetchRemote:async()=>{const access=await token();if(session?.user?.id!==id)throw Error('A conta foi alterada.');const rows=await request('/rest/v1/learner_backups?select=snapshot,revision,updated_at',{token:access});if(session?.user?.id!==id)throw Error('A conta foi alterada.');backup=rows[0]||null;return backup;},
   saveRemote:async(value,revision)=>{const access=await token();if(session?.user?.id!==id)throw Error('A conta foi alterada.');const rows=await saveBackup(access,value,revision);if(session?.user?.id!==id)throw Error('A conta foi alterada.');backup=rows[0]||null;return rows;}
- });sync.tick();
+ });return sync.tick();
 }
 let mirrorQueued=false;
 function scheduleSync(){
@@ -87,7 +87,7 @@ page.addEventListener('submit',event=>{
  const body={email:fields.get('email').trim(),password:fields.get('password')};run(async()=>{
   const result=await request(action==='signup'?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body});
   if(!result.access_token)return 'Confira seu e-mail para confirmar a conta. Depois, entre aqui.';
-  store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;startSync();return 'Conta conectada. O progresso mais recente será carregado automaticamente.';
+  store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;await startSync();window.dispatchEvent(new CustomEvent('missao-account-ready'));return 'Conta conectada. O progresso mais recente será carregado automaticamente.';
  });
 });
 page.addEventListener('click',event=>{

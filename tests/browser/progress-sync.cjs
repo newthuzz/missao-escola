@@ -18,7 +18,7 @@ const root=path.resolve(__dirname,'../..');
  }
  return route.fulfill({status:404,json:{message:'Unknown mock endpoint'}});
  });return c;}
- async function login(page,email='a@example.com'){await page.evaluate(()=>navigate('social'));await page.locator('#account-form [name="email"]').fill(email);await page.locator('#account-form [name="password"]').fill('test-password');await page.getByRole('button',{name:'Entrar',exact:true}).click();}
+ async function login(page,email='a@example.com'){await page.locator('#app-splash').waitFor({state:'detached'});await page.evaluate(()=>navigate('social'));await page.locator('#account-form [name="email"]').fill(email);await page.locator('#account-form [name="password"]').fill('test-password');await page.getByRole('button',{name:'Entrar',exact:true}).click();}
  try{
  browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const c=await context(),page=await c.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8128/');

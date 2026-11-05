@@ -80,3 +80,4 @@
  .tutor-suggestions { display:flex; }
 }
 @media(max-height:600px) { .tutor-context { max-height:54px; margin-top:8px; } .tutor-header { padding:8px 12px; } .tutor-title small { display:none; } .tutor-history { padding:5px 12px; } .tutor-messages { min-height:72px; } .tutor-form textarea { min-height:48px; max-height:80px; } .tutor-suggestions { display:none; } }
+.tutor-access{padding:1.5rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;flex:1;gap:1rem;overflow:auto}.tutor-access h3,.tutor-access p{margin:0}.tutor-access[hidden],.tutor-form[hidden]{display:none!important}

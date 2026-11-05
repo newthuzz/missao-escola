@@ -13,7 +13,7 @@
  const canonical=id=>canonicalMap.get(id)||id;
  const caches=new WeakMap();
  function index(s){
-  const signature=JSON.stringify([s.profile,s.preferences]),old=caches.get(s);
+  const signature=JSON.stringify([s.profile,s.selectedGrade,s.preferences]),old=caches.get(s);
   if(old&&old.array===s.observations&&old.length===s.observations.length&&old.signature===signature)return old;
   const ix={array:s.observations,length:s.observations.length,signature,bySubject:new Map(),byQuestion:new Map(),byUnit:new Map(),models:new Map(),reviews:new Map(),stats:new Map(),paths:new Map(),recommendations:new Map()};
   const seen=new Set();
@@ -30,7 +30,9 @@
  function setPreferences(s,value){s.preferences=preferences(value);invalidate(s);return s.preferences;}
  function planMinutes(s,count){return Math.min(minutes(s),2+count*2);}
  const band=grade=>grade<=5?'f1':grade<=9?'f2':'em';
- function blank(){return {version:2,preferences:{},presentations:[],profile:null,observations:[],diagnostic:null,plan:null,introDismissed:false};}
+ const validYear=value=>Number.isInteger(value)&&value>=1&&value<=12;
+ function schoolYear(s){return validYear(s.profile?.grade)?s.profile.grade:validYear(s.selectedGrade)?s.selectedGrade:null;}
+ function blank(){return {version:2,selectedGrade:null,selectedSubject:'',planHistory:[],preferences:{},presentations:[],profile:null,observations:[],diagnostic:null,plan:null,introDismissed:false};}
  function profileInput(input){
   const name=typeof input?.name==='string'?input.name.trim().replace(/\s+/g,' ').slice(0,60):'';
   const age=Number(input?.age),grade=Number(input?.grade);
@@ -42,7 +44,7 @@
   const s=blank();if(!raw||![1,2].includes(raw.version))return s;
   s.preferences=preferences(raw.preferences);
   s.presentations=Array.isArray(raw.presentations)?raw.presentations.filter(p=>p&&validDate(p.date)&&Array.isArray(p.ids)).slice(-100).map(p=>({date:p.date,ids:p.ids.filter(id=>questionMap.has(id))})):[];
-  s.profile=profileInput(raw.profile);s.introDismissed=Boolean(raw.introDismissed);
+  s.profile=profileInput(raw.profile);s.selectedGrade=s.profile?.grade||(validYear(raw.selectedGrade)?raw.selectedGrade:null);s.selectedSubject=subjectMap.has(raw.selectedSubject)&&(!schoolYear(s)||subjectMap.get(raw.selectedSubject).minGrade<=schoolYear(s))?raw.selectedSubject:'';s.planHistory=Array.isArray(raw.planHistory)?raw.planHistory.slice(-30).map(p=>load({version:2,selectedGrade:p?.grade,plan:p}).plan).filter(Boolean):[];s.introDismissed=Boolean(raw.introDismissed);
   const seen=new Set();
   if(Array.isArray(raw.observations))s.observations=raw.observations.filter(o=>o&&questionMap.has(o.questionId)&&validDate(o.date)&&typeof o.correct==='boolean'&&Number.isInteger(o.grade)&&o.grade>=1&&o.grade<=12&&!seen.has(o.date+':'+o.questionId)&&(seen.add(o.date+':'+o.questionId),true)).map(o=>({questionId:o.questionId,date:o.date,correct:o.correct,helped:!!o.helped,grade:o.grade,source:['diagnostic','online'].includes(o.source)?o.source:'practice',confidence:['guess','unsure','sure'].includes(o.confidence)?o.confidence:null}));
   const d=raw.diagnostic;
@@ -53,15 +55,16 @@
   }
   const p=raw.plan;
   if(p&&validDate(p.date)&&subjectMap.has(p.subject)&&questionMap.get(p.exampleId)?.subject===p.subject&&Array.isArray(p.questionIds)&&p.questionIds.length>0&&p.questionIds.length<=3&&p.questionIds.every(id=>questionMap.get(id)?.subject===p.subject)&&levels.includes(p.level))s.plan={date:p.date,subject:p.subject,level:p.level,exampleId:p.exampleId,questionIds:[...new Set(p.questionIds)],started:!!p.started,reviewed:!!p.reviewed,answeredIds:Array.isArray(p.answeredIds)?[...new Set(p.answeredIds.filter(id=>p.questionIds.includes(id)))]:[],finished:!!p.finished,unitId:questionMap.get(p.exampleId)?.unitId||null,estimatedMinutes:planMinutes(s,p.questionIds.length),limited:!!p.limited,notice:typeof p.notice==='string'?p.notice.slice(0,300):'',...(p.explicitFoundation?{explicitFoundation:true}:{})};
+  if(s.plan){s.plan.grade=validYear(p.grade)?p.grade:schoolYear(s);s.plan.currentQuestionId=s.plan.questionIds.includes(p.currentQuestionId)?p.currentQuestionId:null;s.plan.attempts={};s.plan.hintedIds=Array.isArray(p.hintedIds)?p.hintedIds.filter(id=>s.plan.questionIds.includes(id)):[];s.plan.legacyXP=!!p.legacyXP||!Number.isFinite(p.earnedXP);s.plan.earnedXP=Number.isFinite(p.earnedXP)?Math.max(0,p.earnedXP):0;for(const id of s.plan.questionIds){const a=p.attempts?.[id],q=questionMap.get(id);if(a&&Number.isInteger(a.firstAnswer)&&a.firstAnswer>=0&&a.firstAnswer<q.answers.length)s.plan.attempts[id]={firstAnswer:a.firstAnswer,helped:!!a.helped,wrongChoices:Array.isArray(a.wrongChoices)?[...new Set(a.wrongChoices.filter(n=>Number.isInteger(n)&&n>=0&&n<q.answers.length&&n!==q.correct))]:[],confidence:['guess','unsure','sure'].includes(a.confidence)?a.confidence:null};} }
   if(s.plan&&!s.plan.explicitFoundation&&s.profile&&questionMap.get(s.plan.exampleId)?.band!==band(s.profile.grade))s.plan=null;
-  if(s.plan){const ids=[s.plan.exampleId,...s.plan.questionIds];const grade=s.profile?.grade||7;if(new Set(ids.map(canonical)).size!==ids.length||ids.some(id=>questionMap.get(id).minGrade>grade||(!s.plan.explicitFoundation&&questionMap.get(id).band!==band(grade))))s.plan=null;}
+  if(s.plan&&schoolYear(s)){const ids=[s.plan.exampleId,...s.plan.questionIds];const grade=schoolYear(s);if(new Set(ids.map(canonical)).size!==ids.length||ids.some(id=>questionMap.get(id).minGrade>grade||(!s.plan.explicitFoundation&&questionMap.get(id).band!==band(grade))))s.plan=null;}
   return s;
  }
- function subjects(s){const grade=s.profile?.grade||7;return C.subjects.filter(c=>c.minGrade<=grade);}
- function eligible(s,subject,level=null,{unitId=null,includeEarlier=false}={}){const grade=s.profile?.grade||7;return C.questions.filter(q=>q.subject===subject&&q.minGrade<=grade&&(includeEarlier||q.band===band(grade))&&(!unitId||q.unitId===unitId)&&(!level||q.level===level));}
+ function subjects(s){const grade=schoolYear(s);return grade?C.subjects.filter(c=>c.minGrade<=grade):[];}
+ function eligible(s,subject,level=null,{unitId=null,includeEarlier=false}={}){const grade=schoolYear(s);return grade?C.questions.filter(q=>q.subject===subject&&q.minGrade<=grade&&(includeEarlier||q.band===band(grade))&&(!unitId||q.unitId===unitId)&&(!level||q.level===level)):[];}
  function observe(s,q,correct,date,{helped=false,source='practice',confidence=null}={}){
-  if(!questionMap.has(q.id)||!validDate(date)||typeof correct!=='boolean'||(index(s).byQuestion.get(canonical(q.id))||[]).some(o=>o.date===date))return false;
-  s.observations.push({questionId:q.id,date,correct,helped:!!helped,source:['diagnostic','online'].includes(source)?source:'practice',grade:s.profile?.grade||7,confidence:['guess','unsure','sure'].includes(confidence)?confidence:null});invalidate(s);return true;
+  if(!schoolYear(s)||!questionMap.has(q?.id)||!validDate(date)||typeof correct!=='boolean'||(index(s).byQuestion.get(canonical(q.id))||[]).some(o=>o.date===date))return false;
+  s.observations.push({questionId:q.id,date,correct,helped:!!helped,source:['diagnostic','online'].includes(source)?source:'practice',grade:schoolYear(s),confidence:['guess','unsure','sure'].includes(confidence)?confidence:null});invalidate(s);return true;
  }
  function model(s,subject){
   const ix=index(s);if(ix.models.has(subject))return ix.models.get(subject);
@@ -70,9 +73,9 @@
    const q=questionMap.get(observation.questionId);if(q?.subject!==subject)continue;
    const skill=m.skills[q.skill]||{offset:0,count:0,correct:0};
    const b=difficulty[q.level],prediction=1/(1+Math.exp(-(m.ability+skill.offset*.45-b)));
-   const weight=(observation.helped?.35:1)*(q.band===band(s.profile?.grade||7)?1:.2),rate=.62/Math.sqrt(1+m.count/25),error=(Number(observation.correct)-prediction)*weight;
+   const weight=(observation.helped?.35:1)*(q.band===band(schoolYear(s))?1:.2),rate=.62/Math.sqrt(1+m.count/25),error=(Number(observation.correct)-prediction)*weight;
    m.ability=clamp(m.ability+rate*error,-2.8,3);skill.offset=clamp(skill.offset+.35*error,-1.4,1.4);skill.count++;skill.correct+=Number(observation.correct);m.skills[q.skill]=skill;
-   m.count++;m.correct+=Number(observation.correct);if(!observation.helped&&q.band===band(s.profile?.grade||7))m.independent++;m.recent.push(observation);
+   m.count++;m.correct+=Number(observation.correct);if(!observation.helped&&q.band===band(schoolYear(s)))m.independent++;m.recent.push(observation);
   }
   m.recent=m.recent.slice(-5);m.accuracy=m.count?m.correct/m.count:null;
   m.level=m.independent>=8&&m.ability>=.9?'dificil':m.independent>=3&&m.ability>=-.05?'medio':'facil';
@@ -93,13 +96,13 @@
   ix.recommendations.set(today,output);return output;
  }
  const unit=id=>(C.units||[]).find(u=>u.id===id);
- function unitsFor(s,subject,{allCycles=false}={}){const grade=s.profile?.grade||7;return(C.units||[]).filter(u=>u.subject===subject&&u.minGrade<=grade&&(allCycles||u.band===band(grade)));}
+ function unitsFor(s,subject,{allCycles=false}={}){const grade=schoolYear(s);return grade?(C.units||[]).filter(u=>u.subject===subject&&u.minGrade<=grade&&(allCycles||u.band===band(grade))):[];}
  const addDays=(date,n)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
  function reviewInfo(s,q,today){const ix=index(s),key=canonical(q.id)+':'+today;if(ix.reviews.has(key))return ix.reviews.get(key);const history=[...(ix.byQuestion.get(canonical(q.id))||[])].sort((a,b)=>a.date.localeCompare(b.date)),last=history.at(-1);if(!last)return{due:null,overdue:false,days:0};let streak=0;for(let i=history.length-1;i>=0;i--){if(!history[i].correct||history[i].helped)break;streak++;}const days=!last.correct||last.helped?1:[1,3,7,14][Math.min(3,streak-1)];const due=addDays(last.date,days);const result={due,overdue:due<=today,days,last};ix.reviews.set(key,result);return result;}
  function unitStats(s,u,today){const ix=index(s),key=u.id+':'+today;if(ix.stats.has(key))return ix.stats.get(key);const observations=ix.byUnit.get(u.id)||[],independent=observations.filter(o=>!o.helped),correct=independent.filter(o=>o.correct),distinct=new Set(independent.map(o=>canonical(o.questionId))).size,days=new Set(correct.map(o=>o.date)).size;let weight=0,success=0;for(const o of observations){const w=o.helped?.35:1;weight+=w;if(o.correct)success+=w;}const estimate=(1+success)/(2+weight),mastered=independent.length>=5&&distinct>=4&&days>=2&&correct.length/independent.length>=.8;const due=u.questionIds.map(id=>reviewInfo(s,questionMap.get(id),today)).filter(r=>r.due).sort((a,b)=>a.due.localeCompare(b.due))[0]?.due||null;const recent=observations.slice(-3),struggling=recent.filter(o=>!o.correct).length>=2;const result={count:observations.length,independent:independent.length,distinct,estimate,mastered,due,confidence:distinct>=4&&days>=2?'moderada':observations.length>=3?'inicial':'poucos dados',status:!observations.length?'Novo':struggling?'Reforçar':due&&due<=today?'Revisar':mastered?'Consolidado':'Em prática'};ix.stats.set(key,result);return result;}
  function learningPath(s,subject,today){
   const ix=index(s),key=subject+':'+today;if(ix.paths.has(key))return ix.paths.get(key);
-  const grade=s.profile?.grade||7,available=unitsFor(s,subject),allowed=new Set(available.map(u=>u.id));
+  const grade=schoolYear(s),available=unitsFor(s,subject),allowed=new Set(available.map(u=>u.id));
   const paths=available.map(u=>{const stats=unitStats(s,u,today),prerequisites=(u.prerequisites||[]).filter(id=>id!==u.id&&allowed.has(id)).map(id=>({unit:unit(id),stats:unitStats(s,unit(id),today)}));
    const topic=s.preferences?.topic?.toLocaleLowerCase('pt-BR'),match=topic&&(u.title+' '+u.objective+' '+u.area).toLocaleLowerCase('pt-BR').includes(topic);
    const reason=stats.status==='Reforçar'?'Vamos rever esta base: houve dificuldades recentes.':stats.status==='Revisar'?'Recupere este conteúdo sem consultar a resposta.':match?'Este conteúdo corresponde ao tema que você informou.':stats.count?'Continue praticando em outro contexto.':'Comece com uma checagem curta; ainda temos poucas evidências.';
@@ -109,7 +112,7 @@
   paths.sort((a,b)=>b.priority-a.priority||a.unit.id.localeCompare(b.unit.id));ix.paths.set(key,paths);return paths;
  }
  function select(s,subject,today,{level='auto',exclude=[],skill=null,unitId=null,includeEarlier=false}={}){
-  const m=model(s,subject),grade=s.profile?.grade||7,targetLevel=level==='auto'?m.level:level;
+  const m=model(s,subject),grade=schoolYear(s),targetLevel=level==='auto'?m.level:level;
   const options={unitId,includeEarlier},excluded=new Set(exclude.map(canonical));let pool=eligible(s,subject,targetLevel,options).filter(q=>!excluded.has(canonical(q.id)));if(!pool.length&&level==='auto')pool=eligible(s,subject,null,options).filter(q=>!excluded.has(canonical(q.id)));if(!pool.length)return null;const unique=new Set();pool=pool.filter(q=>!unique.has(canonical(q.id))&&(unique.add(canonical(q.id)),true));
   if(skill&&pool.some(q=>q.skill===skill))pool=pool.filter(q=>q.skill===skill);
   const observations=index(s).bySubject.get(subject)||[];const seenToday=new Set(observations.filter(o=>o.date===today).map(o=>canonical(o.questionId)));
@@ -137,11 +140,14 @@
   practice=practice.slice(0,capacity);
   const limited=practice.length<capacity;
   const notice=limited?'O acervo adequado permite uma sessão menor. Você pode revisitar conteúdos depois.':level==='auto'&&practice.some(q=>q.level!==first.level)?'As etapas variam de dificuldade para consolidar o conteúdo.':'';
-  const plan={date:today,subject,unitId:chosen,level:first.level,exampleId:first.id,questionIds:practice.map(q=>q.id),started:false,reviewed:false,answeredIds:[],finished:false,limited,notice,estimatedMinutes:planMinutes(s,practice.length)};
+  const plan={currentQuestionId:null,grade:schoolYear(s),attempts:{},hintedIds:[],earnedXP:0,date:today,subject,unitId:chosen,level:first.level,exampleId:first.id,questionIds:practice.map(q=>q.id),started:false,reviewed:false,answeredIds:[],finished:false,limited,notice,estimatedMinutes:planMinutes(s,practice.length)};
   s.presentations=[...(s.presentations||[]),{date:today,ids:[first.id,...plan.questionIds]}].slice(-100);return plan;
  }
- function repeatPlan(s){if(!s.plan)return null;return {...s.plan,started:false,reviewed:false,answeredIds:[],finished:false};}
- function sessionSummary(s,plan,today){const ids=plan.questionIds;const obs=(index(s).bySubject.get(plan.subject)||[]).filter(o=>o.date===plan.date&&ids.some(id=>canonical(id)===canonical(o.questionId)));const dates=ids.map(id=>reviewInfo(s,questionMap.get(id),today).due).filter(Boolean).sort();return {independent:obs.filter(o=>o.correct&&!o.helped).length,support:obs.filter(o=>o.helped||!o.correct).length,nextReview:dates[0]||null};}
+ function repeatPlan(s){if(!s.plan)return null;return {...s.plan,legacyXP:false,currentQuestionId:null,attempts:{},hintedIds:[],earnedXP:0,started:false,reviewed:false,answeredIds:[],finished:false};}
+ function archivePlan(s){if(s.plan){s.planHistory=[...(s.planHistory||[]),JSON.parse(JSON.stringify(s.plan))].slice(-30);s.plan=null;}}
+ function setGrade(s,value){const grade=Number(value);if(!validYear(grade))return false;const before=schoolYear(s);if(before!==grade){const compatibleLegacy=before===null&&s.plan&&[s.plan.exampleId,...s.plan.questionIds].every(id=>questionMap.get(id)?.minGrade<=grade&&(s.plan.explicitFoundation||questionMap.get(id).band===band(grade)));if(compatibleLegacy)s.plan.grade=grade;else archivePlan(s);s.diagnostic=null;}s.selectedGrade=grade;if(s.profile)s.profile={...s.profile,grade,difficulties:s.profile.difficulties.filter(id=>subjectMap.get(id).minGrade<=grade)};if(!subjects(s).some(v=>v.id===s.selectedSubject))s.selectedSubject='';invalidate(s);return true;}
+ function studyState(s,today){const grade=schoolYear(s),p=s.plan;const subject=p?.subject||s.selectedSubject||recommend(s,today)[0]?.id||'';const pending=p?.currentQuestionId&&!p.answeredIds.includes(p.currentQuestionId)?p.currentQuestionId:p?.questionIds.find(id=>!p.answeredIds.includes(id))||null;return {grade,subject,plan:p,status:!grade?'needs-grade':!p?'not-started':p.finished?'completed':p.started?'in-progress':'not-started',nextQuestionId:pending,step:p?.finished?'completed':!p?.reviewed?'example':pending?'practice':'completed'};}
+ function sessionSummary(s,plan,today){const ids=plan.questionIds;const obs=Object.keys(plan.attempts||{}).length?Object.entries(plan.attempts).map(([id,a])=>({correct:a.firstAnswer===questionMap.get(id)?.correct,helped:a.helped})): (index(s).bySubject.get(plan.subject)||[]).filter(o=>o.date===plan.date&&ids.some(id=>canonical(id)===canonical(o.questionId)));const dates=ids.map(id=>reviewInfo(s,questionMap.get(id),today).due).filter(Boolean).sort();return {independent:obs.filter(o=>o.correct&&!o.helped).length,support:obs.filter(o=>o.helped||!o.correct).length,nextReview:dates[0]||null};}
  function startDiagnostic(s,today){
   if(!s.profile)return null;
   if(s.diagnostic&&s.diagnostic.date===today&&s.diagnostic.grade===s.profile.grade)return s.diagnostic;
@@ -154,5 +160,5 @@
  function diagnosticAnswer(s,index,date){const d=s.diagnostic;if(!d||d.finished||!validDate(date))return false;const q=questionMap.get(d.questionIds[d.answers.length]);if(!q)return false;if(index!==null&&(!Number.isInteger(index)||index<0||index>=q.answers.length))return false;d.answers.push(index);if(index!==null)observe(s,q,index===q.correct,date,{source:'diagnostic'});d.finished=d.answers.length===d.questionIds.length;return true;}
  function diagnosticResult(s){const d=s.diagnostic;if(!d?.finished)return [];return d.questionIds.map((id,i)=>{const q=questionMap.get(id),answer=d.answers[i];return {subject:q.subject,questionId:id,skipped:answer===null,correct:answer===q.correct};});}
  function minutes(s){if(s.preferences?.minutes)return s.preferences.minutes;const age=s.profile?.age||13;return age<=10?5:age<=14?10:15;}
- return {validDate,canonical,invalidate,preferences,setPreferences,repeatPlan,sessionSummary,blank,load,profileInput,subjects,eligible,model,predict,recommend,select,makePlan,observe,startDiagnostic,diagnosticAnswer,diagnosticResult,minutes,band,levels,unit,unitsFor,unitStats,learningPath,reviewInfo,question:id=>questionMap.get(id),subject:id=>subjectMap.get(id)};
+ return {schoolYear,setGrade,archivePlan,studyState,validDate,canonical,invalidate,preferences,setPreferences,repeatPlan,sessionSummary,blank,load,profileInput,subjects,eligible,model,predict,recommend,select,makePlan,observe,startDiagnostic,diagnosticAnswer,diagnosticResult,minutes,band,levels,unit,unitsFor,unitStats,learningPath,reviewInfo,question:id=>questionMap.get(id),subject:id=>subjectMap.get(id)};
 });
