@@ -1,6 +1,6 @@
 # Missão Escola
 
-Versão selecionada para publicação: [beta do ZIP inicial, com rotina em três etapas](docs/PUBLICACAO-ZIP-INICIAL.md).
+Rotina completa da versão anterior restaurada; as demais partes permanecem na versão do ZIP inicial. [Detalhes da correção](docs/RESTAURO-ROTINA-PUBLICADA.md).
 
 Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por Cloudflare Pages Functions.
 

@@ -1,6 +1,6 @@
 /* Beta flow: compact questions, consistent mobile chrome, no new visual system. */
 .grade-onboarding{padding:1.5rem;margin-bottom:1.5rem;scroll-margin-top:7rem}
-.grade-onboarding[hidden],.study-entry[hidden],.routine-wizard [hidden],.tutor-panel [hidden]{display:none!important}
+.grade-onboarding[hidden],.study-entry[hidden],.tutor-panel [hidden]{display:none!important}
 .grade-onboarding form{display:grid;gap:.75rem;max-width:32rem}.grade-onboarding select{width:100%;padding:.75rem;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:.5rem}
 .grade-onboarding small{display:block;margin-top:1rem;color:var(--muted)}
 .study-year-context{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;color:var(--muted);font-size:.875rem}
@@ -20,9 +20,6 @@ html[data-theme] #practice-skill,html[data-theme] #practice-bank-count,html[data
 .study-result{padding:1.5rem}.study-result h2{font-size:1.6rem}.study-result-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin:1.25rem 0}
 html[data-theme] .mobile-nav button:not(.active){background:transparent;border-color:transparent;box-shadow:none;color:var(--muted)}
 html[data-theme] .mobile-nav button.active{background:var(--brand-soft);border:1px solid var(--brand);color:var(--ink);box-shadow:inset 0 -3px var(--brand)}
-.routine-wizard{padding:1.25rem;background:var(--panel);border:1px solid var(--line);border-radius:1rem}.routine-wizard-progress ol{display:flex;list-style:none;padding:0;gap:.75rem;flex-wrap:wrap;counter-reset:steps}.routine-wizard-progress li{counter-increment:steps;color:var(--muted);padding:.5rem}.routine-wizard-progress li::before{content:counter(steps) '. ';}.routine-wizard-progress li[aria-current]{font-weight:700;color:var(--ink);border-bottom:3px solid var(--brand)}
-.routine-day-choices{display:flex;flex-wrap:wrap;gap:.75rem;margin:1rem 0}.routine-day-choices label{padding:.75rem 1rem;border:1px solid var(--line);border-radius:.75rem;min-height:3rem;display:flex;gap:.5rem;align-items:center}.routine-day-choices input{width:1.25rem;height:1.25rem}
-.routine-wizard .routine-mode-grid{margin:1rem 0}.routine-wizard .routine-mode{min-width:0}.routine-advanced{margin:1rem 0}.routine-advanced>summary{min-height:2.75rem;cursor:pointer;padding:.5rem 0}.routine-step-actions{display:flex;gap:.75rem;justify-content:space-between;margin-top:1.25rem;flex-wrap:wrap}.routine-wizard .routine-calendar-column{width:100%}.routine-wizard .availability-row{grid-template-columns:2rem minmax(0,1fr) 1.5rem minmax(0,1fr)}
 @media(max-width:760px){
  html[data-theme] .topbar{position:static;display:flex;flex-wrap:wrap;padding:.6rem 1rem;gap:.5rem}
  html[data-theme] .topbar .mobile-brand{flex:1 1 auto;min-width:0;gap:.4rem}
@@ -33,8 +30,6 @@ html[data-theme] .mobile-nav button.active{background:var(--brand-soft);border:1
  html[data-theme] .topbar .theme-toggle{padding:.4rem .5rem;font-size:.875rem;min-height:2.75rem}
  html[data-theme] .mobile-tools{display:none}
  #tool-exercicios .practice-card{padding:1rem}.study-year-context{margin-bottom:.75rem}
- .routine-wizard{padding:1rem}.routine-wizard .routine-mode-grid{grid-template-columns:1fr}.routine-wizard .routine-mode p{display:none}
- .routine-wizard .availability-row input{min-width:0;width:100%}.routine-wizard .routine-two{grid-template-columns:1fr}
  .study-result-actions{display:grid}.practice-actions{display:flex;flex-wrap:wrap;gap:.75rem}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}.page.active{animation:none!important}}
