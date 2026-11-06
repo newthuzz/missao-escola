@@ -2,8 +2,6 @@
 
 Data: 05/11/2026. Base do trabalho: `fc7d925` (último commit publicado anteriormente). Entrega exclusivamente local; nenhuma alteração enviada ao GitHub, nenhuma build publicada, nenhum secret modificado e nenhuma migração executada em produção.
 
-Atualização: a interface anterior da rotina foi restaurada por preferência do usuário; detalhes e validação em [ROTINA-RESTAURADA.md](ROTINA-RESTAURADA.md).
-
 ## A. Diagnóstico e dependências
 
 O diagnóstico anterior às modificações está em [BETA-LOCAL.md](BETA-LOCAL.md). A arquitetura existente foi preservada: HTML/CSS/JavaScript sem framework; motores Journey/Routine; Adaptive; Supabase Auth/backups; API social compartilhada entre Workers e Pages; Tutor via Supabase Edge Function com provedor configurado no servidor. Não foram acrescentadas dependências.
@@ -29,7 +27,7 @@ O diagnóstico anterior às modificações está em [BETA-LOCAL.md](BETA-LOCAL.m
 - **Conclusão:** último acerto conclui e salva automaticamente, atualiza a rotina vinculada e abre resultado com contagem, apoio/acertos, pontos e opções de voltar/rever. Históricos antigos sem contabilidade de XP por sequência mostram o total preservado, sem inventar zero pontos recebidos.
 - **Gamificação:** regras de valor e idempotência permanecem em Journey. A abertura não concede XP. O bônus da missão de estudo foi deslocado para a conclusão real. Revisão usa “Entendi, ir para a prática”; avisos de estudo ficam no fluxo, sem toast ou modal cobrindo alternativas. Meta diária de pontos é nomeada separadamente da conclusão da atividade.
 - **Tutor/conta:** sem login, campo oculto e explicação imediata com “Entrar ou criar conta”. Em carregamento/indisponibilidade, compositor permanece oculto e há recarregamento. Login aguarda a primeira tentativa de sincronização e retorna ao contexto válido. Proteções do backend, tokens e RLS existentes não foram afrouxados. Chat/KaTeX continuam sob demanda.
-- **Rotina:** layout completo da versão anterior restaurado a pedido do usuário. Cartões de geração/montagem manual, horários, duração, matérias, compromissos e calendário retornaram à apresentação original. Motor, validação de conflitos, edição e dados salvos foram preservados. A prévia continua separada da rotina salva.
+- **Rotina:** três passos Dias → Horários → Conferir, com modos em linguagem simples. Configurações avançadas recolhidas; motor de geração, edição de blocos, compromissos, validação de conflitos e salvamento existentes reutilizados. A prévia continua separada da rotina salva; edição não cria outro bloco com o mesmo identificador.
 - **Interface/acessibilidade:** nome e logo alinhados, contadores secundários removidos do cabeçalho móvel e apenas a aba ativa destacada. Textos claros corrigidos nos componentes afetados. Textos ampliados refluem; o menu pode rolar internamente quando necessário, sem estourar a página. Fontes de formulário de pelo menos 16 px e zoom manual preservados. Foco/teclado, estados sem depender só de cor e redução de movimento mantidos.
 - **Apoio:** formulário fictício removido; orientação transparente para procurar a escola ou um adulto de confiança, sem inventar contatos e sem coletar relatos sem atendimento.
 - **Transporte:** timeout de 15 segundos com mensagem de tentativa novamente, preservando os dados locais; códigos/revisões de conflito mantidos.
@@ -46,6 +44,7 @@ Arquivos alterados/adicionados:
 - `docs/BETA-LOCAL.md`
 - `index.html`
 - `package.json`
+- `routine-steps.js`
 - `scripts/build.mjs`
 - `scripts/serve-local.mjs`
 - `study-focus.js`
@@ -96,8 +95,6 @@ Logs e prints estão em `evidencias-beta/`. As respostas controladas são usadas
 
 ## E. Desempenho medido
 
-Os números abaixo correspondem à medição da entrega beta inicial, anterior à restauração visual da rotina. Não foi feito novo benchmark de página para esta alteração de apresentação. A validação atual da rotina e das demais funções está em ROTINA-RESTAURADA.md.
-
 Chromium headless, servidor local sem compressão, contextos de navegador novos, sem limitação de rede/CPU nesta medição de página. Uma execução por largura antes e depois. Chamadas ao Supabase bloqueadas; percurso abre o estudo e a primeira questão. Estes números não representam produção nem celular físico. A animação de abertura foi preservada e influencia o LCP.
 
 | Largura | LCP antes → depois | CLS antes → depois | Maior evento roteirizado | Requisições de recursos | Bytes dos recursos |
@@ -117,7 +114,7 @@ Os JSONs antes/depois, o roteiro da medição e a medição da animação estão
 | Questões, continuidade, tentativas/pistas e conclusão automática | Concluída e validada localmente. |
 | XP sem abertura e sem duplicação nas ações testadas | Concluída e validada localmente. |
 | Cabeçalho, temas, tamanhos e ampliação nos cenários executados | Concluída e validada localmente; dispositivos nativos/leitores de tela aguardam validação. |
-| Rotina com layout anterior, edição e persistência | Concluída e validada localmente. |
+| Rotina em três passos, edição e persistência | Concluída e validada localmente. |
 | Requisito de conta no Tutor e retorno após login | Concluída e validada com API de teste; integração real aguardando validação. |
 | Autorização/sincronização/backend social existentes | Preservados e validados por testes locais; disponibilidade externa pendente de configuração/verificação real. |
 | Apoio transparente sem confirmação falsa | Concluída e validada; atendimento real não implementado, pendente de serviço. |

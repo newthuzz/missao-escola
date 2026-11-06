@@ -1,5 +1,7 @@
 # Missão Escola
 
+Versão selecionada para publicação: [beta do ZIP inicial, com rotina em três etapas](docs/PUBLICACAO-ZIP-INICIAL.md).
+
 Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por Cloudflare Pages Functions.
 
 - [Login, backups e publicação](supabase/SETUP.md)

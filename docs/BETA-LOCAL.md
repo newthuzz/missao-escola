@@ -24,7 +24,3 @@
 ## Limites da validação externa
 
 Nenhuma alteração de configuração, migração em produção ou publicação está autorizada nesta entrega. Testes locais de API/SQL verificam regras com fixtures, sem declarar integrações de produção funcionando. Teste real de login/Tutor/Groq e amigos/ligas depende de conexão, conta de teste e secrets já configurados nos serviços. Servir os arquivos estáticos não executa o Worker social; a versão local deve informar esse limite.
-
-## Preferência atual do usuário — rotina
-
-A interface anterior da rotina foi restaurada, com configurações completas e calendário na mesma tela, conforme solicitado após os testes. A proposta inicial de três passos foi retirada. Veja ROTINA-RESTAURADA.md.

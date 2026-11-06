@@ -23,7 +23,7 @@ Não abra index.html com duplo clique: os módulos e as rotas precisam do servid
 - Responda a última questão: a conclusão deve aparecer automaticamente.
 - Atualize e reveja questões. Não deve haver XP duplicado.
 - Troque o ano: os próximos conteúdos devem mudar; o histórico de respostas fica preservado.
-- Use a tela completa de rotina, com sugestão automática, montagem manual, horários e compromissos. A sugestão só vira rotina salva depois da confirmação.
+- Crie uma rotina pelos passos Dias → Horários → Conferir. A sugestão só vira rotina salva depois da confirmação.
 - Abra o Tutor sem conta: deve explicar o login e ocultar o campo de mensagem.
 - Abra Apoio: deve orientar como buscar ajuda, sem simular envio de pedido.
 - Teste no celular pelo modo de dispositivo do navegador, nas larguras 320, 360 e 390 px; confira também o modo claro/escuro e o zoom de texto.
