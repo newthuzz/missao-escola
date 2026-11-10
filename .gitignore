@@ -5,3 +5,5 @@ node_modules/
 .wrangler/
 dist/
 tutor-live-results.json
+
+work/

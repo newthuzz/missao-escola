@@ -1,39 +1,71 @@
-export function mountSocial(container, getToken) {
-  let data=null,busy=false;
-  const h=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const tiers=['Aurora','Celeste','Cristal','Estelar'];
-  const button=(op,label,id='')=>`<button class="outline-button" data-social-op="${op}" data-target="${h(id)}">${label}</button>`;
-  const people=(rows,actions=()=> '')=>rows.length?rows.map(p=>`<div class="social-row"><div><strong>${h(p.avatar||'✦')} ${h(p.nickname)}</strong></div><div class="social-actions">${actions(p)}</div></div>`).join(''):'<p>Nenhum jogador nesta lista.</p>';
-  const board=rows=>`<ol>${rows.map(p=>`<li>${h(p.nickname)} — <strong>${p.points} pontos</strong></li>`).join('')}</ol>`;
-  async function api(op,body={}) {
-    const r=await fetch('/api/social',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await getToken()}`},body:JSON.stringify({op,...body})});
-    const value=await r.json().catch(()=>({error:'A API não está disponível. Confira a publicação no Cloudflare Pages.'}));
-    if(!r.ok)throw Error(value.error||'Não foi possível concluir.');return value;
+import {avatars,covers,frames,titles,avatar,landscape,emblem} from './social-art.js';
+const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tiers=['Aurora','Celeste','Cristal','Estelar'];
+const btn=(action,label,extra='')=>`<button type="button" class="outline-button" data-action="${action}" ${extra}>${label}</button>`;
+const defaults=p=>({avatar:'fox',cover:'aurora',frame:'plain',title:titles[0],...p});
+export function mountSocial(container,getToken,getUser=()=>null){
+ const owner=getUser();
+ const checkOwner=()=>{if(getUser()!==owner)throw Error('A conta foi alterada. Abra a comunidade novamente.');};
+ let data=null,busy=false,tab='overview',notice='',error=false,result=null,pendingAnswer=null;
+ container.classList.add('explorer-base');
+ const identity=(p,compact=false)=>{p=defaults(p);return `<div class="social-identity ${compact?'compact':''}"><span class="explorer-avatar frame-${h(frames[p.frame]?p.frame:'plain')}">${avatar(p.avatar)}</span><div><strong>${h(p.nickname)}</strong><small>${h(p.title)}</small></div></div>`;};
+ const empty=(title,copy)=>`<div class="social-empty">${landscape('aurora')}<h3>${title}</h3><p>${copy}</p></div>`;
+ const people=(rows,kind)=>rows.length?`<div class="explorer-people">${rows.map(p=>`<article class="explorer-person"><div class="person-cover">${landscape(p.cover)}</div>${identity(p,true)}<div class="social-actions">${kind==='incoming'?btn('accept','Aceitar',`data-target="${h(p.id)}"`)+btn('decline','Recusar',`data-target="${h(p.id)}"`):kind==='outgoing'?btn('decline','Cancelar convite',`data-target="${h(p.id)}"`):kind==='blocked'?btn('unblock','Desbloquear',`data-target="${h(p.id)}"`):`<details><summary>Ações para ${h(p.nickname)}</summary>${btn('remove','Remover amizade',`data-target="${h(p.id)}"`)}${btn('block','Bloquear',`data-target="${h(p.id)}"`)}</details>`}</div></article>`).join('')}</div>`:empty('Uma nova companhia pelo caminho',kind==='friends'?'Adicione um amigo pelo código para explorar esta jornada juntos.':'Nenhum convite por aqui no momento.');
+ const board=(rows)=>`<ol class="explorer-ranking">${rows.map((p,i)=>`<li class="${p.id===data.me.id?'is-me':''} ${i<3?'podium':''}"><span class="rank-position">${i+1}</span>${identity(p,true)}<strong>${h(p.points)}<small>pontos</small></strong>${p.id===data.me.id?'<span class="social-you">Você</span>':''}</li>`).join('')}</ol>`;
+ function week(){if(!data.week)return '';const start=new Date(data.week+'T12:00:00-03:00'),end=new Date(start);end.setUTCDate(end.getUTCDate()+6);const fmt=d=>d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'short'});return `${fmt(start)} a ${fmt(end)} · Brasília`;}
+ function primary(){return btn(data.active?'continue':data.league?'start':'join',data.active?'Continuar desafio':data.league?'Iniciar desafio':'Entrar na liga','');}
+ function profile(p){p=defaults(p);return `<article class="explorer-profile"><div class="explorer-cover">${landscape(p.cover)}<span>SUA BASE DE EXPLORAÇÃO</span></div><div class="explorer-profile-body">${identity(p)}<p>Seu espaço para aprender e descobrir em companhia.</p><div class="social-actions">${btn('edit','Personalizar perfil')}${btn('copy','Copiar código')}</div><small>Código de amizade</small><strong class="social-code">${h(p.code)}</strong></div></article>`;}
+ function league(){const t=data.league?.tier??data.me.tier??0,me=data.league?.board.find(p=>p.id===data.me.id),pos=data.league?.board.findIndex(p=>p.id===data.me.id);return `<article class="explorer-league"><div class="league-heading">${emblem(t)}<div><span class="section-kicker">SUA PRÓXIMA DESCOBERTA</span><h3>Liga ${tiers[t]}</h3><p>${week()}</p></div></div>${me?`<div class="league-stats"><div><strong>${pos+1}º</strong><small>Sua posição</small></div><div><strong>${h(me.points)}</strong><small>Pontos nesta semana</small></div></div>`:'<p>Entre em um grupo de até dez exploradores e pratique matemática no seu ritmo.</p>'}${primary()}<p class="social-fine">Os pontos da liga são separados de XP e estrelas.</p></article>`;}
+ function challenge(){return `<section class="explorer-challenge" tabindex="-1"><span class="section-kicker">PRÁTICA DE MATEMÁTICA</span>${data.active?`<h3>Uma descoberta de cada vez</h3><label>Questão ${data.active.cursor+1} de 3 <progress max="3" value="${data.active.cursor}"></progress></label><p class="challenge-question">${h(data.active.question.question)}</p><div class="challenge-answers">${data.active.question.answers.map((a,i)=>btn('answer',h(a),`data-answer="${i}"`)).join('')}</div><small>A sessão vale por 30 minutos e termina também na mudança do dia ou da semana.</small>`:result?.finished?`<h3>Desafio concluído!</h3><p>Você deu mais um passo na sua jornada.</p><p><strong>${h(result.sessionPoints??result.points)} pontos ${result.sessionPoints===undefined?'nesta resposta':'neste desafio'}</strong></p>${primary()}`:`<h3>Pronto para praticar?</h3><p>Três questões de adição e subtração. Aprenda com cada resposta.</p>${primary()}`}</section>`;}
+ const rules=()=>`<details class="social-rules"><summary>Como funcionam os pontos e as ligas?</summary><p>Semana começa na segunda-feira, à meia-noite de Brasília. Grupos de até dez jogadores. Com pelo menos quatro participantes, os três primeiros com pontos sobem uma faixa na próxima participação, até Estelar. Empates usam o identificador do jogador. Não há rebaixamento.</p><p>10 pontos por acerto, até 20 acertos pontuados por dia. Bônus de 15 pontos por sessão com acerto, até três bônus por dia. Até dez sessões iniciadas por dia. Reenviar uma resposta não pontua novamente.</p></details>`;
+ function render(){
+  const focus=container.contains(document.activeElement)?document.activeElement?.dataset?.action:null;
+  container.innerHTML=`<header class="explorer-heading"><div><span class="section-kicker">APRENDER É UMA AVENTURA EM COMPANHIA</span><h2>Base dos exploradores</h2><p>Seu lugar entre amigos e novas descobertas.</p></div>${data?.registered?btn('state','Atualizar'):''}</header><p class="social-notice ${error?'is-error':''}" role="status" aria-live="polite">${h(notice)}</p>${error?btn(pendingAnswer?'retry-answer':'state','Tentar novamente'):''}<div class="social-content"></div>`;
+  const content=container.querySelector('.social-content');
+  if(!data)content.innerHTML=busy?'<div class="social-loading" aria-label="Carregando comunidade"><span></span><p>Preparando sua base de exploração…</p></div>':empty('Vamos nos encontrar em breve','Não foi possível abrir sua comunidade. Tente novamente.');
+  else if(!data.registered)content.innerHTML=`<div class="explorer-welcome">${landscape()}<div><span class="section-kicker">SUA JORNADA EM COMPANHIA COMEÇA AQUI</span><h3>Todo explorador tem uma identidade</h3><p>Escolha um apelido público. Depois, dê seu toque ao avatar e encontre amigos pelo código.</p><form data-form="register"><label>Apelido público<input name="nickname" required minlength="2" maxlength="24" autocomplete="nickname"></label><button class="primary-button">Criar meu perfil</button></form><small>Somente seu perfil público e pontos são compartilhados. Seus estudos e e-mail continuam privados.</small></div></div>`;
+  else{
+   content.innerHTML=`<nav class="explorer-tabs" aria-label="Comunidade">${[['overview','Visão geral'],['friends','Amigos'],['league','Minha liga']].map(([id,label])=>`<button type="button" data-tab="${id}" aria-current="${tab===id?'page':'false'}" class="${tab===id?'active':''}">${label}${id==='friends'&&data.incoming.length?` <span>${data.incoming.length}</span>`:''}</button>`).join('')}</nav><div class="explorer-view"></div>`;
+   const view=content.querySelector('.explorer-view');
+   if(tab==='overview')view.innerHTML=`<div class="explorer-grid">${profile(data.me)}${league()}</div><section class="explorer-section"><div class="social-section-heading"><h3>${data.incoming.length?'Convites para sua jornada':'Sua companhia de aventuras'}</h3>${btn('friends','Ver amigos')}</div>${data.incoming.length?people(data.incoming,'incoming'):data.friends.length?people(data.friends.slice(0,3),'friends'):empty('A jornada fica melhor em companhia','Compartilhe seu código ou abra Amigos para enviar o primeiro convite.')}</section>${data.active?challenge():''}`;
+   if(tab==='friends')view.innerHTML=`<section class="explorer-invite"><div><h3>Convide um explorador</h3><p>Encontre seu amigo pelo código que ele compartilhou.</p></div><form data-form="invite"><label>Código de amizade<input name="code" minlength="12" maxlength="12" required autocomplete="off" placeholder="12 caracteres"></label><button class="primary-button">Enviar convite</button></form>${btn('copy','Copiar meu código')}</section><section class="explorer-section"><h3>Meus amigos · ${data.friends.length}</h3>${people(data.friends,'friends')}</section><section class="explorer-section"><h3>Convites recebidos · ${data.incoming.length}</h3>${people(data.incoming,'incoming')}</section><section class="explorer-section"><h3>Convites enviados · ${data.outgoing.length}</h3>${people(data.outgoing,'outgoing')}</section><details class="social-rules"><summary>Jogadores bloqueados (${data.blocked.length})</summary>${people(data.blocked,'blocked')}</details><section class="explorer-section"><h3>Entre amigos nesta semana</h3>${board(data.ranking)}</section>`;
+   if(tab==='league')view.innerHTML=`${league()}${challenge()}<section class="explorer-section"><h3>Exploradores da semana</h3>${data.league?board(data.league.board):empty('Seu grupo espera por você','Entre na liga desta semana para conhecer seu grupo.')}</section>${rules()}`;
   }
-  function render(message='') {
-    container.innerHTML=`<h2>Amigos e ligas</h2><p role="status">${h(message)}</p>${!data?button('state','Carregar amigos e ligas'):!data.registered?`<form data-social-form="register" class="social-form"><label>Apelido público<input name="nickname" minlength="2" maxlength="24" required autocomplete="nickname"></label><button class="primary-button">Criar perfil social</button></form><p>Somente apelido, avatar e pontos são compartilhados. Seu e-mail e seus estudos privados não aparecem.</p>`:`<p>Seu código de amizade: <strong class="social-code">${h(data.me.code)}</strong></p><form data-social-form="profile" class="social-form"><label>Apelido<input name="nickname" minlength="2" maxlength="24" value="${h(data.me.nickname)}" required></label><label>Avatar<select name="avatar">${['✦','☾','✿','♜'].map(v=>`<option ${v===data.me.avatar?'selected':''}>${v}</option>`).join('')}</select></label><button class="outline-button">Salvar perfil</button></form><h3>Meus amigos</h3>${people(data.friends,p=>button('remove','Remover',p.id)+button('block','Bloquear',p.id))}<form data-social-form="invite" class="social-form"><label>Código do amigo<input name="code" minlength="12" maxlength="12" required autocomplete="off"></label><button class="primary-button">Enviar convite</button></form><h3>Convites recebidos</h3>${people(data.incoming,p=>button('accept','Aceitar',p.id)+button('decline','Recusar',p.id))}<h3>Convites enviados</h3>${people(data.outgoing,p=>button('decline','Cancelar',p.id))}<h3>Bloqueados</h3>${people(data.blocked,p=>button('unblock','Desbloquear',p.id))}<h3>Ranking entre amigos</h3><p>Semana de ${h(data.week)} · horário de Brasília</p>${board(data.ranking)}<h3>Liga ${h(tiers[data.league?.tier??data.me.tier])}</h3>${data.league?board(data.league.board):button('join','Participar da liga desta semana')}<p>Grupos de até dez jogadores. Com pelo menos quatro participantes, os três primeiros com pontos sobem uma liga na próxima participação. Empates são resolvidos por identificador de jogador.</p><h3>Prática competitiva de matemática</h3>${data.active?`<p>Questão ${data.active.cursor+1} de 3 · sessão válida por 30 minutos.</p><p><strong>${h(data.active.question.question)}</strong></p><div class="choice-list">${data.active.question.answers.map((a,i)=>`<button class="outline-button" data-social-op="answer" data-answer="${i}">${h(a)}</button>`).join('')}</div>`:data.league?button('start','Começar sessão de 3 questões'):'<p>Entre na liga para começar uma sessão.</p>'}<p>10 pontos por acerto, até 20 acertos pontuados por dia. Bônus de 15 pontos por sessão com acerto, até três bônus por dia. Até dez sessões por dia. Pontos são calculados pelo servidor; o progresso local não gera pontos.</p>${button('state','Atualizar amigos e liga')}`}`;
-    if(busy)container.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);
-  }
-  async function execute(op,body={}) {
-    if(busy)return;busy=true;render('Conectando…');
-    try {
-      const response=await api(op,body);let message='Atualizado.';
-      if(op==='answer') {
-        message=`${response.correct?'Resposta correta!':'Vamos revisar.'} ${response.explanation} +${response.points} pontos.${response.finished?' Sessão concluída.':''}`;
-        data=await api('state');
-      }else data=response;
-      busy=false;render(message);
-    }catch(e){busy=false;render(e.message);}
-  }
-  container.addEventListener('submit',event=>{
-    const form=event.target.closest('[data-social-form]');if(!form)return;
-    event.preventDefault();event.stopPropagation();execute(form.dataset.socialForm,Object.fromEntries(new FormData(form)));
-  });
-  container.addEventListener('click',event=>{
-    const b=event.target.closest('[data-social-op]');if(!b||busy)return;
-    const op=b.dataset.socialOp;
-    if(['remove','block'].includes(op)&&!confirm(op==='block'?'Bloquear este jogador e remover a amizade?':'Remover esta amizade?'))return;
-    execute(op,op==='answer'?{session:data.active.id,cursor:data.active.cursor,answer:Number(b.dataset.answer)}:{target:b.dataset.target});
-  });
-  render();
+  container.setAttribute('aria-busy',String(busy));container.querySelectorAll('button,input,select').forEach(el=>el.disabled=busy);
+  if(focus)container.querySelector(`[data-action="${focus}"]`)?.focus();
+ }
+ async function api(op,body={}){checkOwner();const access=await getToken();checkOwner();const r=await fetch('/api/social',{signal:AbortSignal.timeout(15000),method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${access}`},body:JSON.stringify({op,...body})});const v=await r.json().catch(()=>({error:'A comunidade está indisponível.'}));if(!r.ok||v?.error){if(op==='answer'&&r.status<500)pendingAnswer=null;throw Error(r.status>=500?'A comunidade está indisponível. Tente novamente mais tarde.':v.error||'Não foi possível concluir.');}checkOwner();return v;}
+ async function execute(op,body={}){
+  if(busy)return false;busy=true;error=false;notice='Conectando à sua comunidade…';render();
+  try{const v=await api(op,body);if(op==='answer'){result=v;pendingAnswer=null;notice=`${v.correct?'Resposta correta!':'Vamos revisar juntos.'} ${v.explanation} +${v.points} pontos confirmados.${v.finished?' Desafio concluído.':''}`;data=await api('state');tab='league';}else{data=v;notice=op==='profile'?'Perfil salvo. Sua identidade está pronta!':op==='register'?'Boas-vindas à sua base! Personalize seu perfil.':op==='invite'?'Convite enviado.':op==='block'?'Jogador bloqueado e amizade removida.':op==='unblock'?'Jogador desbloqueado.':'Comunidade atualizada.';}
+   busy=false;render();if(op==='answer'||op==='start')container.querySelector('.explorer-challenge')?.focus();return true;
+  }catch(e){busy=false;error=true;notice=e.name==='TimeoutError'?'A conexão demorou. Tente novamente.':e.message;render();return false;}
+ }
+ function edit(){
+  let draft=defaults(data.me);const opener=container.querySelector('[data-action="edit"]'),dialog=document.createElement('dialog');dialog.className='explorer-editor';dialog.setAttribute('aria-labelledby','explorer-editor-title');
+  dialog.innerHTML=`<form><div class="social-section-heading"><h2 id="explorer-editor-title">Do seu jeito</h2>${btn('cancel','Fechar')}</div><div class="editor-preview"></div><label>Apelido público<input name="nickname" value="${h(draft.nickname)}" minlength="2" maxlength="24" required autocomplete="nickname"></label>${Object.entries({avatar:avatars,cover:covers,frame:frames}).map(([key,items])=>`<fieldset><legend>${{avatar:'Seu companheiro de jornada',cover:'Seu cenário',frame:'Sua moldura'}[key]}</legend><div class="editor-options">${Object.entries(items).map(([id,label])=>`<label class="editor-option"><input type="radio" name="${key}" value="${id}" ${draft[key]===id?'checked':''}>${key==='avatar'?avatar(id):key==='cover'?landscape(id):`<span class="explorer-avatar frame-${id}">${avatar(draft.avatar)}</span>`}<span>${label}</span></label>`).join('')}</div></fieldset>`).join('')}<label>Seu título<select name="title">${titles.map(t=>`<option ${t===draft.title?'selected':''}>${t}</option>`).join('')}</select></label><p role="status" class="editor-status"></p><div class="social-actions"><button class="primary-button" type="submit">Salvar perfil</button>${btn('cancel','Cancelar')}</div></form>`;
+  // Old symbolic avatars remain valid until the student chooses an illustration.
+  const legacy={'✦':'fox','☾':'owl','✿':'rabbit','♜':'robot'};const form=dialog.querySelector('form');if(legacy[draft.avatar])form.elements.avatar.value=legacy[draft.avatar];
+  const preview=()=>{draft={...draft,...Object.fromEntries(new FormData(form))};dialog.querySelector('.editor-preview').innerHTML=`<div class="editor-cover">${landscape(draft.cover)}</div>${identity(draft)}`;};
+  dialog.addEventListener('input',preview);dialog.addEventListener('click',e=>{if(e.target.closest('[data-action="cancel"]'))dialog.close();});
+  const accountChanged=()=>{if(getUser()!==owner)dialog.close();};window.addEventListener('missao-account-change',accountChanged);
+  dialog.addEventListener('close',()=>{window.removeEventListener('missao-account-change',accountChanged);dialog.remove();const target=container.querySelector('[data-action="edit"]')||opener;target?.focus();});
+  form.addEventListener('submit',async e=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));dialog.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);const saved=await execute('profile',body);if(saved)dialog.close();else{dialog.querySelectorAll('button,input,select').forEach(el=>el.disabled=false);dialog.querySelector('.editor-status').textContent=notice;}});
+  document.body.append(dialog);preview();dialog.showModal();
+ }
+ container.addEventListener('submit',e=>{const form=e.target.closest('[data-form]');if(!form)return;e.preventDefault();execute(form.dataset.form,Object.fromEntries(new FormData(form)));});
+ container.addEventListener('click',async e=>{
+  if(e.target.closest('dialog'))return;const b=e.target.closest('button');if(!b||busy)return;
+  if(b.dataset.tab){tab=b.dataset.tab;render();container.querySelector(`[data-tab="${tab}"]`)?.focus();return;}
+  let op=b.dataset.action;if(!op)return;
+  if(op==='edit')return edit();
+  if(op==='friends'||op==='continue'){tab=op==='friends'?'friends':'league';render();container.querySelector(op==='friends'?'input[name="code"]':'.explorer-challenge')?.focus();return;}
+  if(op==='copy'){try{await navigator.clipboard.writeText(data.me.code);notice='Código copiado! Compartilhe com seu amigo.';}catch{notice=`Copie seu código: ${data.me.code}`;}error=false;render();return;}
+  if(['remove','block'].includes(op)&&!confirm(op==='block'?'Bloquear este jogador? A amizade será removida e novos convites ficarão indisponíveis.':'Remover esta amizade?'))return;
+  if(op==='answer'){pendingAnswer={session:data.active.id,cursor:data.active.cursor,answer:Number(b.dataset.answer)};return execute('answer',pendingAnswer);}
+  if(op==='retry-answer')return execute('answer',pendingAnswer);
+  if(op==='start'||op==='join'){tab='league';result=null;}
+  execute(op,b.dataset.target?{target:b.dataset.target}:{});
+ });
+ execute('state');
 }

@@ -12,7 +12,7 @@ export function questions(random = max => crypto.getRandomValues(new Uint32Array
 export async function onRequest({request,env}) {
   if(request.method!=='POST') return reply({error:'Método não permitido.'},405);
   if(request.headers.get('Origin') && request.headers.get('Origin')!==new URL(request.url).origin) return reply({error:'Origem não permitida.'},403);
-  if(!env.SUPABASE_SERVICE_ROLE_KEY) return reply({error:'O backend ainda não foi configurado no Cloudflare.'},503);
+  if(!env.SUPABASE_SERVICE_ROLE_KEY) return reply({error:'A comunidade está indisponível no momento. Tente novamente mais tarde.'},503);
   const base=env.SUPABASE_URL || 'https://pxnvttqsgjnakeukttdr.supabase.co';
   const auth=request.headers.get('Authorization') || '';
   if(!/^Bearer \S+$/.test(auth)) return reply({error:'Entre na sua conta.'},401);
@@ -28,14 +28,17 @@ export async function onRequest({request,env}) {
     if(!user.id) return reply({error:'Sessão inválida.'},401);
     // Never accept caller-supplied identity, points, correct answers or questions.
     const args={};
-    for(const key of ['nickname','avatar','code','target','session','cursor','answer']) if(Object.hasOwn(body,key)) args[key]=body[key];
+    for(const key of ['nickname','avatar','cover','frame','title','code','target','session','cursor','answer']) if(Object.hasOwn(body,key)) args[key]=body[key];
     if(['register','profile'].includes(body.op) && (typeof args.nickname!=='string' || args.nickname.trim().length<2 || args.nickname.trim().length>24)) return reply({error:'Use um apelido de 2 a 24 caracteres.'},400);
-    if(body.op==='profile' && !['✦','☾','✿','♜'].includes(args.avatar)) return reply({error:'Avatar inválido.'},400);
+    if(['register','profile'].includes(body.op)) {
+      const choices={avatar:['✦','☾','✿','♜','fox','owl','cat','frog','bear','rabbit','robot','astronaut'],cover:['aurora','forest','crystal','cosmos'],frame:['plain','leaf','sun','orbit'],title:['Explorador de ideias','Viajante das ilhas','Guardião da curiosidade','Colecionador de perguntas']};
+      for(const [key,values] of Object.entries(choices)) if(Object.hasOwn(args,key)&&!values.includes(args[key])) return reply({error:'Personalização inválida.'},400);
+    }
     if(body.op==='answer' && (!Number.isInteger(args.answer)||args.answer<0||args.answer>3||!Number.isInteger(args.cursor)||args.cursor<0||args.cursor>2)) return reply({error:'Resposta inválida.'},400);
     if(body.op==='start') args.questions=questions();
     const response=await fetch(base+'/rest/v1/rpc/social_action',{method:'POST',headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({p_user:user.id,p_op:body.op,p_body:args})});
     const data=await response.json();
-    if(!response.ok) return reply({error:data.code==='P0001'?data.message:data.code==='23505'?'Este perfil ou convite já existe.':'Não foi possível concluir. Confira os dados e a configuração do banco.'},400);
+    if(!response.ok) return reply({error:data.code==='P0001'?data.message:data.code==='23505'?'Este perfil ou convite já existe.':'Não foi possível concluir esta ação. Tente novamente.'},400);
     return reply(data);
   }catch {return reply({error:'Não foi possível conectar ao serviço. Tente novamente.'},502);}
 }
