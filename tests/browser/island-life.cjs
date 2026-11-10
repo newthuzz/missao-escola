@@ -109,6 +109,7 @@ const baseline = execFileSync('git', ['show', 'c725abc:index.html'], {cwd:repo})
 
     const animationsPaused = () => page.evaluate(() => [...document.querySelectorAll('#map-art *')].every(n => getComputedStyle(n).animationName === 'none' || getComputedStyle(n).animationPlayState === 'paused'));
     await page.reload();
+    await page.locator('#app-splash').waitFor({state:'detached'});
     await page.locator('#map-art').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('.journey-map').dataset.lifeState === 'running');
     const cdp = await context.newCDPSession(page);

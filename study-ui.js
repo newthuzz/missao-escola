@@ -3,13 +3,13 @@
  const oldPersonalization=renderPersonalization;
  let panelState='',panelLearner=null;
  renderPersonalization=function(){
-  const signature=JSON.stringify([learner.profile,learner.preferences,learner.plan?.date,learner.plan?.subject,learner.plan?.level,learner.plan?.started,learner.plan?.finished,learner.observations.length,learner.observations.at(-1),today,state.subject,state.difficulty,progress.events.length,progress.purchases.length]);
+  const signature=JSON.stringify([learner.profile,learner.selectedGrade,learner.selectedSubject,learner.planHistory,learner.preferences,learner.plan?.date,learner.plan?.subject,learner.plan?.answeredIds,learner.plan?.reviewed,learner.plan?.level,learner.plan?.started,learner.plan?.finished,learner.observations.length,learner.observations.at(-1),today,state.subject,state.difficulty,progress.events.length,progress.purchases.length]);
   if(panelLearner===learner&&panelState===signature)return;
   panelLearner=learner;panelState=signature;oldPersonalization();renderChoices();
  };
  let savedState='',savedLearner=null;
  saveLearner=function(){
-  const signature=JSON.stringify([learner.profile,learner.preferences,learner.observations.length,learner.observations.at(-1),learner.plan,learner.diagnostic,learner.presentations,learner.introDismissed]);
+  const signature=JSON.stringify([learner.profile,learner.selectedGrade,learner.selectedSubject,learner.planHistory,learner.preferences,learner.observations.length,learner.observations.at(-1),learner.plan,learner.diagnostic,learner.presentations,learner.introDismissed]);
   if(savedLearner===learner&&savedState===signature)return;
   try{const raw=localStorage.getItem(PERSONAL_KEY);let legacy=false;try{legacy=JSON.parse(raw)?.version===1;}catch{}if(legacy&&!localStorage.getItem('missao-escola-personal-before-v2'))localStorage.setItem('missao-escola-personal-before-v2',raw);localStorage.setItem(PERSONAL_KEY,JSON.stringify(learner));savedState=signature;savedLearner=learner;document.querySelector('#study-storage-status')?.replaceChildren();}
   catch{storageOK=false;const el=document.querySelector('#study-storage-status');if(el)el.textContent='Não foi possível salvar neste navegador. Suas respostas continuam nesta sessão. Tente salvar uma cópia pela Minha conta antes de fechar.';toast('Armazenamento indisponível. Mantenha esta sessão aberta.');}
@@ -47,7 +47,7 @@
   }).join('')}</div>`;fillSettings();
  }
  const previousPlan=renderPlan;
- renderPlan=function(){previousPlan();const p=learner.plan;if(!p||p.date!==today||p.subject!==state.subject)return;
+ renderPlan=function(){previousPlan();const p=learner.plan;if(!p||p.subject!==state.subject)return;
   const u=A.unit(A.question(p.exampleId)?.unitId),path=A.learningPath(learner,p.subject,today).find(x=>x.unit.id===u?.id),pending=path?.prerequisites.filter(x=>!x.stats.mastered)||[];
   const time=document.querySelector('.personal-time');if(time)time.textContent=`Cerca de ${p.estimatedMinutes||Math.min(A.minutes(learner),2+p.questionIds.length*2)} min · ${p.questionIds.length} ${p.questionIds.length===1?'prática':'práticas'}`;
   const head=document.querySelector('.personal-plan-heading');if(head)head.insertAdjacentHTML('afterend',`<article class="study-plan-context"><h3>Objetivo deste estudo</h3><p>${esc(u?.objective||'Resolver e explicar o raciocínio nas situações propostas.')}</p><p>Ao terminar, tente explicar uma solução sem consultar o exemplo. Isso ajuda a verificar o que ainda merece revisão.</p>${p.notice?`<p role="status">${esc(p.notice)}</p>`:''}${pending.length?`<details><summary>Confira as bases antes de seguir</summary><p>Não é um bloqueio. Você pode continuar neste estudo ou fazer uma checagem curta.</p>${pending.map(x=>`<p>${esc(x.stats.count?x.stats.status:'Ainda sem evidências')} · ${esc(x.unit.title)} <button class="text-button" data-study-base="${x.unit.id}">Checar esta base →</button></p>`).join('')}</details>`:''}<button class="text-button" id="repeat-study">Repetir esta sequência desde o início</button><small>Repetir no mesmo dia não duplica XP nem muda sua primeira tentativa.</small></article>`);
@@ -55,10 +55,9 @@
  };
  const oldQuestion=renderQuestion;
  renderQuestion=function(){oldQuestion();const q=state.currentQuestion;if(!q)return;
-  if(A.model(learner,q.subject).count<3)document.querySelector('#practice-mode').textContent='CHECAGEM CURTA · AINDA TEMOS POUCAS EVIDÊNCIAS';
-  let confidence=document.querySelector('#study-confidence');if(!confidence){confidence=document.createElement('label');confidence.id='study-confidence';confidence.innerHTML='Como você se sente para responder? · opcional<select><option value="">Prefiro não informar</option><option value="guess">Vou chutar</option><option value="unsure">Tenho dúvida</option><option value="sure">Consigo explicar</option></select>';document.querySelector('#choice-list').before(confidence);}confidence.querySelector('select').value='';
+  // Confidence belongs to the optional post-answer reflection.
   document.querySelector('#exercise-result').setAttribute('role','status');
-  let editorial=document.querySelector('#study-editorial');if(!editorial){editorial=document.createElement('small');editorial.id='study-editorial';document.querySelector('#practice-skill').after(editorial);}editorial.textContent=q.editorialStatus==='pending-pedagogical-review'?'Atividade nova · revisão pedagógica externa pendente':'';
+  let editorial=document.querySelector('#study-editorial');if(!editorial){editorial=document.createElement('small');editorial.id='study-editorial';document.querySelector('#practice-info').append(editorial);}editorial.textContent=q.editorialStatus==='pending-pedagogical-review'?'Atividade nova · revisão pedagógica externa pendente':'';
  };
  const previousAnswer=answerQuestion;
  answerQuestion=function(answer){const q=state.currentQuestion;if(!q||state.answered)return;const confidence=document.querySelector('#study-confidence select')?.value||null;
@@ -68,7 +67,7 @@
  };
  showPracticeHint=function(){const q=state.currentQuestion;if(!q||state.answered)return;state.helped=true;state.hintIndex++;const u=A.unit(q.unitId),hint=q.hints?.[0]||`Procure o que a pergunta pede em “${q.skill}”. ${u?'Relembre o objetivo: '+u.objective:'Separe os dados e a ideia que relaciona as alternativas.'}`;
   const text=state.hintIndex===1?'Pista conceitual: '+hint:state.hintIndex===2?'Passo intermediário: '+(q.hints?.[1]||`Compare cada alternativa com os dados da pergunta. Qual mantém a relação descrita? Explique antes de escolher.`):'Solução comentada · estudo com apoio: '+q.explanation;
-  document.querySelector('#practice-hint').hidden=false;document.querySelector('#practice-hint').textContent=text;document.querySelector('#practice-hint').setAttribute('role','status');toast('Esta tentativa será registrada como estudo com apoio.');
+  document.querySelector('#practice-hint').hidden=false;document.querySelector('#practice-hint').textContent=text;document.querySelector('#practice-hint').setAttribute('role','status');if(state.planPractice&&learner.plan){const saved=learner.plan.attempts?.[q.id];if(saved)saved.helped=true;else learner.plan.hintedIds=[...new Set([...(learner.plan.hintedIds||[]),q.id])];saveLearner();}
  };
  document.addEventListener('click',e=>{const b=e.target.closest('[data-study-choice],[data-study-base],#repeat-study');if(!b)return;
   if(b.dataset.studyChoice){startPersonalized(b.dataset.studyChoice);return;}

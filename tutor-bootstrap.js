@@ -31,7 +31,7 @@
     window[name]=function(...args){if(name==='answerQuestion'&&state.currentQuestion&&!state.answered)lastAnswer={id:state.currentQuestion.id,index:args[0]};const result=previous.apply(this,args);changed();return result;};
   }
   document.addEventListener('click',event=>{if(event.target.closest('[data-diagnostic-answer]'))changed();});
-  window.TutorStudy=Object.freeze({snapshot,markHelped(id){if(id&&state.currentQuestion?.id===id&&state.page==='aprendizagem')state.helped=true;}});
+  window.TutorStudy=Object.freeze({snapshot,returnContext:()=>({page:state.page}),restoreContext(saved){const q=A.question(saved?.questionId);if(state.page!=='aprendizagem'||!q||!A.eligible(learner,q.subject).some(item=>item.id===q.id))return;if(learner.plan?.started&&!learner.plan.finished){window.resumeStudy?.(false);return;}state.subject=q.subject;learner.selectedSubject=q.subject;state.currentQuestion=q;state.planPractice=false;renderQuestion();selectTool('exercicios');},markHelped(id){if(id&&state.currentQuestion?.id===id&&state.page==='aprendizagem'){state.helped=true;if(state.planPractice&&learner.plan){learner.plan.hintedIds=[...new Set([...(learner.plan.hintedIds||[]),id])];saveLearner();}}}});
   const css=document.createElement('link');css.rel='stylesheet';css.href='./tutor.css';document.head.append(css);
   launcher.addEventListener('click',async()=>{
     if(panel){panel.toggle();return;}

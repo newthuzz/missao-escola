@@ -1,5 +1,7 @@
 # Missão Escola
 
+Rotina completa da versão anterior restaurada; as demais partes permanecem na versão do ZIP inicial. [Detalhes da correção](docs/RESTAURO-ROTINA-PUBLICADA.md).
+
 Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por Cloudflare Pages Functions.
 
 - [Login, backups e publicação](supabase/SETUP.md)

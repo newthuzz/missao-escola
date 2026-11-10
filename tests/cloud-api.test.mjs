@@ -28,3 +28,8 @@ test('unexpected non-JSON server failure remains a failure',async()=>{
  globalThis.fetch=async()=>({ok:false,status:502,json:async()=>{throw Error('invalid JSON');}});
  await assert.rejects(()=>request('/rest/v1/learner_backups'),e=>e.status===502);
 });
+
+test('slow connections time out and leave a clear retryable error',async()=>{
+ globalThis.fetch=(url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
+ await assert.rejects(()=>request('/auth/v1/token',{timeout:10}),/conexão demorou.*estudos locais/i);
+});
