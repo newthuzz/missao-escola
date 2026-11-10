@@ -6,6 +6,8 @@ Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por C
 - [Sincronização automática de progresso](docs/SINCRONIZACAO.md)
 - [Ativação de amigos e ligas](supabase/SOCIAL-SETUP.md)
 - [Migração SQL social](supabase/social.sql)
+- [Nova área social: migração e validação](docs/SOCIAL-EXPLORADORES.md)
+- [Metas e critérios de entrada no beta](docs/METAS-BETA.md)
 - [Melhorias do estudo personalizado, testes e limites](docs/ESTUDO-PERSONALIZADO.md)
 
 O frontend usa apenas a chave pública. A chave `service_role` deve ficar exclusivamente nos Secrets do projeto Cloudflare Pages. Não é necessário passar pelo servidor do ChatGPT.

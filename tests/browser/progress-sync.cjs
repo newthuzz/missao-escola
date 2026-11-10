@@ -18,7 +18,7 @@ const root=path.resolve(__dirname,'../..');
  }
  return route.fulfill({status:404,json:{message:'Unknown mock endpoint'}});
  });return c;}
- async function login(page,email='a@example.com'){await page.evaluate(()=>navigate('social'));await page.locator('#account-form [name="email"]').fill(email);await page.locator('#account-form [name="password"]').fill('test-password');await page.getByRole('button',{name:'Entrar',exact:true}).click();}
+ async function login(page,email='a@example.com'){await page.locator('#app-splash').waitFor({state:'detached'});await page.evaluate(()=>navigate('social'));await page.locator('#account-form [name="email"]').fill(email);await page.locator('#account-form [name="password"]').fill('test-password');await page.getByRole('button',{name:'Entrar',exact:true}).click();}
  try{
  browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});const c=await context(),page=await c.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8128/');
@@ -43,8 +43,8 @@ const root=path.resolve(__dirname,'../..');
  state.offline=true;await page.evaluate(()=>{J.award(progress,{id:'conflicting-local',date:today,xp:10,coins:0,label:'Local',kind:'questao'});save();});await page.waitForTimeout(1300);
  state.offline=false;await other.evaluate(()=>{J.award(progress,{id:'other-device',date:today,xp:25,coins:0,label:'Other',kind:'questao'});save();});await other.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.dataset.state==='conflict');assert.equal(await page.evaluate(()=>J.xp(progress)),100);assert.ok(!state.cloud.a.snapshot.progress.events.some(e=>e.id==='conflicting-local'));console.log('PASS simultaneous device changes pause with explicit conflict instead of overwriting');
- page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Carregar progresso da conta',exact:true}).click();await page.waitForFunction(()=>J.xp(progress)===115);console.log('PASS explicit cloud resolution loads latest revision');
- await page.getByRole('button',{name:'Sair',exact:true}).click();await login(page,'b@example.com');await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));assert.equal(await page.evaluate(()=>J.xp(progress)),0);assert.equal(state.cloud.b.snapshot.learner.profile,null);console.log('PASS switching to an empty account does not upload the prior account progress');
+ await page.locator('.account-tools summary').click();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Carregar progresso da conta',exact:true}).click();await page.waitForFunction(()=>J.xp(progress)===115);console.log('PASS explicit cloud resolution loads latest revision');
+ await page.locator('.account-tools').evaluate(el=>el.open=true);await page.getByRole('button',{name:'Sair',exact:true}).click();await login(page,'b@example.com');await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));assert.equal(await page.evaluate(()=>J.xp(progress)),0);assert.equal(state.cloud.b.snapshot.learner.profile,null);console.log('PASS switching to an empty account does not upload the prior account progress');
  assert.deepEqual(errors,[]);console.log('PASS no JavaScript errors');
  }finally{if(browser)await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

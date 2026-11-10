@@ -40,3 +40,10 @@ test('question answer indexes match arithmetic and choices are unique',()=>{
  assert.equal(Number(q.answers[q.correct]),value);assert.equal(new Set(q.answers).size,4);
  }
 });
+
+test('validates cosmetic identifiers before RPC and allows catalog choices',async()=>{
+ let calls=0;globalThis.fetch=async(url,options)=>{calls++;return Response.json(url.includes('/auth/')?{id:'verified-user'}:{registered:true});};
+ assert.equal((await onRequest(context({op:'profile',nickname:'Explorer',avatar:'fox',cover:'javascript:bad'}))).status,400);
+ assert.equal(calls,1);
+ assert.equal((await onRequest(context({op:'profile',nickname:'Explorer',avatar:'owl',cover:'cosmos',frame:'orbit',title:'Viajante das ilhas'}))).status,200);
+});
