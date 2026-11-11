@@ -24,8 +24,7 @@ window.JourneyAvatar=Object.freeze({
  render(){
   const current=typeof progress==='undefined'?null:progress;
   const look=resolveRewardLook(current,chosen);
-  if(!chosen&&!look.special&&!look.accessory&&!look.effect)return '';
   const figure=renderLook(look,{figure:true,animated:true});
-  return `<g class="journey-social-avatar" data-journey-avatar="${look.special||look.base}" data-journey-accessory="${look.accessory||''}" data-journey-effect="${look.effect||''}" aria-hidden="true">${figure.replace('<svg ', '<svg x="-22" y="-48" width="44" height="50" ')}</g>`;
+  return `<g class="journey-social-avatar" data-journey-avatar="${look.special||look.base}" data-journey-accessory="${look.accessory||''}" data-journey-effect="${look.effect||''}" aria-hidden="true">${figure.replace('<svg ', '<svg x="-23" y="-49" width="46" height="76" ')}</g>`;
  }
 });

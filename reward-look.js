@@ -1,5 +1,6 @@
+import {renderAvatarFigure} from './avatar-figure.js';
 import {avatar} from './social-art.js';
-import {parseAvatar,avatarPalettes,avatarModels,validAvatar} from './avatar-catalog.mjs';
+import {validAvatar} from './avatar-catalog.mjs';
 export const rewardCharacters={cometa:'comet~sunset~none',astronauta:'astronaut~original~none','raposa-aurora':'fox~sunset~none','guardiao-bosque':'sprout~mint~none','dragao-eclipse':'dragon~violet~none','robo-orbital':'robot~mint~none','pinguim-polar':'penguin~original~none','fenix-solar':'phoenix~sunset~none','baleia-celeste':'starwhale~violet~none'};
 const owns=(p,id)=>Boolean(id&&p?.purchases?.some(item=>item.item===id));
 export function resolveRewardLook(p,profile=null){
@@ -35,19 +36,19 @@ function specialDetails(id){
  return '';
 }
 export function renderLook(look,{figure=false,animated=false,stage=false}={}){
+ if(figure){
+  if(look.base!=='local-default')return avatar(look.base,{figure:true,look,animated,stage});
+  const head='<svg viewBox="0 0 160 124" preserveAspectRatio="xMidYMid meet"><defs></defs><path d="M55 70q-1-32 25-32t25 32v14q-2 27-25 27T55 84Z" fill="#e8bf9e"/><path d="M53 74Q45 34 77 31q35-3 34 43L87 54 66 66Z" fill="#4b4965"/><g class="avatar-eyes" fill="#343d57"><circle cx="69" cy="78" r="4"/><circle cx="91" cy="78" r="4"/><g fill="#fff"><circle cx="68" cy="77" r="1.4"/><circle cx="90" cy="77" r="1.4"/></g></g><path d="M74 96q6 5 12 0" fill="none" stroke="#9d6f68" stroke-width="2"/></svg>';
+  return renderAvatarFigure({model:'human',colors:['#7194d2','#4c6c96','#e5d5ac','#394969'],head,look,animated,stage});
+ }
  let svg;
  if(look.base==='local-default'){
   const person='<path d="M51 150q0-44 29-44t29 44" fill="#7194d2"/><path d="m61 112 19 13 19-13-6 39H67Z" fill="#e5d5ac"/><path d="M55 70q-1-32 25-32t25 32v14q-2 27-25 27T55 84Z" fill="#e8bf9e"/><path d="M53 74Q45 34 77 31q35-3 34 43L87 54 66 66Z" fill="#4b4965"/><g class="avatar-eyes" fill="#343d57"><circle cx="69" cy="78" r="4"/><circle cx="91" cy="78" r="4"/><g fill="#fff"><circle cx="68" cy="77" r="1.4"/><circle cx="90" cy="77" r="1.4"/></g></g><path d="M74 96q6 5 12 0" fill="none" stroke="#9d6f68" stroke-width="2"/><path d="M55 111q25 12 50 0l-3 12q-22 8-44-1Z" fill="#d6b879"/>';
-  svg=`<svg viewBox="0 0 160 ${figure?180:160}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs></defs>${figure?'<path d="M62 145h14v20H55v-8h7m22-12h14v12h7v8H84Z" fill="#394969"/>':'<circle cx="80" cy="80" r="78" fill="#bfd7de"/>'}${person}</svg>`;
- }else svg=avatar(look.base,{figure});
- const model=parseAvatar(look.base).model,floating=['jellyfish','moth','comet','starwhale'].includes(model);
- const group=avatarModels[model].group;
- const armColor=look.base==='local-default'?'#7194d2':avatarPalettes[parseAvatar(look.base).palette].colors?.[1]||{aurora:'#ad7958',forest:'#508679',crystal:'#8062ae',lunar:'#668ba5',peaks:'#708eab',stellar:'#9475a9'}[group];
- const arms=figure&&!floating?`<g class="reward-arm-left"><path d="M49 117q-19 6-22 24l12 5 18-25" fill="${armColor}"/><circle cx="31" cy="145" r="7" fill="#dbd6bd"/></g><g class="reward-arm-right"><path d="M111 117q19 6 22 24l-12 5-18-25" fill="${armColor}"/><circle cx="129" cy="145" r="7" fill="#dbd6bd"/></g>`:'';
+  svg=`<svg viewBox="0 0 160 160" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs></defs><circle cx="80" cy="80" r="78" fill="#bfd7de"/>${person}</svg>`;
+ }else svg=avatar(look.base);
  const defsEnd=svg.indexOf('</defs>')+8,body=svg.slice(defsEnd,-6);
- const scenery=stage?`<g class="reward-stage"><ellipse class="reward-floor-shadow" cx="80" cy="176" rx="48" ry="6" fill="#142d49" opacity=".22"/><ellipse cx="80" cy="176" rx="66" ry="11" fill="none" stroke="#8ba7ba" stroke-opacity=".3"/><path d="M4 173h18m116 0h18" stroke="#d9c18d" stroke-opacity=".5"/><g class="reward-stage-sparks">${star(4,51,.6,'#c5dbe4')}${star(154,106,.6,'#c5dbe4')}</g></g>`:'';
- const prefix=svg.slice(0,defsEnd).replace('<svg ',`<svg class="reward-live-scene" data-motion-state="paused" data-animated="${animated}" data-full-body="${figure}" data-idle="${floating?'float':'grounded'}" `).replace('viewBox="0 0 160 180"',stage?'viewBox="0 0 160 194"':'viewBox="0 0 160 180"');
- return prefix+scenery+(figure?halo(look.effect):'')+`<g class="reward-character-life">`+(figure&&look.accessory==='asas'?accessory('asas'):'')+arms+body+specialDetails(look.special)+(look.accessory!=='asas'||!figure?accessory(look.accessory):'')+'</g>'+(!figure?halo(look.effect):'')+'</svg>';
+ const prefix=svg.slice(0,defsEnd).replace('<svg ',`<svg class="reward-live-scene" data-motion-state="paused" data-animated="${animated}" data-full-body="false" `);
+ return prefix+`<g class="reward-character-life">${body}${specialDetails(look.special)}${accessory(look.accessory)}</g>${halo(look.effect)}</svg>`;
 }
 
 export function rewardArt(item,base='fox',options={animated:true}){

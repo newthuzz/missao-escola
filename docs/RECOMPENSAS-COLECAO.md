@@ -22,23 +22,30 @@ O snapshot de progresso versão 3 recebe `rewardLook` (origem, acessório e efei
 
 `reward-look.js` compartilha a arte entre loja, prévias e mini viajante. `rewards-ui.js` preserva o botão e a ação original do presente diário. A versão portátil incorpora o módulo e seus recursos.
 
-## Viajante e efeitos animados
+## Viajante articulado e efeitos animados
 
-O destaque do ateliê e a janela de experimentar mostram o personagem em corpo inteiro, sobre uma pequena base ilustrada. Personagens terrestres respiram e movimentam suavemente braços e postura; criaturas flutuantes têm um balanço próprio. Olhos piscam e o visor do astronauta recebe um reflexo discreto. Asas e lanterna também têm movimentos ou brilho próprios.
+A reformulação de 11/11/2026 substitui o corpo compacto por uma anatomia vetorial desenhada em `avatar-figure.js`. O desenho usa coordenadas de 200 × 360, com ombros, pescoço, tórax, quadril, braços, antebraços, mãos, coxas, joelhos, canelas e botas. As figuras terrestres têm altura aproximada de 5,5 cabeças, sem alongamento da imagem. O rosto e os acessórios do perfil usam a arte original, em escala uniforme; os retratos sociais continuam compatíveis. Água-viva, mariposa, cometa e baleia mantêm a silhueta flutuante de sua espécie.
 
-As três auras têm movimentos distintos: órbitas da nebulosa, folhas oscilantes e raios solares girando lentamente. Os efeitos equipados aparecem também no mini viajante da ilha. As animações não gastam estrelas, não alteram pontuação nem mudam a persistência da coleção.
+O destaque do ateliê, a janela de experimentar e o mini viajante da ilha compartilham esse corpo. O viajante inicial também usa o novo desenho na ilha, sem depender de login. O `viewBox` e `preserveAspectRatio` preservam as proporções e reservam espaço para mãos levantadas. Na ilha, as botas se apoiam na sombra existente; a oscilação vertical antiga fica restrita às criaturas flutuantes.
 
-O movimento é feito em CSS; `reward-motion.js` acompanha visibilidade para pausar cenas fora da tela, em abas ocultas ou atrás de uma janela aberta. A preferência `prefers-reduced-motion` desativa as animações, inclusive quando alterada durante o uso. Não há migração SQL para esta atualização.
+A respiração dura 4,1 segundos: só o tórax se expande levemente, ombros e cabeça compensam a postura; quadril e pés ficam estáveis. Cabeça, ombros e cotovelos têm pivôs locais. Acessórios de mão acompanham o antebraço esquerdo, mochila acompanha as costas e asas acompanham o tronco. Roupas especiais foram redesenhadas no corpo novo. Os IDs, preços, compras, equipamento e campos de persistência não mudam.
+
+`reward-motion.js` oferece uma máquina de estados extensível: `IDLE`, `LOOK_AROUND`, `ARM_GESTURE`, `GREETING`, `CELEBRATION` e `RETURN_TO_IDLE`. Gestos espontâneos aguardam intervalos variados de 8 a 18 segundos. Passar o mouse ou focar o botão do viajante chama sua atenção; clicar, tocar, Enter ou Espaço disparam um cumprimento. Resgatar um item dispara comemoração e equipar chama uma reação de observação. Interações têm prioridade sobre gestos espontâneos; a comemoração não é interrompida por novos cumprimentos. Ao trocar de estado, a pose atual de cada articulação é amostrada uma vez para suavizar a transição. Estados não modificam estrelas ou progresso.
+
+As três auras mantêm movimentos próprios: órbitas da nebulosa, folhas oscilantes e raios solares girando lentamente. Olhos piscam, o visor recebe reflexos, asas se movem e a lanterna brilha. Nenhuma animação de respiração escala o personagem inteiro.
+
+CSS interpola os movimentos; um único temporizador compartilhado agenda as mudanças de estado, sem laços de renderização por quadro. Cenas fora da tela, em abas ocultas ou atrás de uma janela aberta ficam pausadas. `prefers-reduced-motion` desativa as animações, inclusive quando alterado durante o uso. O botão “Pausar animações” guarda apenas a preferência visual local, separada dos dados de estudo. Não há migração SQL, alteração de autenticação ou serviço novo.
 
 ## Verificações
 
 - `npm test`: inclui `tests/rewards.test.mjs` para catálogo, saldo, duplicação, escudos, presente diário, compatibilidade, round-trip e equipamento sem posse.
 - `npm run build`.
 - `node tests/browser/rewards.cjs`: prévia sem débito, resgates, meta persistente, recarga, composição na ilha, filtros, escudos, presente único, foco do modal, teclado, texto a 200%, 360/768/1440 px nos dois temas. Usa dados locais de teste.
-- `node tests/browser/reward-motion.cjs`: corpo inteiro, transformação real das animações, três auras, pausa por visibilidade e janela aberta, alteração de movimento reduzido, efeitos na ilha e 360/768/1440 px nos dois temas, sem alteração de saldo. Capturas em `work/reward-motion/`.
+- `node tests/avatar-motion.test.mjs`: temporização, prioridades, transições e retorno ao repouso. `tests/rewards.test.mjs` também verifica todas as combinações dos 24 modelos, quatro paletas, quatro acessórios de cabeça e seis opções de equipamento.
+- `node tests/browser/reward-motion.cjs`: pés estáveis durante a respiração, gestos automáticos e por interação, comemoração real de compra, reação ao equipar, pausa manual e por visibilidade, movimento reduzido, enquadramento de 25 figuras × seis equipamentos × três poses, interação com CPU simulada 4× mais lenta, ilha e 360/768/1440 px nos dois temas. As prévias não alteram o saldo. Capturas em `work/reward-motion/`.
 - `node tests/browser/social.cjs`: regressão de perfil, mini viajante, amizades, bloqueios, ligas e sessões com banco local.
 - `node tests/browser/progress-sync.cjs`: inclui restauração de lanterna equipada e meta de personagem em uma cópia da conta, além dos fluxos de sincronização existentes.
 - `node scripts/build-portable-html.mjs work/rewards-portable.html` e `PORTABLE_HTML=work/rewards-portable.html node tests/browser/portable-html.cjs`.
 - Capturas de teste em `work/rewards-captures/`.
 
-Os testes não usam dados reais de alunos nem executam transações em produção. Dispositivos físicos não foram utilizados nesta validação.
+Os testes não usam dados reais de alunos nem executam transações em produção. Dispositivos físicos e FPS em hardware real não foram medidos nesta validação; a condição de desempenho reduzido usa limitação de CPU do Chromium.
