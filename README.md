@@ -11,6 +11,7 @@ Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por C
 - [Nova área social: migração e validação](docs/SOCIAL-EXPLORADORES.md)
 - [Coleção de avatares e atualização manual](docs/AVATAR-STUDIO.md)
 - [Metas e critérios de entrada no beta](docs/METAS-BETA.md)
+- [Estudo com matérias e atividades visíveis](docs/ESTUDO-SEM-ABAS.md)
 - [Melhorias do estudo personalizado, testes e limites](docs/ESTUDO-PERSONALIZADO.md)
 
 O frontend usa apenas a chave pública. A chave `service_role` deve ficar exclusivamente nos Secrets do projeto Cloudflare Pages. Não é necessário passar pelo servidor do ChatGPT.
