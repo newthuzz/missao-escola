@@ -25,6 +25,6 @@ window.JourneyAvatar=Object.freeze({
   const current=typeof progress==='undefined'?null:progress;
   const look=resolveRewardLook(current,chosen);
   const figure=renderLook(look,{figure:true,animated:true});
-  return `<g class="journey-social-avatar" data-journey-avatar="${look.special||look.base}" data-journey-accessory="${look.accessory||''}" data-journey-effect="${look.effect||''}" aria-hidden="true">${figure.replace('<svg ', '<svg x="-23" y="-49" width="46" height="76" ')}</g>`;
+  return `<g class="journey-social-avatar" data-journey-avatar="${look.special||look.base}" data-journey-accessory="${look.accessory||''}" data-journey-effect="${look.effect||''}" aria-hidden="true">${figure.replace('<svg ', '<svg x="-24.5" y="-49" width="49" height="76" ')}</g>`;
  }
 });

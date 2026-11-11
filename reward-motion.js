@@ -16,14 +16,16 @@ export function createAvatarMotion(random=Math.random){
   reset(){enter('IDLE');}
  };
 }
+export function motionAllowed(preference,systemReduced){return preference==='enabled'||preference!=='paused'&&!systemReduced;}
 let started=false,react=null;
 export function reactAvatar(container,state){react?.(container,state);}
 export function startRewardMotion(){
  if(started||typeof document==='undefined'||typeof MutationObserver==='undefined')return;
  started=true;
- const selector='.reward-live-scene[data-animated="true"]',scenes=new Map(),reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
- let scheduled=false,timer=null,lastTime=performance.now(),pageActive=true,userPaused=false;
- try{userPaused=localStorage.getItem('missao-escola-avatar-motion')==='paused';}catch{}
+ const selector='.reward-live-scene[data-animated="true"]',scenes=new Map(),anchors=new Map(),reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+ let scheduled=false,timer=null,lastTime=performance.now(),pageActive=true,preference='auto';
+ function readPreference(){try{const saved=localStorage.getItem('missao-escola-avatar-motion');preference=['auto','enabled','paused'].includes(saved)?saved:'auto';}catch{preference='auto';}}
+ readPreference();
  function paint(node,entry){
   if(node.dataset.avatarState!==entry.machine.state){
    // Sample only on state changes so an interaction can interrupt a gesture
@@ -45,56 +47,69 @@ export function startRewardMotion(){
  function sync(){
   scheduled=false;advance();const modal=document.querySelector('dialog[open]');
   for(const [node,entry]of scenes){
-   if(!node.isConnected){intersection?.unobserve(node);scenes.delete(node);continue;}
-   const state=reduced.matches?'reduced':!userPaused&&pageActive&&!document.hidden&&entry.visible&&(!modal||modal.contains(node))?'running':'paused';
+   if(!node.isConnected){const group=anchors.get(entry.anchor);group?.nodes.delete(node);if(group&&!group.nodes.size){intersection?.unobserve(entry.anchor);anchors.delete(entry.anchor);}scenes.delete(node);continue;}
+   node.dataset.motionOverride=String(preference==='enabled');
+   const state=!motionAllowed(preference,reduced.matches)?preference==='paused'?'paused':'reduced':pageActive&&!document.hidden&&entry.visible&&(!modal||modal.contains(node))?'running':'paused';
    if(node.dataset.motionState!==state)node.dataset.motionState=state;
    entry.running=state==='running'&&node.dataset.fullBody==='true';
    if(state==='reduced'){entry.machine.reset();entry.pending=null;paint(node,entry);}
    else if(entry.running&&entry.pending){entry.machine.request(entry.pending);entry.pending=null;paint(node,entry);}
   }
   for(const button of document.querySelectorAll('[data-avatar-motion]')){
-   const text=reduced.matches?'Movimento reduzido':userPaused?'Ativar animações':'Pausar animações';
+   const enabled=motionAllowed(preference,reduced.matches),text=enabled?'Pausar animações':'Ativar animações';
    if(button.textContent!==text)button.textContent=text;
-   button.disabled=reduced.matches;button.setAttribute('aria-pressed',String(userPaused||reduced.matches));
+   button.disabled=false;button.setAttribute('aria-pressed',String(!enabled));
   }
+  const explanation=preference==='paused'?'Animações pausadas. Você pode ativá-las quando quiser.':reduced.matches&&preference!=='enabled'?'Seu dispositivo prefere menos movimento. Ative a prévia se quiser.':'';
+  for(const note of document.querySelectorAll('[data-avatar-motion-note]'))if(note.textContent!==explanation)note.textContent=explanation;
   armTimer();
  }
  function schedule(){if(!scheduled){scheduled=true;queueMicrotask(sync);}}
- const intersection='IntersectionObserver' in window?new IntersectionObserver(entries=>{
-  advance();for(const entry of entries)if(scenes.has(entry.target))scenes.get(entry.target).visible=entry.isIntersecting&&entry.intersectionRatio>0;
+ function inViewport(anchor){const r=anchor.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;}
+ // Observe HTML containers, whose intersections are reliable across Safari and
+ // desktop engines. Initial geometry also starts visible scenes immediately.
+ let intersection=null;
+ if(typeof IntersectionObserver==='function')try{intersection=new IntersectionObserver(entries=>{
+  advance();for(const change of entries){const group=anchors.get(change.target);if(group)for(const node of group.nodes){const entry=scenes.get(node);if(entry)entry.visible=change.isIntersecting&&change.intersectionRatio>0;}}
   schedule();
- },{threshold:0}):null;
+ },{threshold:0});}catch{}
  function collect(root){
   const nodes=[];if(root.matches?.(selector))nodes.push(root);nodes.push(...(root.querySelectorAll?.(selector)||[]));
-  for(const node of nodes)if(!scenes.has(node)){scenes.set(node,{visible:!intersection&&node.getClientRects().length>0,running:false,machine:createAvatarMotion(),pending:null});intersection?.observe(node);}
+  for(const node of nodes)if(node.isConnected&&!scenes.has(node)){
+   let anchor=node.closest('[data-avatar-interact]')||node.parentElement;
+   while(anchor?.namespaceURI!=='http://www.w3.org/1999/xhtml'&&anchor?.parentElement)anchor=anchor.parentElement;
+   anchor=anchor||node;const entry={anchor,visible:inViewport(anchor),running:false,machine:createAvatarMotion(),pending:null};scenes.set(node,entry);
+   if(!anchors.has(anchor)){anchors.set(anchor,{nodes:new Set()});intersection?.observe(anchor);}anchors.get(anchor).nodes.add(node);
+  }
  }
+ function refreshBounds(){for(const [anchor,group]of anchors){const visible=inViewport(anchor);for(const node of group.nodes){const entry=scenes.get(node);if(entry)entry.visible=visible;}}schedule();}
  react=(container,state)=>{
-  const node=container?.matches?.(selector)?container:container?.querySelector?.(selector);if(!node||reduced.matches||userPaused)return;
-  collect(node);advance();const entry=scenes.get(node);
+  const node=container?.matches?.(selector)?container:container?.querySelector?.(selector);if(!node||!motionAllowed(preference,reduced.matches))return;
+  collect(node);advance();const entry=scenes.get(node);if(!entry)return;
   if(entry.running){entry.machine.request(state);paint(node,entry);}else if((priority[state]||0)>(priority[entry.pending]||0))entry.pending=state;
   schedule();
  };
  collect(document.body);
  new MutationObserver(records=>{
   for(const record of records)for(const node of record.addedNodes)if(node.nodeType===1)collect(node);
-  if(!intersection)for(const [node,entry]of scenes)entry.visible=node.getClientRects().length>0;
+  if(!intersection)for(const entry of scenes.values())entry.visible=inViewport(entry.anchor);
   schedule();
  }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','open']});
  document.addEventListener('click',event=>{
   const button=event.target.closest?.('[data-avatar-interact],[data-avatar-motion]');if(!button)return;
-  if(button.hasAttribute('data-avatar-motion')){userPaused=!userPaused;try{localStorage.setItem('missao-escola-avatar-motion',userPaused?'paused':'auto');}catch{}schedule();}
+  if(button.hasAttribute('data-avatar-motion')){preference=motionAllowed(preference,reduced.matches)?'paused':'enabled';try{localStorage.setItem('missao-escola-avatar-motion',preference);}catch{}schedule();}
   else react(button,'GREETING');
  });
  document.addEventListener('pointerover',event=>{
   const button=event.target.closest?.('[data-avatar-interact]');if(button&&event.pointerType!=='touch'&&!button.contains(event.relatedTarget))react(button,'LOOK_AROUND');
  });
  document.addEventListener('focusin',event=>{if(event.target.matches?.('[data-avatar-interact]'))react(event.target,'LOOK_AROUND');});
- document.addEventListener('visibilitychange',schedule);reduced.addEventListener('change',schedule);
+ document.addEventListener('visibilitychange',schedule);
+ if(reduced.addEventListener)reduced.addEventListener('change',schedule);else reduced.addListener?.(schedule);
+ window.addEventListener('storage',event=>{if(event.key==='missao-escola-avatar-motion'){readPreference();schedule();}});
  window.addEventListener('pagehide',()=>{advance();pageActive=false;sync();});
- window.addEventListener('pageshow',()=>{pageActive=true;schedule();});
- if(!intersection)window.addEventListener('scroll',()=>{
-  for(const [node,entry]of scenes){const rect=node.getBoundingClientRect();entry.visible=rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<innerHeight;}
-  schedule();
- },{passive:true});
+ window.addEventListener('pageshow',()=>{pageActive=true;refreshBounds();});
+ window.addEventListener('resize',refreshBounds);
+ if(!intersection)window.addEventListener('scroll',refreshBounds,{passive:true});
  sync();
 }

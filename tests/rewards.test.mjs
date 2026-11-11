@@ -19,13 +19,13 @@ test('equipment requires ownership, removal is free and the daily chest is idemp
  const invalid=J.load({...s,rewardLook:{source:'bad',accessory:'asas',effect:'violeta'},equipped:'dragao-eclipse'});assert.equal(invalid.rewardLook.accessory,null);assert.equal(invalid.rewardLook.effect,null);assert.equal(invalid.equipped,'padrao');
 });
 test('every reward renders in a portrait and on the island; unowned overrides are rejected',()=>{
- for(const item of J.rewards){const art=rewardArt(item);assert.ok(art.includes('<svg'));assert.ok(!/undefined|NaN|<script/.test(art));const p=fund();J.buy(p,item.id,day);const look=resolveRewardLook(p,'axolotl~mint~crown');const figure=renderLook(look,{figure:true});assert.ok(figure.includes('0 0 200 360'));assert.ok(!/undefined|NaN/.test(figure));}
+ for(const item of J.rewards){const art=rewardArt(item);assert.ok(art.includes('<svg'));assert.ok(!/undefined|NaN|<script/.test(art));const p=fund();J.buy(p,item.id,day);const look=resolveRewardLook(p,'axolotl~mint~crown');const figure=renderLook(look,{figure:true});assert.ok(figure.includes('0 0 232 360'));assert.ok(!/undefined|NaN/.test(figure));}
  assert.equal(Object.keys(rewardCharacters).length,9);
  const forged=resolveRewardLook({equipped:'dragao-eclipse',rewardLook:{source:'collection',accessory:'asas',effect:'solar'},purchases:[]},'fox');assert.equal(forged.special,null);assert.equal(forged.accessory,null);assert.equal(forged.effect,null);
 });
 
 test('live previews expose full figures, independent effects and animation hooks without circular crops',()=>{
- for(const effect of ['violeta','folhas','solar']){const preview=renderLook({base:'astronaut',special:null,accessory:'asas',effect},{figure:true,animated:true,stage:true});assert.ok(preview.includes('viewBox="0 0 200 360"'));assert.ok(preview.includes('data-animated="true"'));assert.ok(preview.includes('data-full-body="true"'));assert.ok(preview.includes('reward-character-life'));assert.ok(preview.includes('reward-arm-left'));assert.ok(preview.includes('reward-effect-'+effect));assert.ok(!preview.includes('<clipPath'));}
+ for(const effect of ['violeta','folhas','solar']){const preview=renderLook({base:'astronaut',special:null,accessory:'asas',effect},{figure:true,animated:true,stage:true});assert.ok(preview.includes('viewBox="0 0 232 360"'));assert.ok(preview.includes('data-animated="true"'));assert.ok(preview.includes('data-full-body="true"'));assert.ok(preview.includes('reward-character-life'));assert.ok(preview.includes('reward-arm-left'));assert.ok(preview.includes('reward-effect-'+effect));assert.ok(!preview.includes('<clipPath'));}
  const whale=renderLook({base:'starwhale',special:null,accessory:null,effect:null},{figure:true,animated:true});assert.ok(whale.includes('data-idle="float"'));assert.ok(!whale.includes('reward-arm-left'));
 });
 

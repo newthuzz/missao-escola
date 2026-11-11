@@ -7,7 +7,7 @@ test('journey identity follows the active account and ignores late profile respo
  const render=()=>window.JourneyAvatar.render();
  assert.match(render(),/data-journey-avatar="local-default"/);setIslandAvatarAccount('a');
  const old=islandAvatarReceiver('a'),current=islandAvatarReceiver('a');
- current({avatar:'dragon~violet~crown'});assert.match(render(),/data-journey-avatar="dragon~violet~crown"/);assert.match(render(),/viewBox="0 0 200 360"/);
+ current({avatar:'dragon~violet~crown'});assert.match(render(),/data-journey-avatar="dragon~violet~crown"/);assert.match(render(),/viewBox="0 0 232 360"/);
  old({avatar:'cat'});assert.match(render(),/dragon~violet~crown/);
  const count=renders;setIslandAvatarAccount('a');assert.equal(renders,count);assert.match(render(),/dragon~violet~crown/);
  active=false;const update=islandAvatarReceiver('a');update({avatar:'axolotl~mint~goggles'});assert.equal(renders,count);assert.match(render(),/axolotl~mint~goggles/);

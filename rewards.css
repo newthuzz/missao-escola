@@ -53,11 +53,11 @@
 .reward-daily .chest-art{display:block;position:absolute;left:1rem;top:1.6rem;width:70px;height:70px;margin:0;transform:none}
 .reward-daily .chest-art svg{display:block;width:70px;height:65px;margin:0}
 .reward-daily>.section-kicker{display:block;margin:0 0 .4rem}.reward-daily h2{margin:0 0 .5rem}.reward-daily>button{width:100%;max-width:none;margin-top:.8rem}
-/* The figure uses a 200 × 360 drawing, with space for the raised hands. */
+/* The figure uses a 232 × 360 drawing, with space for the raised hands. */
 .reward-hero-art{padding:1.3rem .6rem;gap:.3rem}
 .reward-avatar-interaction{display:block;width:100%;min-width:0;margin:0;padding:0;border:0;border-radius:20px;background:transparent;color:inherit;box-shadow:none;cursor:pointer;touch-action:manipulation}
 .reward-avatar-interaction:hover{background:#a7dfcf08}.reward-avatar-interaction:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-.reward-avatar-interaction>.reward-live-scene{display:block;width:100%;height:100%;max-height:440px;aspect-ratio:200/360;filter:drop-shadow(0 9px 14px #0002)}
+.reward-avatar-interaction>.reward-live-scene{display:block;width:100%;height:100%;max-height:440px;aspect-ratio:232/360;filter:drop-shadow(0 9px 14px #0002)}
 .reward-hero-art>.reward-avatar-interaction{width:min(100%,250px);height:410px;justify-self:center}
 .reward-avatar-hint{display:block;text-align:center;font:inherit;font-size:.7rem;line-height:1.6;color:var(--muted)}
 .reward-hero-art>span{margin:.3rem 0;font-size:.6rem}.reward-motion-toggle{font-size:.7rem;min-height:44px;justify-self:center}
@@ -68,57 +68,62 @@
 .reward-live-scene .reward-leaf-ring{transform-box:view-box;transform-origin:80px 83px}
 .reward-live-scene[data-rig] .reward-orbit,.reward-live-scene[data-rig] .reward-sun-rays,.reward-live-scene[data-rig] .reward-leaf-ring{transform-origin:100px 171px}
 .reward-live-scene .reward-floor-shadow{transform-box:fill-box;transform-origin:center}
-.reward-live-scene[data-animated="true"] .reward-orbit{animation:reward-orbit-turn 25s linear infinite}
-.reward-live-scene[data-animated="true"] .reward-orbit-reverse{animation:reward-orbit-turn 36s linear infinite reverse}
-.reward-live-scene[data-animated="true"] .reward-sun-rays{animation:reward-orbit-turn 55s linear infinite}
-.reward-live-scene[data-animated="true"] .reward-leaf-ring{animation:reward-leaf-drift 12s ease-in-out infinite}
-.reward-live-scene[data-animated="true"] .reward-aura-glow{animation:reward-glow-breathe 5.8s ease-in-out infinite}
-.reward-live-scene[data-animated="true"] .reward-aura-spark,.reward-live-scene[data-animated="true"] .reward-stage-sparks{animation:reward-spark-breathe 4.7s ease-in-out -1.2s infinite}
-.reward-live-scene[data-animated="true"] .reward-lantern-glow{animation:reward-glow-breathe 3.5s ease-in-out infinite}
-.reward-live-scene[data-animated="true"] .avatar-eyes{animation:reward-eye-blink 6.3s ease-in-out var(--reward-blink-delay,-1.2s) infinite}
-.reward-live-scene[data-animated="true"] .avatar-visor-glint{animation:reward-visor-light 7s ease-in-out infinite}
+.reward-live-scene *{--reward-animation:none}
+.reward-live-scene[data-animated="true"] *{animation:var(--reward-animation)}
+.reward-live-scene[data-motion-override="true"] *{animation:var(--reward-animation)!important}
+.reward-live-scene[data-animated="true"] .reward-orbit{--reward-animation:reward-orbit-turn 25s linear infinite}
+.reward-live-scene[data-animated="true"] .reward-orbit-reverse{--reward-animation:reward-orbit-turn 36s linear infinite reverse}
+.reward-live-scene[data-animated="true"] .reward-sun-rays{--reward-animation:reward-orbit-turn 55s linear infinite}
+.reward-live-scene[data-animated="true"] .reward-leaf-ring{--reward-animation:reward-leaf-drift 12s ease-in-out infinite}
+.reward-live-scene[data-animated="true"] .reward-aura-glow{--reward-animation:reward-glow-breathe 5.8s ease-in-out infinite}
+.reward-live-scene[data-animated="true"] .reward-aura-spark,.reward-live-scene[data-animated="true"] .reward-stage-sparks{--reward-animation:reward-spark-breathe 4.7s ease-in-out -1.2s infinite}
+.reward-live-scene[data-animated="true"] .reward-lantern-glow{--reward-animation:reward-glow-breathe 3.5s ease-in-out infinite}
+.reward-live-scene[data-animated="true"] .avatar-eyes{--reward-animation:reward-eye-blink 6.3s ease-in-out var(--reward-blink-delay,-1.2s) infinite}
+.reward-live-scene[data-animated="true"] .avatar-visor-glint{--reward-animation:reward-visor-light 7s ease-in-out infinite}
 .reward-item:nth-child(2n){--reward-blink-delay:-3.4s}.reward-item:nth-child(3n){--reward-blink-delay:-5s}
-/* Each joint rotates in the drawing's coordinate space. Feet and hips do not animate. */
-.reward-live-scene[data-rig] .avatar-upper-posture{transform-box:view-box;transform-origin:100px 225px}
-.reward-live-scene[data-rig] .avatar-thorax{transform-box:view-box;transform-origin:100px 221px}
-.reward-live-scene[data-rig] .avatar-head-pose{transform-box:view-box;transform-origin:100px 142px}
-.reward-live-scene[data-rig] .avatar-arm-left{transform-box:view-box;transform-origin:64px 154px}
-.reward-live-scene[data-rig] .avatar-arm-right{transform-box:view-box;transform-origin:136px 154px}
-.reward-live-scene[data-rig] .avatar-forearm-left{transform-box:view-box;transform-origin:52px 193px}
-.reward-live-scene[data-rig] .avatar-forearm-right{transform-box:view-box;transform-origin:148px 193px}
-.reward-live-scene[data-rig] .reward-wing-left{transform-box:view-box;transform-origin:80px 115px}
-.reward-live-scene[data-rig] .reward-wing-right{transform-box:view-box;transform-origin:120px 115px}
-.reward-live-scene[data-rig] .avatar-creature-pose{transform-box:view-box;transform-origin:100px 168px}
-.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-thorax{animation:avatar-chest-breathe 4.1s ease-in-out infinite}
-.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-shoulders{animation:avatar-shoulder-breathe 4.1s ease-in-out infinite}
-.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-head-breath{animation:avatar-head-breathe 4.1s ease-in-out infinite}
-.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-upper-posture{animation:avatar-weight-shift 11.7s ease-in-out infinite}
-.reward-live-scene[data-animated="true"][data-rig="floating"] .avatar-floating{animation:avatar-creature-float 5.3s ease-in-out infinite}
-.reward-live-scene[data-animated="true"][data-rig] .reward-wing-left{animation:avatar-wing-left 5.1s ease-in-out infinite}
-.reward-live-scene[data-animated="true"][data-rig] .reward-wing-right{animation:avatar-wing-right 5.1s ease-in-out infinite}
+/* Static SVG anchors place each joint; animated bones rotate at local zero. */
+.reward-live-scene[data-rig] .avatar-upper-posture{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-thorax{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-head-pose{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-arm-left{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-arm-right{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-forearm-left{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-forearm-right{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .reward-wing-left{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .reward-wing-right{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-rig] .avatar-creature-pose{transform-box:view-box;transform-origin:0px 0px}
+.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-thorax{--reward-animation:avatar-chest-breathe 4.1s ease-in-out infinite}
+.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-shoulders{--reward-animation:avatar-shoulder-breathe 4.1s ease-in-out infinite}
+.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-head-breath{--reward-animation:avatar-head-breathe 4.1s ease-in-out infinite}
+.reward-live-scene[data-animated="true"][data-rig="humanoid"] .avatar-upper-posture{--reward-animation:avatar-weight-shift 11.7s ease-in-out infinite}
+.reward-live-scene[data-animated="true"][data-rig="floating"] .avatar-floating{--reward-animation:avatar-creature-float 5.3s ease-in-out infinite}
+.reward-live-scene[data-animated="true"][data-rig] .reward-wing-left{--reward-animation:avatar-wing-left 5.1s ease-in-out infinite}
+.reward-live-scene[data-animated="true"][data-rig] .reward-wing-right{--reward-animation:avatar-wing-right 5.1s ease-in-out infinite}
 .reward-live-scene[data-look-direction="left"]{--look-angle:-4deg}.reward-live-scene[data-look-direction="right"]{--look-angle:4deg}
-.reward-live-scene[data-avatar-state="LOOK_AROUND"] .avatar-head-pose{animation:avatar-look 2.8s ease-in-out both}
-.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-arm-left{animation:avatar-arm-adjust 2.6s ease-in-out both}
-.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-forearm-left{animation:avatar-forearm-adjust 2.6s ease-in-out both}
-.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-head-pose{animation:avatar-inspect 2.6s ease-in-out both}
-.reward-live-scene[data-avatar-state="GREETING"] .avatar-arm-right{animation:avatar-greeting-arm 2.5s ease-in-out both}
-.reward-live-scene[data-avatar-state="GREETING"] .avatar-forearm-right{animation:avatar-greeting-hand 2.5s ease-in-out both}
-.reward-live-scene[data-avatar-state="GREETING"] .avatar-head-pose{animation:avatar-friendly-nod 2.5s ease-in-out both}
-.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-arm-left{animation:avatar-celebrate-left 3s ease-in-out both}
-.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-forearm-left{animation:avatar-celebrate-forearm-left 3s ease-in-out both}
-.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-arm-right{animation:avatar-celebrate-right 3s ease-in-out both}
-.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-forearm-right{animation:avatar-celebrate-forearm-right 3s ease-in-out both}
-.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-head-pose{animation:avatar-celebrate-nod 3s ease-in-out both}
-.reward-live-scene[data-avatar-state="GREETING"] .avatar-creature-pose{animation:avatar-creature-greet 2.5s ease-in-out both}
-.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-creature-pose{animation:avatar-creature-cheer 3s ease-in-out both}
-.reward-live-scene[data-avatar-state="LOOK_AROUND"] .avatar-creature-pose{animation:avatar-creature-look 2.8s ease-in-out both}
-.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-creature-pose{animation:avatar-creature-look 2.6s ease-in-out both}
-.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-head-pose{animation:avatar-rest-head .45s ease-out both}
-.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-arm-left{animation:avatar-rest-arm-left .45s ease-out both}
-.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-arm-right{animation:avatar-rest-arm-right .45s ease-out both}
-.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-forearm-left{animation:avatar-rest-forearm-left .45s ease-out both}
-.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-forearm-right{animation:avatar-rest-forearm-right .45s ease-out both}
-.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-creature-pose{animation:avatar-rest-creature .45s ease-out both}
+.reward-live-scene[data-avatar-state="LOOK_AROUND"] .avatar-head-pose{--reward-animation:avatar-look 2.8s ease-in-out both}
+.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-arm-left{--reward-animation:avatar-arm-adjust 2.6s ease-in-out both}
+.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-forearm-left{--reward-animation:avatar-forearm-adjust 2.6s ease-in-out both}
+.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-head-pose{--reward-animation:avatar-inspect 2.6s ease-in-out both}
+.reward-live-scene[data-avatar-state="GREETING"] .avatar-arm-right{--reward-animation:avatar-greeting-arm 2.5s ease-in-out both}
+.reward-live-scene[data-avatar-state="GREETING"] .avatar-forearm-right{--reward-animation:avatar-greeting-hand 2.5s ease-in-out both}
+.reward-live-scene[data-avatar-state="GREETING"] .avatar-head-pose{--reward-animation:avatar-friendly-nod 2.5s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-arm-left{--reward-animation:avatar-celebrate-left 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-forearm-left{--reward-animation:avatar-celebrate-forearm-left 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-arm-right{--reward-animation:avatar-celebrate-right 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-forearm-right{--reward-animation:avatar-celebrate-forearm-right 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"][data-has-hand-item="true"] .avatar-arm-left{--reward-animation:avatar-arm-adjust 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"][data-has-hand-item="true"] .avatar-forearm-left{--reward-animation:avatar-forearm-adjust 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-head-pose{--reward-animation:avatar-celebrate-nod 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="GREETING"] .avatar-creature-pose{--reward-animation:avatar-creature-greet 2.5s ease-in-out both}
+.reward-live-scene[data-avatar-state="CELEBRATION"] .avatar-creature-pose{--reward-animation:avatar-creature-cheer 3s ease-in-out both}
+.reward-live-scene[data-avatar-state="LOOK_AROUND"] .avatar-creature-pose{--reward-animation:avatar-creature-look 2.8s ease-in-out both}
+.reward-live-scene[data-avatar-state="ARM_GESTURE"] .avatar-creature-pose{--reward-animation:avatar-creature-look 2.6s ease-in-out both}
+.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-head-pose{--reward-animation:avatar-rest-head .45s ease-out both}
+.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-arm-left{--reward-animation:avatar-rest-arm-left .45s ease-out both}
+.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-arm-right{--reward-animation:avatar-rest-arm-right .45s ease-out both}
+.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-forearm-left{--reward-animation:avatar-rest-forearm-left .45s ease-out both}
+.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-forearm-right{--reward-animation:avatar-rest-forearm-right .45s ease-out both}
+.reward-live-scene[data-avatar-state="RETURN_TO_IDLE"] .avatar-creature-pose{--reward-animation:avatar-rest-creature .45s ease-out both}
 .reward-live-scene[data-motion-state="paused"] *{animation-play-state:paused!important}
 .reward-live-scene[data-motion-state="reduced"] *{animation:none!important}
 @keyframes reward-orbit-turn{to{transform:rotate(360deg)}}
@@ -138,13 +143,13 @@
 @keyframes avatar-inspect{from{transform:var(--from-head,rotate(0deg))}35%,65%{transform:rotate(-4deg) translateY(.5px)}to{transform:rotate(0deg)}}
 @keyframes avatar-arm-adjust{from{transform:var(--from-arm-left,rotate(0deg))}35%,65%{transform:rotate(4deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-forearm-adjust{from{transform:var(--from-forearm-left,rotate(0deg))}35%,65%{transform:rotate(19deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-greeting-arm{from{transform:var(--from-arm-right,rotate(0deg))}25%,70%{transform:rotate(-105deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-greeting-hand{from{transform:var(--from-forearm-right,rotate(0deg))}25%,50%,70%{transform:rotate(-60deg)}38%,60%{transform:rotate(-75deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-greeting-arm{from{transform:var(--from-arm-right,rotate(0deg))}12%{transform:rotate(0deg)}35%,80%{transform:rotate(-105deg)}92%,to{transform:rotate(0deg)}}
+@keyframes avatar-greeting-hand{from{transform:var(--from-forearm-right,rotate(0deg))}12%,35%,80%,92%{transform:rotate(-125deg)}45%,58%,70%{transform:rotate(-60deg)}51%,64%{transform:rotate(-75deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-friendly-nod{from{transform:var(--from-head,rotate(0deg))}30%,60%{transform:rotate(3deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-left{from{transform:var(--from-arm-left,rotate(0deg))}28%,68%{transform:rotate(35deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-right{from{transform:var(--from-arm-right,rotate(0deg))}28%,68%{transform:rotate(-95deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-forearm-left{from{transform:var(--from-forearm-left,rotate(0deg))}28%,68%{transform:rotate(143deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-forearm-right{from{transform:var(--from-forearm-right,rotate(0deg))}28%,68%{transform:rotate(-75deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-left{from{transform:var(--from-arm-left,rotate(0deg))}12%{transform:rotate(0deg)}35%,80%{transform:rotate(35deg)}92%,to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-right{from{transform:var(--from-arm-right,rotate(0deg))}12%{transform:rotate(0deg)}35%,80%{transform:rotate(-95deg)}92%,to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-forearm-left{from{transform:var(--from-forearm-left,rotate(0deg))}12%,35%,80%,92%{transform:rotate(125deg)}45%,70%{transform:rotate(143deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-forearm-right{from{transform:var(--from-forearm-right,rotate(0deg))}12%,35%,80%,92%{transform:rotate(-125deg)}45%,70%{transform:rotate(-75deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-celebrate-nod{from{transform:var(--from-head,rotate(0deg))}30%,65%{transform:translateY(-1px) rotate(-2deg)}45%{transform:translateY(0) rotate(2deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-creature-greet{from{transform:var(--from-creature,rotate(0deg))}30%,60%{transform:rotate(-6deg)}45%{transform:rotate(4deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-creature-cheer{from{transform:var(--from-creature,rotate(0deg))}30%,65%{transform:translateY(-7px) rotate(-6deg)}45%{transform:translateY(-4px) rotate(6deg)}to{transform:rotate(0deg)}}
@@ -161,3 +166,5 @@
 
 /* Grounded island figures breathe through their joints, with planted feet. */
 .avatar-bob.avatar-grounded{animation:none!important}
+
+.reward-motion-note{font-size:.72rem;line-height:1.5;color:var(--muted);text-align:center;max-width:240px;margin:.2rem auto 0}.reward-motion-note:empty{display:none}
