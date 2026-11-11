@@ -1,0 +1,50 @@
+import {avatar} from './social-art.js';
+import {validAvatar} from './avatar-catalog.mjs';
+export const rewardCharacters={cometa:'comet~sunset~none',astronauta:'astronaut~original~none','raposa-aurora':'fox~sunset~none','guardiao-bosque':'sprout~mint~none','dragao-eclipse':'dragon~violet~none','robo-orbital':'robot~mint~none','pinguim-polar':'penguin~original~none','fenix-solar':'phoenix~sunset~none','baleia-celeste':'starwhale~violet~none'};
+const owns=(p,id)=>Boolean(id&&p?.purchases?.some(item=>item.item===id));
+export function resolveRewardLook(p,profile=null){
+ const look=p?.rewardLook||{},special=(look.source==='collection'||!validAvatar(profile))&&owns(p,p?.equipped)&&Object.hasOwn(rewardCharacters,p.equipped)?p.equipped:null;
+ const base=special?rewardCharacters[special]:validAvatar(profile)&&look.source!=='collection'?profile:'local-default';
+ return {base,special,accessory:owns(p,look.accessory)&&['lanterna','mochila','luneta','livro','asas'].includes(look.accessory)?look.accessory:null,effect:owns(p,look.effect)&&['violeta','folhas','solar'].includes(look.effect)?look.effect:!look.effect&&p?.aura&&owns(p,'violeta')?'violeta':null};
+}
+const star=(x,y,s=1,color='#ffe3a2')=>`<path transform="translate(${x} ${y}) scale(${s})" d="m0-7 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="${color}"/>`;
+function halo(id){
+ if(id==='violeta')return '<ellipse cx="80" cy="82" rx="72" ry="70" fill="#c9a3ff" fill-opacity=".12" stroke="#c4a6ff" stroke-width="3"/><ellipse cx="80" cy="82" rx="77" ry="49" fill="none" stroke="#d8bdff" stroke-width="2" transform="rotate(-30 80 82)"/>'+star(24,35,.8,'#e7d4ff')+star(139,123,.7,'#e7d4ff');
+ if(id==='solar')return '<circle cx="80" cy="82" r="69" fill="#f5c968" fill-opacity=".10" stroke="#f4d38d" stroke-width="3"/>'+Array.from({length:12},(_,i)=>`<path d="M80 4v8" stroke="#f4d38d" stroke-width="3" stroke-linecap="round" transform="rotate(${i*30} 80 82)"/>`).join('');
+ if(id==='folhas')return '<ellipse cx="80" cy="83" rx="68" ry="73" fill="#74d4b2" fill-opacity=".08" stroke="#72c7a6" stroke-width="2"/>'+Array.from({length:10},(_,i)=>`<path d="M79 12Q56 5 64 23q10 7 15-11" fill="${i%2?'#a7e6bf':'#69bca8'}" transform="rotate(${i*36} 80 83)"/>`).join('');
+ return '';
+}
+function accessory(id){
+ if(id==='lanterna')return `<path d="M31 107V78" stroke="#dfc688" stroke-width="4"/><path d="M21 85q10-18 20 0" fill="none" stroke="#dfc688" stroke-width="3"/><path d="m18 88 26 0-2 32H20Z" fill="#2d6870" stroke="#f5d89b" stroke-width="3"/><path d="m24 94 14 0-1 18H25Z" fill="#a6f1ba"/><circle cx="31" cy="104" r="4" fill="#eeffd0"/><circle cx="31" cy="103" r="20" fill="#a6f1ba" opacity=".15"/>${star(17,115,.45,'#c9ffd2')}`;
+ if(id==='mochila')return '<rect x="27" y="91" width="33" height="55" rx="12" fill="#7a9f81" stroke="#d9e8bb" stroke-width="3"/><path d="M37 91q6-12 15 0" fill="none" stroke="#d9e8bb" stroke-width="3"/><rect x="32" y="110" width="22" height="23" rx="5" fill="#c3d8ad"/><path d="M42 113v16m-7-8h14" stroke="#66897a" stroke-width="2"/><path d="m22 96 6 1-2 29-6-1Z" fill="#eddbab"/><path d="m121 124 18-7 6 23-18 7Z" fill="#eddbab"/><path d="m125 128 8-4 6 13" fill="none" stroke="#9f9276" stroke-width="2"/>';
+ if(id==='luneta')return '<g transform="translate(114 105) rotate(-28)"><path d="M-8-8h34v16H-8Z" fill="#d8b777" stroke="#fff0c1" stroke-width="2"/><path d="M24-11h16v22H24Z" fill="#edd5a0"/><ellipse cx="41" rx="4" ry="11" fill="#9ddfe4" stroke="#edddad" stroke-width="2"/><path d="M-10-10h8v20h-8Z" fill="#567489"/></g><path d="m120 121-8 35m8-35 17 35" stroke="#d8b777" stroke-width="3"/>';
+ if(id==='livro')return `<path d="M34 118q21-11 46 0 25-11 46 0v35q-25-10-46 0-25-10-46 0Z" fill="#eadcf5" stroke="#9172b0" stroke-width="3"/><path d="M80 118v35m-37-25 23-2m-23 9 23-2m29-7 22 2m-22 6 22 2" fill="none" stroke="#9d86b6" stroke-width="2"/>${star(81,100,1.3,'#edceff')}${star(51,109,.5,'#edceff')}${star(112,103,.7,'#edceff')}`;
+ if(id==='asas')return '<path d="M61 105Q8 44 9 80L5 104l24-3-15 23 25-3-5 27 30-27m35-16q53-61 52-25l4 24-24-3 15 23-25-3 5 27-30-27" fill="#87d8cf" fill-opacity=".8" stroke="#ffe1a5" stroke-width="3"/><path d="m18 81 44 35m80-35-44 35" stroke="#e1fff0" stroke-width="2"/>';
+ return '';
+}
+function specialDetails(id){
+ if(id==='raposa-aurora')return `<path d="m44 115 10 26 26-14 26 14 10-26" fill="#d8b169" stroke="#ffebbc" stroke-width="2"/><circle cx="80" cy="132" r="10" fill="#fff1be"/><path d="m80 123 3 7 7 2-7 3-3 7-2-7-7-3 7-2Z" fill="#ba815c"/>${star(128,51,.7)}`;
+ if(id==='guardiao-bosque')return `<path d="M51 51Q27 41 36 20m15 22-8-21m66 30q24-10 15-31m-15 22 8-21" fill="none" stroke="#a4d6ad" stroke-width="5"/><g fill="#c5f0b3"><path d="M37 26Q17 8 23 31q6 8 14-5m9-4Q40 3 55 14l-9 8m77 4q20-18 14 5-6 8-14-5m-9-4q6-19-9-8Z"/></g><g fill="#f3da97"><circle cx="35" cy="19" r="4"/><circle cx="125" cy="19" r="4"/><circle cx="54" cy="44" r="3"/><circle cx="107" cy="44" r="3"/></g>`;
+ if(id==='dragao-eclipse')return `<path d="m43 107 18-7 19 15 19-15 18 7-12 23-25 16-25-16Z" fill="#5b497d" stroke="#cbb0f4" stroke-width="3"/><path d="m58 109 22 10 22-10-5 18-17 10-17-10Z" fill="#a58ad2"/><circle cx="80" cy="122" r="8" fill="#f3d99d"/><path d="M83 115a7 7 0 1 0 3 11 8 8 0 0 1-3-11" fill="#675486"/>${star(132,45,.8,'#e3c5ff')}`;
+ if(id==='robo-orbital')return '<ellipse cx="80" cy="34" rx="50" ry="13" fill="none" stroke="#f2dca1" stroke-width="3" transform="rotate(-18 80 34)"/><circle cx="123" cy="20" r="6" fill="#c3f8ec"/><path d="M114 110q29 5 25 25" fill="none" stroke="#e3d092" stroke-width="3"/><circle cx="137" cy="137" r="8" fill="#adede2"/><path d="m137 131 2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill="#426b83"/>';
+ if(id==='pinguim-polar')return '<path d="M45 114 60 106l20 15 20-15 15 8-13 27-22 9-22-9Z" fill="#4a7c96" stroke="#d1f5f2" stroke-width="3"/><path d="M80 121v23" stroke="#e4f1cc" stroke-width="3"/><path d="m103 119 6 9-6 10-7-10Z" fill="#d0f4f1"/><path d="m104 123-2 5 2 5" fill="none" stroke="#7eafc7" stroke-width="2"/>';
+ if(id==='fenix-solar')return `<circle cx="80" cy="64" r="57" fill="none" stroke="#f2c77c" stroke-width="3" stroke-dasharray="2 7"/>${star(80,14,.9)}<path d="m28 106-14-6 11 25-13 6 25 13m95-38 14-6-11 25 13 6-25 13" fill="#e9ad68" stroke="#ffe8ac" stroke-width="2"/>`;
+ if(id==='baleia-celeste')return `<path d="m48 63 19 8 16-19 20 7" fill="none" stroke="#fff0b9" stroke-width="1.5"/><g fill="#fff0b9"><circle cx="48" cy="63" r="3"/><circle cx="67" cy="71" r="3"/><circle cx="83" cy="52" r="3"/><circle cx="103" cy="59" r="3"/></g><ellipse cx="80" cy="96" rx="68" ry="22" fill="none" stroke="#c7b0ed" stroke-width="3" transform="rotate(-17 80 96)"/>${star(132,73,.8,'#fff0b9')}`;
+ if(id==='cometa')return `${star(19,52,.6)}${star(133,111,.9)}<path d="m24 124 15-8-9 19 21-5-12 19" fill="none" stroke="#f1ce86" stroke-width="5" stroke-linecap="round"/>`;
+ if(id==='astronauta')return '<path d="m118 113 14-15 14 15-14 15Z" fill="#edda9c"/><path d="m129 109 3-5 3 5-3 4Z" fill="#496b8c"/><path d="m35 127-13-16-7 7 16 20" fill="#8caec5" stroke="#d2eef1" stroke-width="2"/>';
+ return '';
+}
+export function renderLook(look,{figure=false}={}){
+ let svg;
+ if(look.base==='local-default'){
+  const person='<path d="M51 150q0-44 29-44t29 44" fill="#7194d2"/><path d="m61 112 19 13 19-13-6 39H67Z" fill="#e5d5ac"/><path d="M55 70q-1-32 25-32t25 32v14q-2 27-25 27T55 84Z" fill="#e8bf9e"/><path d="M53 74Q45 34 77 31q35-3 34 43L87 54 66 66Z" fill="#4b4965"/><g fill="#343d57"><circle cx="69" cy="78" r="4"/><circle cx="91" cy="78" r="4"/></g><g fill="#fff"><circle cx="68" cy="77" r="1.4"/><circle cx="90" cy="77" r="1.4"/></g><path d="M74 96q6 5 12 0" fill="none" stroke="#9d6f68" stroke-width="2"/><path d="M55 111q25 12 50 0l-3 12q-22 8-44-1Z" fill="#d6b879"/>';
+  svg=`<svg viewBox="0 0 160 ${figure?180:160}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs></defs>${figure?'<path d="M62 145h14v20H55v-8h7m22-12h14v12h7v8H84Z" fill="#394969"/>':'<circle cx="80" cy="80" r="78" fill="#bfd7de"/>'}${person}</svg>`;
+ }else svg=avatar(look.base,{figure});
+ const behind=figure?halo(look.effect)+(look.accessory==='asas'?accessory('asas'):''):'';
+ svg=svg.replace('</defs>','</defs>'+behind);
+ return svg.replace('</svg>',specialDetails(look.special)+(look.accessory!=='asas'||!figure?accessory(look.accessory):'')+(!figure?halo(look.effect):'')+'</svg>');
+}
+export function rewardArt(item,base='fox'){
+ if(item.type==='consumable')return `<svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="66" fill="#76accc" fill-opacity=".15"/><path d="m80 19 46 22v37q-4 36-46 62-42-26-46-62V41Z" fill="#4a7f98" stroke="#b4e9e8" stroke-width="4"/><path d="M80 43v66m-28-49 56 32m-56 0 56-32m-28-18 7 11-7 11-7-11m-21 30 14-1 6 13m8 3 7-11 13 1" stroke="#d8f8f5" stroke-width="4" fill="none"/>${star(125,33,.7)}</svg>`;
+ return renderLook({base:rewardCharacters[item.id]||base,special:rewardCharacters[item.id]?item.id:null,accessory:item.type==='accessory'?item.id:null,effect:item.type==='aura'?item.id:null});
+}
