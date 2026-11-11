@@ -23,3 +23,8 @@ test('every reward renders in a portrait and on the island; unowned overrides ar
  assert.equal(Object.keys(rewardCharacters).length,9);
  const forged=resolveRewardLook({equipped:'dragao-eclipse',rewardLook:{source:'collection',accessory:'asas',effect:'solar'},purchases:[]},'fox');assert.equal(forged.special,null);assert.equal(forged.accessory,null);assert.equal(forged.effect,null);
 });
+
+test('live previews expose full figures, independent effects and animation hooks without circular crops',()=>{
+ for(const effect of ['violeta','folhas','solar']){const preview=renderLook({base:'astronaut',special:null,accessory:'asas',effect},{figure:true,animated:true,stage:true});assert.ok(preview.includes('viewBox="0 0 160 194"'));assert.ok(preview.includes('data-animated="true"'));assert.ok(preview.includes('data-full-body="true"'));assert.ok(preview.includes('reward-character-life'));assert.ok(preview.includes('reward-arm-left'));assert.ok(preview.includes('reward-effect-'+effect));assert.ok(!preview.includes('<clipPath'));}
+ const whale=renderLook({base:'starwhale',special:null,accessory:null,effect:null},{figure:true,animated:true});assert.ok(whale.includes('data-idle="float"'));assert.ok(!whale.includes('reward-arm-left'));
+});

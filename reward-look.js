@@ -1,5 +1,5 @@
 import {avatar} from './social-art.js';
-import {validAvatar} from './avatar-catalog.mjs';
+import {parseAvatar,avatarPalettes,avatarModels,validAvatar} from './avatar-catalog.mjs';
 export const rewardCharacters={cometa:'comet~sunset~none',astronauta:'astronaut~original~none','raposa-aurora':'fox~sunset~none','guardiao-bosque':'sprout~mint~none','dragao-eclipse':'dragon~violet~none','robo-orbital':'robot~mint~none','pinguim-polar':'penguin~original~none','fenix-solar':'phoenix~sunset~none','baleia-celeste':'starwhale~violet~none'};
 const owns=(p,id)=>Boolean(id&&p?.purchases?.some(item=>item.item===id));
 export function resolveRewardLook(p,profile=null){
@@ -9,17 +9,17 @@ export function resolveRewardLook(p,profile=null){
 }
 const star=(x,y,s=1,color='#ffe3a2')=>`<path transform="translate(${x} ${y}) scale(${s})" d="m0-7 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="${color}"/>`;
 function halo(id){
- if(id==='violeta')return '<ellipse cx="80" cy="82" rx="72" ry="70" fill="#c9a3ff" fill-opacity=".12" stroke="#c4a6ff" stroke-width="3"/><ellipse cx="80" cy="82" rx="77" ry="49" fill="none" stroke="#d8bdff" stroke-width="2" transform="rotate(-30 80 82)"/>'+star(24,35,.8,'#e7d4ff')+star(139,123,.7,'#e7d4ff');
- if(id==='solar')return '<circle cx="80" cy="82" r="69" fill="#f5c968" fill-opacity=".10" stroke="#f4d38d" stroke-width="3"/>'+Array.from({length:12},(_,i)=>`<path d="M80 4v8" stroke="#f4d38d" stroke-width="3" stroke-linecap="round" transform="rotate(${i*30} 80 82)"/>`).join('');
- if(id==='folhas')return '<ellipse cx="80" cy="83" rx="68" ry="73" fill="#74d4b2" fill-opacity=".08" stroke="#72c7a6" stroke-width="2"/>'+Array.from({length:10},(_,i)=>`<path d="M79 12Q56 5 64 23q10 7 15-11" fill="${i%2?'#a7e6bf':'#69bca8'}" transform="rotate(${i*36} 80 83)"/>`).join('');
+ if(id==='violeta')return `<g class="reward-effect reward-effect-violeta"><ellipse class="reward-aura-glow" cx="80" cy="82" rx="72" ry="70" fill="#c9a3ff" fill-opacity=".12" stroke="#c4a6ff" stroke-width="3"/><g class="reward-orbit"><ellipse cx="80" cy="82" rx="77" ry="49" fill="none" stroke="#d8bdff" stroke-width="2" transform="rotate(-30 80 82)"/>${star(24,35,.8,'#e7d4ff')}</g><g class="reward-orbit reward-orbit-reverse"><ellipse cx="80" cy="82" rx="66" ry="43" fill="none" stroke="#a9cff3" stroke-width="1.4" stroke-opacity=".65" transform="rotate(28 80 82)"/>${star(139,123,.7,'#e7d4ff')}</g></g>`;
+ if(id==='solar')return `<g class="reward-effect reward-effect-solar"><circle class="reward-aura-glow" cx="80" cy="82" r="69" fill="#f5c968" fill-opacity=".10" stroke="#f4d38d" stroke-width="3"/><g class="reward-sun-rays">${Array.from({length:12},(_,i)=>`<path d="M80 4v8" stroke="#f4d38d" stroke-width="3" stroke-linecap="round" transform="rotate(${i*30} 80 82)"/>`).join('')}</g><g class="reward-aura-spark">${star(24,47,.6)}${star(137,113,.55)}</g></g>`;
+ if(id==='folhas')return `<g class="reward-effect reward-effect-folhas"><ellipse class="reward-aura-glow" cx="80" cy="83" rx="68" ry="73" fill="#74d4b2" fill-opacity=".08" stroke="#72c7a6" stroke-width="2"/><g class="reward-leaf-ring">${Array.from({length:10},(_,i)=>`<path d="M79 12Q56 5 64 23q10 7 15-11" fill="${i%2?'#a7e6bf':'#69bca8'}" transform="rotate(${i*36} 80 83)"/>`).join('')}</g><g class="reward-aura-spark">${star(33,58,.45,'#d8ffb7')}${star(124,111,.45,'#d8ffb7')}</g></g>`;
  return '';
 }
 function accessory(id){
- if(id==='lanterna')return `<path d="M31 107V78" stroke="#dfc688" stroke-width="4"/><path d="M21 85q10-18 20 0" fill="none" stroke="#dfc688" stroke-width="3"/><path d="m18 88 26 0-2 32H20Z" fill="#2d6870" stroke="#f5d89b" stroke-width="3"/><path d="m24 94 14 0-1 18H25Z" fill="#a6f1ba"/><circle cx="31" cy="104" r="4" fill="#eeffd0"/><circle cx="31" cy="103" r="20" fill="#a6f1ba" opacity=".15"/>${star(17,115,.45,'#c9ffd2')}`;
+ if(id==='lanterna')return `<path d="M31 107V78" stroke="#dfc688" stroke-width="4"/><path d="M21 85q10-18 20 0" fill="none" stroke="#dfc688" stroke-width="3"/><path d="m18 88 26 0-2 32H20Z" fill="#2d6870" stroke="#f5d89b" stroke-width="3"/><path d="m24 94 14 0-1 18H25Z" fill="#a6f1ba"/><circle cx="31" cy="104" r="4" fill="#eeffd0"/><circle class="reward-lantern-glow" cx="31" cy="103" r="20" fill="#a6f1ba" opacity=".15"/>${star(17,115,.45,'#c9ffd2')}`;
  if(id==='mochila')return '<rect x="27" y="91" width="33" height="55" rx="12" fill="#7a9f81" stroke="#d9e8bb" stroke-width="3"/><path d="M37 91q6-12 15 0" fill="none" stroke="#d9e8bb" stroke-width="3"/><rect x="32" y="110" width="22" height="23" rx="5" fill="#c3d8ad"/><path d="M42 113v16m-7-8h14" stroke="#66897a" stroke-width="2"/><path d="m22 96 6 1-2 29-6-1Z" fill="#eddbab"/><path d="m121 124 18-7 6 23-18 7Z" fill="#eddbab"/><path d="m125 128 8-4 6 13" fill="none" stroke="#9f9276" stroke-width="2"/>';
  if(id==='luneta')return '<g transform="translate(114 105) rotate(-28)"><path d="M-8-8h34v16H-8Z" fill="#d8b777" stroke="#fff0c1" stroke-width="2"/><path d="M24-11h16v22H24Z" fill="#edd5a0"/><ellipse cx="41" rx="4" ry="11" fill="#9ddfe4" stroke="#edddad" stroke-width="2"/><path d="M-10-10h8v20h-8Z" fill="#567489"/></g><path d="m120 121-8 35m8-35 17 35" stroke="#d8b777" stroke-width="3"/>';
  if(id==='livro')return `<path d="M34 118q21-11 46 0 25-11 46 0v35q-25-10-46 0-25-10-46 0Z" fill="#eadcf5" stroke="#9172b0" stroke-width="3"/><path d="M80 118v35m-37-25 23-2m-23 9 23-2m29-7 22 2m-22 6 22 2" fill="none" stroke="#9d86b6" stroke-width="2"/>${star(81,100,1.3,'#edceff')}${star(51,109,.5,'#edceff')}${star(112,103,.7,'#edceff')}`;
- if(id==='asas')return '<path d="M61 105Q8 44 9 80L5 104l24-3-15 23 25-3-5 27 30-27m35-16q53-61 52-25l4 24-24-3 15 23-25-3 5 27-30-27" fill="#87d8cf" fill-opacity=".8" stroke="#ffe1a5" stroke-width="3"/><path d="m18 81 44 35m80-35-44 35" stroke="#e1fff0" stroke-width="2"/>';
+ if(id==='asas')return '<g class="reward-wing-left"><path d="M61 105Q8 44 9 80L5 104l24-3-15 23 25-3-5 27 30-27" fill="#87d8cf" fill-opacity=".8" stroke="#ffe1a5" stroke-width="3"/><path d="m18 81 44 35" stroke="#e1fff0" stroke-width="2"/></g><g class="reward-wing-right"><path d="M99 105q53-61 52-25l4 24-24-3 15 23-25-3 5 27-30-27" fill="#87d8cf" fill-opacity=".8" stroke="#ffe1a5" stroke-width="3"/><path d="m142 81-44 35" stroke="#e1fff0" stroke-width="2"/></g>';
  return '';
 }
 function specialDetails(id){
@@ -34,17 +34,23 @@ function specialDetails(id){
  if(id==='astronauta')return '<path d="m118 113 14-15 14 15-14 15Z" fill="#edda9c"/><path d="m129 109 3-5 3 5-3 4Z" fill="#496b8c"/><path d="m35 127-13-16-7 7 16 20" fill="#8caec5" stroke="#d2eef1" stroke-width="2"/>';
  return '';
 }
-export function renderLook(look,{figure=false}={}){
+export function renderLook(look,{figure=false,animated=false,stage=false}={}){
  let svg;
  if(look.base==='local-default'){
-  const person='<path d="M51 150q0-44 29-44t29 44" fill="#7194d2"/><path d="m61 112 19 13 19-13-6 39H67Z" fill="#e5d5ac"/><path d="M55 70q-1-32 25-32t25 32v14q-2 27-25 27T55 84Z" fill="#e8bf9e"/><path d="M53 74Q45 34 77 31q35-3 34 43L87 54 66 66Z" fill="#4b4965"/><g fill="#343d57"><circle cx="69" cy="78" r="4"/><circle cx="91" cy="78" r="4"/></g><g fill="#fff"><circle cx="68" cy="77" r="1.4"/><circle cx="90" cy="77" r="1.4"/></g><path d="M74 96q6 5 12 0" fill="none" stroke="#9d6f68" stroke-width="2"/><path d="M55 111q25 12 50 0l-3 12q-22 8-44-1Z" fill="#d6b879"/>';
+  const person='<path d="M51 150q0-44 29-44t29 44" fill="#7194d2"/><path d="m61 112 19 13 19-13-6 39H67Z" fill="#e5d5ac"/><path d="M55 70q-1-32 25-32t25 32v14q-2 27-25 27T55 84Z" fill="#e8bf9e"/><path d="M53 74Q45 34 77 31q35-3 34 43L87 54 66 66Z" fill="#4b4965"/><g class="avatar-eyes" fill="#343d57"><circle cx="69" cy="78" r="4"/><circle cx="91" cy="78" r="4"/><g fill="#fff"><circle cx="68" cy="77" r="1.4"/><circle cx="90" cy="77" r="1.4"/></g></g><path d="M74 96q6 5 12 0" fill="none" stroke="#9d6f68" stroke-width="2"/><path d="M55 111q25 12 50 0l-3 12q-22 8-44-1Z" fill="#d6b879"/>';
   svg=`<svg viewBox="0 0 160 ${figure?180:160}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs></defs>${figure?'<path d="M62 145h14v20H55v-8h7m22-12h14v12h7v8H84Z" fill="#394969"/>':'<circle cx="80" cy="80" r="78" fill="#bfd7de"/>'}${person}</svg>`;
  }else svg=avatar(look.base,{figure});
- const behind=figure?halo(look.effect)+(look.accessory==='asas'?accessory('asas'):''):'';
- svg=svg.replace('</defs>','</defs>'+behind);
- return svg.replace('</svg>',specialDetails(look.special)+(look.accessory!=='asas'||!figure?accessory(look.accessory):'')+(!figure?halo(look.effect):'')+'</svg>');
+ const model=parseAvatar(look.base).model,floating=['jellyfish','moth','comet','starwhale'].includes(model);
+ const group=avatarModels[model].group;
+ const armColor=look.base==='local-default'?'#7194d2':avatarPalettes[parseAvatar(look.base).palette].colors?.[1]||{aurora:'#ad7958',forest:'#508679',crystal:'#8062ae',lunar:'#668ba5',peaks:'#708eab',stellar:'#9475a9'}[group];
+ const arms=figure&&!floating?`<g class="reward-arm-left"><path d="M49 117q-19 6-22 24l12 5 18-25" fill="${armColor}"/><circle cx="31" cy="145" r="7" fill="#dbd6bd"/></g><g class="reward-arm-right"><path d="M111 117q19 6 22 24l-12 5-18-25" fill="${armColor}"/><circle cx="129" cy="145" r="7" fill="#dbd6bd"/></g>`:'';
+ const defsEnd=svg.indexOf('</defs>')+8,body=svg.slice(defsEnd,-6);
+ const scenery=stage?`<g class="reward-stage"><ellipse class="reward-floor-shadow" cx="80" cy="176" rx="48" ry="6" fill="#142d49" opacity=".22"/><ellipse cx="80" cy="176" rx="66" ry="11" fill="none" stroke="#8ba7ba" stroke-opacity=".3"/><path d="M4 173h18m116 0h18" stroke="#d9c18d" stroke-opacity=".5"/><g class="reward-stage-sparks">${star(4,51,.6,'#c5dbe4')}${star(154,106,.6,'#c5dbe4')}</g></g>`:'';
+ const prefix=svg.slice(0,defsEnd).replace('<svg ',`<svg class="reward-live-scene" data-motion-state="paused" data-animated="${animated}" data-full-body="${figure}" data-idle="${floating?'float':'grounded'}" `).replace('viewBox="0 0 160 180"',stage?'viewBox="0 0 160 194"':'viewBox="0 0 160 180"');
+ return prefix+scenery+(figure?halo(look.effect):'')+`<g class="reward-character-life">`+(figure&&look.accessory==='asas'?accessory('asas'):'')+arms+body+specialDetails(look.special)+(look.accessory!=='asas'||!figure?accessory(look.accessory):'')+'</g>'+(!figure?halo(look.effect):'')+'</svg>';
 }
-export function rewardArt(item,base='fox'){
+
+export function rewardArt(item,base='fox',options={animated:true}){
  if(item.type==='consumable')return `<svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="66" fill="#76accc" fill-opacity=".15"/><path d="m80 19 46 22v37q-4 36-46 62-42-26-46-62V41Z" fill="#4a7f98" stroke="#b4e9e8" stroke-width="4"/><path d="M80 43v66m-28-49 56 32m-56 0 56-32m-28-18 7 11-7 11-7-11m-21 30 14-1 6 13m8 3 7-11 13 1" stroke="#d8f8f5" stroke-width="4" fill="none"/>${star(125,33,.7)}</svg>`;
- return renderLook({base:rewardCharacters[item.id]||base,special:rewardCharacters[item.id]?item.id:null,accessory:item.type==='accessory'?item.id:null,effect:item.type==='aura'?item.id:null});
+ return renderLook({base:rewardCharacters[item.id]||base,special:rewardCharacters[item.id]?item.id:null,accessory:item.type==='accessory'?item.id:null,effect:item.type==='aura'?item.id:null},options);
 }

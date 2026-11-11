@@ -22,11 +22,20 @@ O snapshot de progresso versão 3 recebe `rewardLook` (origem, acessório e efei
 
 `reward-look.js` compartilha a arte entre loja, prévias e mini viajante. `rewards-ui.js` preserva o botão e a ação original do presente diário. A versão portátil incorpora o módulo e seus recursos.
 
+## Viajante e efeitos animados
+
+O destaque do ateliê e a janela de experimentar mostram o personagem em corpo inteiro, sobre uma pequena base ilustrada. Personagens terrestres respiram e movimentam suavemente braços e postura; criaturas flutuantes têm um balanço próprio. Olhos piscam e o visor do astronauta recebe um reflexo discreto. Asas e lanterna também têm movimentos ou brilho próprios.
+
+As três auras têm movimentos distintos: órbitas da nebulosa, folhas oscilantes e raios solares girando lentamente. Os efeitos equipados aparecem também no mini viajante da ilha. As animações não gastam estrelas, não alteram pontuação nem mudam a persistência da coleção.
+
+O movimento é feito em CSS; `reward-motion.js` acompanha visibilidade para pausar cenas fora da tela, em abas ocultas ou atrás de uma janela aberta. A preferência `prefers-reduced-motion` desativa as animações, inclusive quando alterada durante o uso. Não há migração SQL para esta atualização.
+
 ## Verificações
 
 - `npm test`: inclui `tests/rewards.test.mjs` para catálogo, saldo, duplicação, escudos, presente diário, compatibilidade, round-trip e equipamento sem posse.
 - `npm run build`.
 - `node tests/browser/rewards.cjs`: prévia sem débito, resgates, meta persistente, recarga, composição na ilha, filtros, escudos, presente único, foco do modal, teclado, texto a 200%, 360/768/1440 px nos dois temas. Usa dados locais de teste.
+- `node tests/browser/reward-motion.cjs`: corpo inteiro, transformação real das animações, três auras, pausa por visibilidade e janela aberta, alteração de movimento reduzido, efeitos na ilha e 360/768/1440 px nos dois temas, sem alteração de saldo. Capturas em `work/reward-motion/`.
 - `node tests/browser/social.cjs`: regressão de perfil, mini viajante, amizades, bloqueios, ligas e sessões com banco local.
 - `node tests/browser/progress-sync.cjs`: inclui restauração de lanterna equipada e meta de personagem em uma cópia da conta, além dos fluxos de sincronização existentes.
 - `node scripts/build-portable-html.mjs work/rewards-portable.html` e `PORTABLE_HTML=work/rewards-portable.html node tests/browser/portable-html.cjs`.
