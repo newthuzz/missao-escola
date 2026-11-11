@@ -47,3 +47,10 @@ test('validates cosmetic identifiers before RPC and allows catalog choices',asyn
  assert.equal(calls,1);
  assert.equal((await onRequest(context({op:'profile',nickname:'Explorer',avatar:'owl',cover:'cosmos',frame:'orbit',title:'Viajante das ilhas'}))).status,200);
 });
+
+test('accepts studio models and combinations, rejects forged catalog values',async()=>{
+ let calls=0;globalThis.fetch=async(url,options)=>{calls++;if(url.includes('/auth/'))return Response.json({id:'verified-user'});assert.equal(JSON.parse(options.body).p_body.avatar,'dragon~violet~crown');return Response.json({registered:true});};
+ assert.equal((await onRequest(context({op:'profile',nickname:'Explorer',avatar:'dragon~violet~crown'}))).status,200);
+ for(const avatar of ['dragon~invalid~none','fox~mint~bad','fox~mint','__proto__','fox~mint~crown~bad'])assert.equal((await onRequest(context({op:'profile',nickname:'Explorer',avatar}))).status,400);
+ assert.equal(calls,7);
+});

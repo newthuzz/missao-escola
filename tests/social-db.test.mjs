@@ -8,6 +8,7 @@ const legacyId='00000000-0000-4000-8000-000000000099';
 await db.query('insert into auth.users values($1)',[legacyId]);
 await db.query("insert into public.social_profiles(id,nickname,avatar) values($1,'Perfil antigo','☾')",[legacyId]);
 await db.exec(fs.readFileSync(new URL('../supabase/social-personalization.sql', import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('../supabase/social-avatar-studio.sql', import.meta.url),'utf8'));
 const legacy=(await db.query('select * from public.social_profiles where id=$1',[legacyId])).rows[0];assert.equal(legacy.avatar,'☾');assert.equal(legacy.cover,'aurora');assert.equal(legacy.frame,'plain');
 const a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002',c='00000000-0000-4000-8000-000000000003';
 await db.query('insert into auth.users values ($1),($2),($3)',[a,b,c]);
@@ -69,5 +70,14 @@ await db.exec(fs.readFileSync(new URL('../supabase/social.sql', import.meta.url)
 await db.exec(fs.readFileSync(new URL('../supabase/social-personalization.sql', import.meta.url),'utf8'));
 await db.exec(fs.readFileSync(new URL('../supabase/social-personalization.sql', import.meta.url),'utf8'));
 assert.equal((await api(a,'state')).me.avatar,'astronaut');
+await db.exec(fs.readFileSync(new URL('../supabase/social-avatar-studio.sql', import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('../supabase/social-avatar-studio.sql', import.meta.url),'utf8'));
+const {avatarModels,avatarPalettes,avatarAccessories,encodeAvatar}=await import('../avatar-catalog.mjs');
+for(const model of Object.keys(avatarModels))for(const palette of Object.keys(avatarPalettes))for(const accessory of Object.keys(avatarAccessories)){
+ const value=encodeAvatar({model,palette,accessory});
+ await db.query('update public.social_profiles set avatar=$1 where id=$2',[value,a]);
+}
+for(const invalid of ['dragon~invalid~none','dragon~violet~unknown','dragon~violet','__proto__','fox~original~none~oops'])await assert.rejects(()=>db.query('update public.social_profiles set avatar=$1 where id=$2',[invalid,a]));
+const customized=await api(a,'profile',{nickname:'Explorador A',avatar:'dragon~violet~crown'});assert.equal(customized.me.avatar,'dragon~violet~crown');
 console.log('SQL OK: repeatable migration, friendship authorization, blocking, sanitized questions, ownership, replay protection, daily limits and browser privilege restrictions.');
 await db.close();

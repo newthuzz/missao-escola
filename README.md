@@ -9,6 +9,7 @@ Site estático de estudos com Supabase Auth, backup privado e amigos/ligas por C
 - [Ativação de amigos e ligas](supabase/SOCIAL-SETUP.md)
 - [Migração SQL social](supabase/social.sql)
 - [Nova área social: migração e validação](docs/SOCIAL-EXPLORADORES.md)
+- [Coleção de avatares e atualização manual](docs/AVATAR-STUDIO.md)
 - [Metas e critérios de entrada no beta](docs/METAS-BETA.md)
 - [Melhorias do estudo personalizado, testes e limites](docs/ESTUDO-PERSONALIZADO.md)
 
