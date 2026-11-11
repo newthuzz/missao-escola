@@ -10,8 +10,8 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
   const feet=[...el.querySelectorAll('.avatar-foot')],chest=el.querySelector('.avatar-thorax'),animation=chest.getAnimations()[0];
   const bounds=()=>feet.map(f=>{const r=f.getBoundingClientRect();return [r.x,r.y,r.width,r.height];});
   animation.currentTime=0;const a=bounds();animation.currentTime=2050;const b=bounds();
-  return {a,b,whole:el.querySelector('.reward-character-life').getAnimations().length,legs:el.querySelector('.avatar-leg').getBBox().height,head:54};
- });assert.deepEqual(planted.a,planted.b);assert.equal(planted.whole,0);assert.ok(planted.legs>planted.head*2);
+  return {a,b,whole:el.querySelector('.reward-character-life').getAnimations().length,legs:el.querySelector('.avatar-leg').getBBox().height,head:110};
+ });assert.deepEqual(planted.a,planted.b);assert.equal(planted.whole,0);assert.ok(planted.legs>planted.head*.7&&planted.legs<planted.head*1.1);assert.equal(await hero.getAttribute('data-style'),'cartoon');
  // The scheduler triggers a spontaneous gesture without an input event.
  await p.waitForFunction(()=>['LOOK_AROUND','ARM_GESTURE'].includes(document.querySelector('.reward-hero-art .reward-live-scene').dataset.avatarState),{},{timeout:19000});
  await hero.locator('xpath=..').click();await p.waitForFunction(()=>document.querySelector('.reward-hero-art .reward-live-scene').dataset.avatarState==='GREETING');

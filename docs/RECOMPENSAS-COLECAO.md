@@ -24,7 +24,7 @@ O snapshot de progresso versão 3 recebe `rewardLook` (origem, acessório e efei
 
 ## Viajante articulado e efeitos animados
 
-A reformulação de 11/11/2026 substitui o corpo compacto por uma anatomia vetorial desenhada em `avatar-figure.js`. O desenho usa coordenadas de 200 × 360, com ombros, pescoço, tórax, quadril, braços, antebraços, mãos, coxas, joelhos, canelas e botas. As figuras terrestres têm altura aproximada de 5,5 cabeças, sem alongamento da imagem. O rosto e os acessórios do perfil usam a arte original, em escala uniforme; os retratos sociais continuam compatíveis. Água-viva, mariposa, cometa e baleia mantêm a silhueta flutuante de sua espécie.
+A revisão cartunesca de 11/11/2026 substitui as proporções humanoides por uma silhueta de mascote desenhada em `avatar-figure.js`. O desenho usa coordenadas de 200 × 360, com ombros, pescoço, tórax, quadril, braços, antebraços, mãos, coxas, joelhos, canelas e botas. As figuras terrestres agora têm proporções cartunescas próximas de três cabeças, com rostos maiores, pescoço curto, casacos arredondados, luvas e pernas curtas. O desenho não é alongado para simular anatomia humana. O rosto e os acessórios do perfil usam a arte original, em escala uniforme; os retratos sociais continuam compatíveis. Água-viva, mariposa, cometa e baleia mantêm a silhueta flutuante de sua espécie.
 
 O destaque do ateliê, a janela de experimentar e o mini viajante da ilha compartilham esse corpo. O viajante inicial também usa o novo desenho na ilha, sem depender de login. O `viewBox` e `preserveAspectRatio` preservam as proporções e reservam espaço para mãos levantadas. Na ilha, as botas se apoiam na sombra existente; a oscilação vertical antiga fica restrita às criaturas flutuantes.
 
@@ -36,10 +36,17 @@ As três auras mantêm movimentos próprios: órbitas da nebulosa, folhas oscila
 
 CSS interpola os movimentos; um único temporizador compartilhado agenda as mudanças de estado, sem laços de renderização por quadro. Cenas fora da tela, em abas ocultas ou atrás de uma janela aberta ficam pausadas. `prefers-reduced-motion` desativa as animações, inclusive quando alterado durante o uso. O botão “Pausar animações” guarda apenas a preferência visual local, separada dos dados de estudo. Não há migração SQL, alteração de autenticação ou serviço novo.
 
+## Acesso no celular
+
+Os acessos a Personagens, Amigos e Conquistas ficam visíveis acima da navegação principal em todas as páginas no celular, inclusive após rolar. A regra anterior escondia `.mobile-tools`; a nova barra tem estilo próprio em `beta.css` e conserva os controles reais `data-page` do aplicativo. Não há novo roteador nem tela simulada. Sem login, Amigos continua explicando a necessidade de entrar na conta.
+
+`mobile.js` mede as duas barras com `ResizeObserver`, reservando espaço real no conteúdo, nas mensagens e no Tutor. Isso considera texto ampliado e a área segura do aparelho. Durante o teclado do Tutor, as barras são ocultadas pelo comportamento existente. No desktop, a navegação lateral continua disponível.
+
 ## Verificações
 
 - `npm test`: inclui `tests/rewards.test.mjs` para catálogo, saldo, duplicação, escudos, presente diário, compatibilidade, round-trip e equipamento sem posse.
 - `npm run build`.
+- `node tests/browser/mobile-spaces.cjs`: acesso por toque aos três destinos em 320/360/390 px e orientação horizontal, dois temas, página rolada, alvos de 44 px, ausência de sobreposição, texto a 200%, teclado, recarga e retorno ao desktop. Galeria de arte local e capturas em `work/cartoon-mobile/`.
 - `node tests/browser/rewards.cjs`: prévia sem débito, resgates, meta persistente, recarga, composição na ilha, filtros, escudos, presente único, foco do modal, teclado, texto a 200%, 360/768/1440 px nos dois temas. Usa dados locais de teste.
 - `node tests/avatar-motion.test.mjs`: temporização, prioridades, transições e retorno ao repouso. `tests/rewards.test.mjs` também verifica todas as combinações dos 24 modelos, quatro paletas, quatro acessórios de cabeça e seis opções de equipamento.
 - `node tests/browser/reward-motion.cjs`: pés estáveis durante a respiração, gestos automáticos e por interação, comemoração real de compra, reação ao equipar, pausa manual e por visibilidade, movimento reduzido, enquadramento de 25 figuras × seis equipamentos × três poses, interação com CPU simulada 4× mais lenta, ilha e 360/768/1440 px nos dois temas. As prévias não alteram o saldo. Capturas em `work/reward-motion/`.

@@ -39,3 +39,17 @@
  document.addEventListener('focusin',schedule);document.addEventListener('focusout',schedule);
  update();
 })();
+
+// Both mobile navigation rows reserve their real height, including large text
+// and the device safe area. Reuse the app's existing data-page click handlers.
+(()=>{
+ const primary=document.querySelector('.mobile-nav'),spaces=document.querySelector('.mobile-spaces');if(!primary||!spaces)return;
+ const root=document.documentElement,mobile=matchMedia('(max-width:760px)');
+ function measure(){
+  if(!mobile.matches){root.style.removeProperty('--mobile-primary-nav-height');root.style.removeProperty('--mobile-navigation-height');return;}
+  const mainHeight=primary.getBoundingClientRect().height,total=mainHeight+spaces.getBoundingClientRect().height;
+  root.style.setProperty('--mobile-primary-nav-height',mainHeight+'px');root.style.setProperty('--mobile-navigation-height',total+'px');
+ }
+ if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(measure);observer.observe(primary);observer.observe(spaces);}
+ window.addEventListener('resize',measure);mobile.addEventListener('change',measure);document.fonts?.ready.then(measure);measure();
+})();

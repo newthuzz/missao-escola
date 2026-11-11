@@ -79,13 +79,13 @@
 .reward-live-scene[data-animated="true"] .avatar-visor-glint{animation:reward-visor-light 7s ease-in-out infinite}
 .reward-item:nth-child(2n){--reward-blink-delay:-3.4s}.reward-item:nth-child(3n){--reward-blink-delay:-5s}
 /* Each joint rotates in the drawing's coordinate space. Feet and hips do not animate. */
-.reward-live-scene[data-rig] .avatar-upper-posture{transform-box:view-box;transform-origin:100px 179px}
-.reward-live-scene[data-rig] .avatar-thorax{transform-box:view-box;transform-origin:100px 169px}
-.reward-live-scene[data-rig] .avatar-head-pose{transform-box:view-box;transform-origin:100px 82px}
-.reward-live-scene[data-rig] .avatar-arm-left{transform-box:view-box;transform-origin:66px 96px}
-.reward-live-scene[data-rig] .avatar-arm-right{transform-box:view-box;transform-origin:134px 96px}
-.reward-live-scene[data-rig] .avatar-forearm-left{transform-box:view-box;transform-origin:58px 143px}
-.reward-live-scene[data-rig] .avatar-forearm-right{transform-box:view-box;transform-origin:142px 143px}
+.reward-live-scene[data-rig] .avatar-upper-posture{transform-box:view-box;transform-origin:100px 225px}
+.reward-live-scene[data-rig] .avatar-thorax{transform-box:view-box;transform-origin:100px 221px}
+.reward-live-scene[data-rig] .avatar-head-pose{transform-box:view-box;transform-origin:100px 142px}
+.reward-live-scene[data-rig] .avatar-arm-left{transform-box:view-box;transform-origin:64px 154px}
+.reward-live-scene[data-rig] .avatar-arm-right{transform-box:view-box;transform-origin:136px 154px}
+.reward-live-scene[data-rig] .avatar-forearm-left{transform-box:view-box;transform-origin:52px 193px}
+.reward-live-scene[data-rig] .avatar-forearm-right{transform-box:view-box;transform-origin:148px 193px}
 .reward-live-scene[data-rig] .reward-wing-left{transform-box:view-box;transform-origin:80px 115px}
 .reward-live-scene[data-rig] .reward-wing-right{transform-box:view-box;transform-origin:120px 115px}
 .reward-live-scene[data-rig] .avatar-creature-pose{transform-box:view-box;transform-origin:100px 168px}
@@ -138,13 +138,13 @@
 @keyframes avatar-inspect{from{transform:var(--from-head,rotate(0deg))}35%,65%{transform:rotate(-4deg) translateY(.5px)}to{transform:rotate(0deg)}}
 @keyframes avatar-arm-adjust{from{transform:var(--from-arm-left,rotate(0deg))}35%,65%{transform:rotate(4deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-forearm-adjust{from{transform:var(--from-forearm-left,rotate(0deg))}35%,65%{transform:rotate(19deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-greeting-arm{from{transform:var(--from-arm-right,rotate(0deg))}25%,70%{transform:rotate(-23deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-greeting-hand{from{transform:var(--from-forearm-right,rotate(0deg))}25%,50%,70%{transform:rotate(-143deg)}38%,60%{transform:rotate(-157deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-greeting-arm{from{transform:var(--from-arm-right,rotate(0deg))}25%,70%{transform:rotate(-105deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-greeting-hand{from{transform:var(--from-forearm-right,rotate(0deg))}25%,50%,70%{transform:rotate(-60deg)}38%,60%{transform:rotate(-75deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-friendly-nod{from{transform:var(--from-head,rotate(0deg))}30%,60%{transform:rotate(3deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-left{from{transform:var(--from-arm-left,rotate(0deg))}28%,68%{transform:rotate(23deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-right{from{transform:var(--from-arm-right,rotate(0deg))}28%,68%{transform:rotate(-23deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-left{from{transform:var(--from-arm-left,rotate(0deg))}28%,68%{transform:rotate(35deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-right{from{transform:var(--from-arm-right,rotate(0deg))}28%,68%{transform:rotate(-95deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-celebrate-forearm-left{from{transform:var(--from-forearm-left,rotate(0deg))}28%,68%{transform:rotate(143deg)}to{transform:rotate(0deg)}}
-@keyframes avatar-celebrate-forearm-right{from{transform:var(--from-forearm-right,rotate(0deg))}28%,68%{transform:rotate(-143deg)}to{transform:rotate(0deg)}}
+@keyframes avatar-celebrate-forearm-right{from{transform:var(--from-forearm-right,rotate(0deg))}28%,68%{transform:rotate(-75deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-celebrate-nod{from{transform:var(--from-head,rotate(0deg))}30%,65%{transform:translateY(-1px) rotate(-2deg)}45%{transform:translateY(0) rotate(2deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-creature-greet{from{transform:var(--from-creature,rotate(0deg))}30%,60%{transform:rotate(-6deg)}45%{transform:rotate(4deg)}to{transform:rotate(0deg)}}
 @keyframes avatar-creature-cheer{from{transform:var(--from-creature,rotate(0deg))}30%,65%{transform:translateY(-7px) rotate(-6deg)}45%{transform:translateY(-4px) rotate(6deg)}to{transform:rotate(0deg)}}
