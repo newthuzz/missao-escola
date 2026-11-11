@@ -25,4 +25,11 @@ O Worker e a interface compartilham `avatar-catalog.mjs`; a API rejeita identifi
 - `node tests/browser/social.cjs`: duas contas com banco local, persistência de `dragon~violet~crown` após recarregar, cancelar sem salvar, filtro de coleção, convites, bloqueio, ligas e desafios. Confere três larguras (360/768/1440) em dois temas.
 - Capturas locais em `work/social-captures/`; a prancha `avatar-collection.png` apresenta os 24 modelos e quatro variações do dragão. Não contém dados de produção.
 
-Validação de produção e execução do SQL real permanecem dependentes da configuração do projeto. As ilustrações desta atualização são da área social; o personagem posicionado na trilha da jornada não foi substituído.
+Validação de produção e execução do SQL real permanecem dependentes da configuração do projeto. O personagem na trilha da jornada agora acompanha o avatar social salvo, incluindo paleta e acessório. A versão da ilha tem corpo e não usa o fundo circular do retrato. O mapa recebe apenas a identidade visual; a ponte não grava XP, rotina ou recompensas. Respostas antigas e de outra conta são ignoradas. Sem perfil social e após sair, o viajante da coleção local continua sendo usado. Não é necessária migração adicional para essa integração.
+
+
+## Mini viajante da ilha
+
+`island-avatar.js` recebe o perfil autorizado carregado por `account.js`/`social.js`. O renderizador do mapa usa a figura somente na ilha atual e mantém as coordenadas de XP, rótulo, aura e animação existentes. O modelo é a mesma ilustração do catálogo, com referências SVG próprias para cada instância.
+
+Verificações: teste unitário de troca de conta e respostas atrasadas, catálogo completo nas versões retrato e figura, integração de navegador nas seis ilhas e em tela de 360 px, saída da conta com retorno ao viajante local e suíte existente `tests/browser/island-life.cjs` para movimentos, marcos e acessibilidade. Capturas locais: `work/social-captures/island-avatar-*.png`.

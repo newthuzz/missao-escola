@@ -7,7 +7,7 @@ test('every avatar combination is valid, round-trips and has self-contained vect
  for(const group of Object.keys(avatarGroups))assert.equal(Object.values(avatarModels).filter(m=>m.group===group).length,4);
  const allIds=new Set();
  for(const model of Object.keys(avatarModels))for(const palette of Object.keys(avatarPalettes))for(const accessory of Object.keys(avatarAccessories)){
-  const selected={model,palette,accessory},value=encodeAvatar(selected),svg=avatar(value);
+  const selected={model,palette,accessory},value=encodeAvatar(selected),svg=avatar(value)+avatar(value,{figure:true});
   assert.ok(validAvatar(value));assert.deepEqual(parseAvatar(value),selected);
   assert.ok(!/undefined|NaN|(?:href|src)="https?:|<script/.test(svg));
   const ids=[...svg.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);

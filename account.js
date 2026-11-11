@@ -1,3 +1,4 @@
+import {setIslandAvatarAccount,islandAvatarReceiver} from './island-avatar.js';
 import {mountSocial} from './social.js';
 import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
@@ -12,7 +13,7 @@ const nav=document.createElement('button');nav.className='nav-link nav-secondary
 document.querySelector('.mobile-nav').insertAdjacentHTML('beforeend','<button data-page="social" aria-label="Conta, amigos e liga"><span aria-hidden="true">☁</span><span>Conta</span></button>');
 function stopSync(){clearTimeout(syncTimer);sync?.stop();sync=null;}
 function store(value){
- if(session?.user?.id!==value?.user?.id)stopSync();session=value;
+ if(session?.user?.id!==value?.user?.id)stopSync();session=value;setIslandAvatarAccount(session?.user?.id);
  try{if(value)localStorage.setItem(SESSION_KEY,JSON.stringify(value));else localStorage.removeItem(SESSION_KEY);}catch{}
  window.dispatchEvent(new CustomEvent('missao-account-change'));
 }
@@ -35,8 +36,9 @@ function showSync(value){
  const copy=page.querySelector('#account-copy-date');if(copy)copy.textContent=backup?'Última cópia consultada: '+new Date(backup.updated_at).toLocaleString('pt-BR'):'';
 }
 function renderAccount(message=''){
+ setIslandAvatarAccount(session?.user?.id);
  page.innerHTML=`<div class="section-heading"><h1>Conta e comunidade</h1><p>Aprenda, explore e encontre sua companhia de jornada.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions"><button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button><button data-account="logout" class="outline-button">Sair</button></div><p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><article class="social-box" id="social-features"></article>`;
- const social=page.querySelector('#social-features');if(session?.access_token)mountSocial(social,token,()=>session?.user?.id);else social.innerHTML='<h2>Amigos e ligas</h2><p>Entre na sua conta para adicionar amigos e participar das ligas.</p>';
+ const social=page.querySelector('#social-features');if(session?.access_token)mountSocial(social,token,()=>session?.user?.id,islandAvatarReceiver(session?.user?.id));else social.innerHTML='<h2>Amigos e ligas</h2><p>Entre na sua conta para adicionar amigos e participar das ligas.</p>';
  if(busy)page.querySelectorAll('button,input').forEach(el=>el.disabled=true);
  showSync(syncStatus);
 }

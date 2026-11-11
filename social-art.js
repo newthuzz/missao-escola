@@ -5,7 +5,7 @@ export const frames={plain:'Brisa',leaf:'Folhagem',sun:'Luz do sol',orbit:'Órbi
 export const titles=['Explorador de ideias','Viajante das ilhas','Guardião da curiosidade','Colecionador de perguntas'];
 const themes={aurora:['#e6a252','#a85a40','#fff1ce','#3b5557'],forest:['#83bba1','#3d8075','#dff4be','#264d50'],crystal:['#b89be9','#7559a6','#e8d4ff','#393b69'],lunar:['#92b8cf','#526e9d','#dbeff3','#253c60'],peaks:['#b4ccd8','#728ca8','#f2f5e9','#334866'],stellar:['#b8a1ec','#6f63a6','#f6dca1','#31375e']};
 let serial=0;
-export function avatar(value='fox'){
+export function avatar(value='fox',{figure=false}={}){
  const {model:id,palette,accessory}=parseAvatar(value),group=avatarModels[id].group;
  let [base,shade,cream,ink]=avatarPalettes[palette].colors||themes[group];
  if(palette==='original'){
@@ -48,6 +48,11 @@ export function avatar(value='fox'){
  if(accessory==='goggles')extra=`<path d="M34 66h92" stroke="${shade}" stroke-width="7"/><g fill="#b6f1f1" fill-opacity=".7" stroke="${cream}" stroke-width="4"><rect x="44" y="54" width="29" height="23" rx="9"/><rect x="87" y="54" width="29" height="23" rx="9"/></g><path d="M73 64h14m-35-4 6 0m38 0h6" stroke="${cream}" stroke-width="3"/>`;
  if(accessory==='crown')extra=`<path d="m55 40-4-22 17 10 12-18 12 18 17-10-4 22Z" fill="${cream}" stroke="${shade}" stroke-width="2"/>${gem(80,29,.5)}`;
  if(accessory==='headphones')extra=`<path d="M34 76V62q0-36 46-36t46 36v14" fill="none" stroke="${cream}" stroke-width="7"/><g fill="${shade}" stroke="${cream}" stroke-width="3"><rect x="27" y="66" width="17" height="30" rx="8"/><rect x="116" y="66" width="17" height="30" rx="8"/></g><path d="m32 76 5-3-1 11m85-8 5-3-1 11" fill="none" stroke="${base}" stroke-width="2"/>`;
+ const floating=['jellyfish','moth','comet','starwhale'].includes(id);
+ if(figure){
+  const boots=floating?'':`<path d="M59 143h17v19H59Zm25 0h17v19H84Z" fill="${shade}"/><path d="M58 157h18v10H52v-5q0-5 6-5m26 0h18q6 0 6 5v5H84Z" fill="${ink}"/><path d="M53 166h23m8 0h23" stroke="${cream}" stroke-width="3"/>`;
+  return `<svg viewBox="0 0 160 180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${uid}-fur" x2=".8" y2="1"><stop stop-color="${base}"/><stop offset="1" stop-color="${shade}"/></linearGradient><linearGradient id="${uid}-visor" x2="1" y2="1"><stop stop-color="${ink}"/><stop offset="1" stop-color="${shade}"/></linearGradient></defs>${boots}${art}${extra}</svg>`;
+ }
  return `<svg viewBox="0 0 160 160" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="${uid}-bg" x2="1" y2="1"><stop stop-color="${ink}"/><stop offset="1" stop-color="${shade}"/></linearGradient><linearGradient id="${uid}-fur" x2=".8" y2="1"><stop stop-color="${base}"/><stop offset="1" stop-color="${shade}"/></linearGradient><linearGradient id="${uid}-visor" x2="1" y2="1"><stop stop-color="${ink}"/><stop offset="1" stop-color="${shade}"/></linearGradient><clipPath id="${uid}-clip"><circle cx="80" cy="80" r="78"/></clipPath></defs><g clip-path="url(#${uid}-clip)"><circle cx="80" cy="80" r="79" fill="url(#${uid}-bg)"/><circle cx="80" cy="71" r="55" fill="${base}" opacity=".16"/><circle cx="80" cy="80" r="70" fill="none" stroke="${cream}" stroke-opacity=".2"/><path d="m18 103 18-19 13 15m64 30 15-19 20 18" fill="none" stroke="${cream}" opacity=".18"/><g fill="${cream}" opacity=".8"><circle cx="26" cy="45" r="2"/><circle cx="135" cy="103" r="2"/><path d="m128 26 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g><ellipse cx="80" cy="151" rx="51" ry="9" fill="${ink}" opacity=".35"/>${art}${extra}</g><circle cx="80" cy="80" r="78" fill="none" stroke="${cream}" stroke-opacity=".4" stroke-width="2"/></svg>`;
 }
 export function landscape(value='aurora'){

@@ -4,7 +4,7 @@ const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const tiers=['Aurora','Celeste','Cristal','Estelar'];
 const btn=(action,label,extra='')=>`<button type="button" class="outline-button" data-action="${action}" ${extra}>${label}</button>`;
 const defaults=p=>({avatar:'fox',cover:'aurora',frame:'plain',title:titles[0],...p});
-export function mountSocial(container,getToken,getUser=()=>null){
+export function mountSocial(container,getToken,getUser=()=>null,onProfile=()=>{}){
  const owner=getUser();
  const checkOwner=()=>{if(getUser()!==owner)throw Error('A conta foi alterada. Abra a comunidade novamente.');};
  let data=null,busy=false,tab='overview',notice='',error=false,result=null,pendingAnswer=null;
@@ -39,7 +39,7 @@ export function mountSocial(container,getToken,getUser=()=>null){
  async function execute(op,body={}){
   if(busy)return false;busy=true;error=false;notice='Conectando à sua comunidade…';render();
   try{const v=await api(op,body);if(op==='answer'){result=v;pendingAnswer=null;notice=`${v.correct?'Resposta correta!':'Vamos revisar juntos.'} ${v.explanation} +${v.points} pontos confirmados.${v.finished?' Desafio concluído.':''}`;data=await api('state');tab='league';}else{data=v;notice=op==='profile'?'Perfil salvo. Sua identidade está pronta!':op==='register'?'Boas-vindas à sua base! Personalize seu perfil.':op==='invite'?'Convite enviado.':op==='block'?'Jogador bloqueado e amizade removida.':op==='unblock'?'Jogador desbloqueado.':'Comunidade atualizada.';}
-   busy=false;render();if(op==='answer'||op==='start')container.querySelector('.explorer-challenge')?.focus();return true;
+   onProfile(data.registered?data.me:null);busy=false;render();if(op==='answer'||op==='start')container.querySelector('.explorer-challenge')?.focus();return true;
   }catch(e){busy=false;error=true;notice=e.name==='TimeoutError'?'A conexão demorou. Tente novamente.':e.message;render();return false;}
  }
  function edit(){
