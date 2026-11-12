@@ -1,11 +1,15 @@
+import {mountPedagogy} from './pedagogy-ui.js';
+import {readAuthCallback} from './auth-callback.mjs';
 import {setIslandAvatarAccount,islandAvatarReceiver} from './island-avatar.js';
 import {mountSocial} from './social.js';
 import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
 const SESSION_KEY='missao-escola-supabase-session', META_KEY='missao-escola-cloud-sync-v1';
-let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null;
+let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null,pedagogy=null,recovering=false,callbackMessage='';
 let syncStatus={kind:'checking',message:'Conferindo seus estudos…'}, formDirty=false;
 try {session=JSON.parse(localStorage.getItem(SESSION_KEY));} catch {}
+const authCallback=location.protocol==='file:'?null:readAuthCallback(location.href);
+if(authCallback){history.replaceState(null,'',location.pathname+location.search+'#social');if(authCallback.session){session=authCallback.session;recovering=authCallback.recovery;}else callbackMessage=authCallback.error;}
 const snapshot=()=>({progress,learner,routine});
 const page=document.createElement('section');page.id='page-social';page.className='page';page.setAttribute('aria-label','Minha conta');
 document.querySelector('.app-footer').before(page);labels.social='Minha conta';
@@ -36,10 +40,12 @@ function showSync(value){
  const copy=page.querySelector('#account-copy-date');if(copy)copy.textContent=backup?'Última cópia consultada: '+new Date(backup.updated_at).toLocaleString('pt-BR'):'';
 }
 function renderAccount(message=''){
+ const staffAccount=pedagogy?.context&&['teacher','admin'].includes(pedagogy.context.role);
  setIslandAvatarAccount(session?.user?.id);
- page.innerHTML=`<div class="section-heading"><h1>Conta e comunidade</h1><p>Aprenda, explore e encontre sua companhia de jornada.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions"><button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button><button data-account="logout" class="outline-button">Sair</button></div><p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><article class="social-box" id="social-features"></article>`;
- const social=page.querySelector('#social-features');if(session?.access_token)mountSocial(social,token,()=>session?.user?.id,islandAvatarReceiver(session?.user?.id));else social.innerHTML='<h2>Amigos e ligas</h2><p>Entre na sua conta para adicionar amigos e participar das ligas.</p>';
- if(busy)page.querySelectorAll('button,input').forEach(el=>el.disabled=true);
+ page.innerHTML=`${recovering&&session?.access_token?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Conta e comunidade'}</h1><p>Aprenda, explore e encontre sua companhia de jornada.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><article class="social-box" id="social-features"></article>`;
+ const social=page.querySelector('#social-features');if(staffAccount)social.innerHTML='<h2>Acesso institucional</h2><p>Use seu painel para acompanhar os atendimentos e as permissões da sua escola.</p>';else if(session?.access_token)mountSocial(social,token,()=>session?.user?.id,islandAvatarReceiver(session?.user?.id));else social.innerHTML='<h2>Amigos e ligas</h2><p>Entre na sua conta para adicionar amigos e participar das ligas.</p>';
+ pedagogy?.decorateAccount(page);
+ if(busy)page.querySelectorAll('button,input,select,textarea').forEach(el=>el.disabled=true);
  showSync(syncStatus);
 }
 function archiveLocal(value){localStorage.setItem('missao-escola-before-restore',JSON.stringify(value));}
@@ -85,17 +91,28 @@ for(const name of ['save','saveLearner','persistRoutine']){
 }
 async function run(work){if(busy)return;busy=true;renderAccount('Conectando…');try{const message=await work();busy=false;renderAccount(message||'Pronto.');}catch(e){busy=false;renderAccount(e.message);}}
 page.addEventListener('submit',event=>{
- if(event.target.id!=='account-form')return;event.preventDefault();const fields=new FormData(event.target),action=event.submitter?.value||'login';
- const body={email:fields.get('email').trim(),password:fields.get('password')};run(async()=>{
-  const result=await request(action==='signup'?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body});
-  if(!result.access_token)return 'Confira seu e-mail para confirmar a conta. Depois, entre aqui.';
-  store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;await startSync();window.dispatchEvent(new CustomEvent('missao-account-ready'));return 'Conta conectada. O progresso mais recente será carregado automaticamente.';
+ if(event.target.id==='account-reset-form'){
+  event.preventDefault();const f=new FormData(event.target);run(async()=>{if(f.get('password')!==f.get('password_confirm'))throw Error('As senhas precisam ser iguais.');await request('/auth/v1/user',{token:await token(),method:'PUT',body:{password:f.get('password')}});recovering=false;await pedagogy?.afterAuthentication({intent:pedagogy.intent});return 'Senha atualizada. Entre com sua nova senha nos próximos acessos.';});return;
+ }
+ if(event.target.id!=='account-form')return;event.preventDefault();const fields=new FormData(event.target),action=event.submitter?.value||'login',intent=pedagogy?.intent||'student';
+ let body;try{body=action==='teacher-signup'?pedagogy.signupBody(fields):{email:fields.get('email').trim(),password:fields.get('password')};}catch(error){renderAccount(error.message);return;}
+ run(async()=>{
+  const signup=action==='signup'||action==='teacher-signup',redirect=encodeURIComponent(location.origin+location.pathname+'#social');
+  const result=await request(signup?'/auth/v1/signup?redirect_to='+redirect:'/auth/v1/token?grant_type=password',{method:'POST',body});
+  if(!result.access_token)return action==='teacher-signup'?'Confira seu e-mail para confirmar a conta. Depois, entre como professor para consultar a análise institucional. Se já possui conta, entre nela para solicitar acesso.':'Confira seu e-mail para confirmar a conta. Depois, entre aqui.';
+  store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;
+  const context=await pedagogy?.afterAuthentication({intent,redirect:!recovering});
+  if(context)store({...session,pedagogy_staff:['teacher','admin'].includes(context.role)});
+  if(intent==='teacher'||context&&['teacher','admin'].includes(context.role)){stopSync();}else await startSync();
+  window.dispatchEvent(new CustomEvent('missao-account-ready',{detail:{role:context?.role||'student'}}));return context?'Conta conectada. Suas permissões foram verificadas no servidor.':'Conta conectada. O apoio institucional está indisponível; seus estudos continuam disponíveis.';
  });
 });
 page.addEventListener('click',event=>{
  const action=event.target.closest('[data-account]')?.dataset.account;if(!action||busy)return;
+ const recoveryEmail=page.querySelector('[name=email]')?.value?.trim();
  run(async()=>{
-  if(action==='logout'){await sync?.tick();await request('/auth/v1/logout',{token:await token(),method:'POST'});stopSync();store(null);backup=null;return 'Conta desconectada. Os estudos locais foram mantidos.';}
+  if(action==='recover'){if(!recoveryEmail)throw Error('Preencha seu e-mail para receber o link de recuperação.');await request('/auth/v1/recover?redirect_to='+encodeURIComponent(location.origin+location.pathname+'#social'),{method:'POST',body:{email:recoveryEmail}});return 'Se existir uma conta para este e-mail, você receberá um link de recuperação.';}
+  if(action==='logout'){await sync?.tick();await request('/auth/v1/logout',{token:await token(),method:'POST'});stopSync();recovering=false;store(null);backup=null;return 'Conta desconectada. Os estudos locais foram mantidos.';}
   if(!sync)startSync();
   if(action==='refresh'){await sync?.tick();return syncStatus.message;}
   if(action==='save'){if(!confirm('Usar o progresso deste aparelho? Isso substituirá a cópia mais recente da conta.'))return 'Envio cancelado.';await sync?.keepLocal();return syncStatus.message;}
@@ -106,14 +123,14 @@ document.addEventListener('input',event=>{if(event.target.closest('#profile-form
 document.addEventListener('change',event=>{if(event.target.closest('#profile-form,#study-settings'))formDirty=true;});
 document.addEventListener('submit',event=>{if(['profile-form','study-settings'].includes(event.target.id)){formDirty=false;scheduleSync();}});
 window.addEventListener('storage',event=>{
- if(event.key===SESSION_KEY){let next=null;try{next=JSON.parse(event.newValue);}catch{}const changed=session?.user?.id!==next?.user?.id;session=next;if(changed){backup=null;startSync();renderAccount();window.dispatchEvent(new CustomEvent('missao-account-change'));}}
+ if(event.key===SESSION_KEY){let next=null;try{next=JSON.parse(event.newValue);}catch{}const changed=session?.user?.id!==next?.user?.id;session=next;if(changed){backup=null;prepareInitialAccount();renderAccount();window.dispatchEvent(new CustomEvent('missao-account-change'));}}
  if([KEY,PERSONAL_KEY,ROUTINE_KEY].includes(event.key))scheduleSync();
 });
 window.addEventListener('online',()=>sync?.tick());window.addEventListener('focus',()=>sync?.tick());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync?.tick();});
 setInterval(()=>{if(!document.hidden)sync?.tick();},20000);
 async function prepareInitialAccount(){
- let message='',access=null,connectionError=false;
+ let message=callbackMessage,access=null,connectionError=false;
  if(session?.access_token){
   const userId=session.user?.id,controller=new AbortController();let timer;
   try{
@@ -137,10 +154,20 @@ async function prepareInitialAccount(){
    }else{connectionError=true;message='Não foi possível verificar a conta agora. Seus estudos locais continuam disponíveis.';}
   }finally{clearTimeout(timer);}
  }
- renderAccount(message);startSync();
- if(location.hash==='#social')navigate('social',false);
+ renderAccount(message);
+ const context=await pedagogy?.afterAuthentication({redirect:!recovering});
+ if(context)store({...session,pedagogy_staff:['teacher','admin'].includes(context.role)});
+ if(!context&&!session?.pedagogy_staff||context?.role==='student'&&(!context.applications.some(a=>a.status==='pending')||context.memberships.length)){startSync();}else stopSync();
+ if(recovering||location.hash==='#social')navigate('social',false);
  return {connectionError};
 }
+pedagogy=mountPedagogy({getToken:token,getUser:getAccountUser,refreshAccount:()=>renderAccount(),signOut:()=>page.querySelector('[data-account=logout]')?.click()});
+window.addEventListener('hashchange',()=>{
+ const incoming=readAuthCallback(location.href);if(!incoming)return;
+ history.replaceState(null,'',location.pathname+location.search+'#social');
+ if(incoming.session){stopSync();session=incoming.session;recovering=incoming.recovery;callbackMessage='';prepareInitialAccount();}
+ else{callbackMessage=incoming.error;renderAccount(callbackMessage);navigate('social',false);}
+});
 renderAccount();
 const initialAccountReady=prepareInitialAccount();
 window.MissaoStartup?.waitForAuthentication(initialAccountReady);

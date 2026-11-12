@@ -4,7 +4,7 @@ await import('./build-tutor-edge.mjs');
 await rm(new URL('../dist/routine-steps.js',import.meta.url),{force:true});
 // Only ship browser assets. Functions are built by Cloudflare from /functions.
 await mkdir(new URL('../dist/',import.meta.url),{recursive:true});
-for(const file of ['index.html','beta.css','splash.css','splash.js','theme.js','island-life.js','island-avatar.js','avatar-figure.js','reward-look.js','reward-motion.js','rewards-ui.js','rewards.css','island-life.css','brand.css','brand.js','home.css','mobile.css','mobile.js','adaptive.js','study-content.js','study-ui.js','study-focus.js','study-focus.css','account.js','cloud-api.mjs','progress-sync.mjs','social.js','social-art.js','avatar-catalog.mjs','avatar-studio.js','social.css','accessibility.css','tutor-bootstrap.js','tutor.css','tutor-ui.js','tutor-context.mjs','_routes.json']) {
+for(const file of ['index.html','beta.css','splash.css','splash.js','theme.js','island-life.js','island-avatar.js','avatar-figure.js','reward-look.js','reward-motion.js','rewards-ui.js','rewards.css','island-life.css','brand.css','brand.js','home.css','mobile.css','mobile.js','adaptive.js','study-content.js','study-ui.js','study-focus.js','study-focus.css','account.js','auth-callback.mjs','pedagogy-api.mjs','pedagogy-ui.js','pedagogy.css','cloud-api.mjs','progress-sync.mjs','social.js','social-art.js','avatar-catalog.mjs','avatar-studio.js','social.css','accessibility.css','tutor-bootstrap.js','tutor.css','tutor-ui.js','tutor-context.mjs','_routes.json']) {
 
  await copyFile(new URL('../'+file,import.meta.url),new URL('../dist/'+file,import.meta.url));
 }
