@@ -118,6 +118,7 @@ Esse mecanismo técnico não constitui uma certificação de conformidade com a 
 | Verificação | Resultado / limite |
 | --- | --- |
 | `npm test` | Aprovado: suíte existente e novas suítes de API/SQL |
+| Bootstrap inicial | Aprovado localmente: falha segura com dois administradores, vínculo ao único administrador confirmado e reaplicação sem duplicação |
 | Migração aplicada duas vezes em PGlite | Aprovado: reaplicação e integridade |
 | RBAC/RLS e chamadas diretas | Aprovado: aluno, professor pendente, outra escola, autoaprovação, falsificação de remetente e escrita direta negados |
 | Atomicidade | Aprovado: falha injetada na notificação reverte aprovação, papel e vínculos |
@@ -127,6 +128,7 @@ Esse mecanismo técnico não constitui uma certificação de conformidade com a 
 | Conversas | Aprovado: envio, resposta, remetente, encerramento, histórico, lotes de 50, repetição idempotente |
 | Navegador institucional | Aprovado com Auth/banco locais: cadastro, confirmação, pendência, aprovação, ativação, conversa, perda da confirmação de envio, recuperação e saída |
 | Atualização alternativa | Aprovado em navegador: mensagem aparece pelo polling após falha simulada do WebSocket |
+| Backend ainda não ativado | Aprovado: erro de catálogo aparece na tela de login, sem impedir o login existente |
 | Administração em navegador | Aprovado: turmas, disciplinas, vínculo de aluno, edição de atribuições, suspensão/reativação |
 | Layout | Aprovado: 360/768/1440 px, temas claro/escuro, texto a 200%, sem rolagem horizontal nos percursos testados |
 | Acessibilidade básica | Rótulos, foco visível, modal nativo com foco interno/devolução, estados anunciados e movimento reduzido; não é auditoria completa com leitores de tela |
@@ -143,6 +145,7 @@ O registro final da migração, publicação e regressões está na seção abai
 - A regressão do Tutor identificou inicialmente o seletor de dificuldade com fonte de 13,6 px no celular. A regra de `study-focus.css` foi corrigida para o mínimo de 16 px, e a suíte completa do Tutor passou na nova execução. Nenhum teste conhecido permanece reprovado.
 - Antes da tentativa de ativação: banco com um administrador existente, três backups e três perfis sociais; nenhuma tabela `edu_*`.
 - **Migração de produção pendente.** A integração Supabase retornou `status=expired` em duas solicitações `apply_migration`, sem aprovação concluída. A consulta após a primeira tentativa confirmou zero tabelas `edu_*`. Não foi utilizado outro canal para contornar a confirmação.
+- O bootstrap foi validado em banco descartável; um conflito entre nome de variável e coluna foi corrigido antes da distribuição final do script.
 - O bootstrap do **Colégio Pitagoras** também está pendente, pois depende da migração. O código está pronto para vincular a única conta administradora confirmada; não foi criada instituição fictícia nem outra conta privilegiada.
 - Não houve testes com pessoas reais, entrega real de e-mails nem confirmação de Realtime em produção. Os resultados SQL/navegador descritos acima são locais e isolados.
 - O diagnóstico de segurança anterior apontou proteção contra senhas vazadas desativada e avisos informativos de RLS sem política em tabelas antigas de social/IA, destinadas ao acesso de serviço. Não houve alteração nessas políticas antigas. Os advisors precisam ser executados novamente depois que a migração for autorizada/aplicada.
