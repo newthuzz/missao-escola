@@ -22,7 +22,8 @@ Implementação de 12/11/2026. Mantém HTML/CSS/JavaScript, Supabase Auth/Postgr
 | `study-focus.css` | Correção do tamanho mínimo do seletor de dificuldade para evitar zoom de foco no iPhone |
 | `index.html` | Folha de estilos e texto atualizado de disponibilidade do apoio |
 | `scripts/build.mjs` | Inclusão dos novos módulos na distribuição estática |
-| `supabase/migrations/20261112142420_pedagogical_support.sql` | Migração transacional, incremental e reaplicável |
+| `supabase/migrations/20261112163758_pedagogical_support.sql` | Migração transacional, incremental e reaplicável |
+| `supabase/migrations/20261112163954_pedagogical_support_fk_indexes.sql` | Índices completos das chaves estrangeiras compostas |
 | `supabase/bootstrap-pitagoras.sql` | Vínculo inicial autorizado à conta administradora já existente |
 | `tests/pedagogy-api.test.mjs`, `tests/pedagogy-db.test.mjs` | Contratos, segurança e persistência |
 | `tests/browser/pedagogy.cjs` | Fluxo completo em navegador com Auth e banco locais de teste |
@@ -76,7 +77,9 @@ As páginas institucionais começam sem conteúdo privado até a verificação n
 
 ## Configuração inicial e uso
 
-1. Aplique a migração pelo processo autorizado de migrações do Supabase. Ela é transacional e reaplicável; não apaga os estudos existentes.
+**Colégio Pitagoras: migrações e vínculo inicial já aplicados em produção em 12/11/2026.** Nesta instalação, comece no passo 3. Os dois primeiros passos servem para outra instalação ou recuperação controlada.
+
+1. Aplique as duas migrações, na ordem dos nomes, pelo processo autorizado de migrações do Supabase. Ela é transacional e reaplicável; não apaga os estudos existentes.
 2. Para esta instalação, execute `supabase/bootstrap-pitagoras.sql` como proprietário confiável. O script só usa o único administrador existente com e-mail confirmado, cria **Colégio Pitagoras** se ausente e vincula o escopo. Se houver ambiguidade de administrador/instituição, falha sem alterar dados. Reaplicar preserva permissões existentes.
 3. Entre com a conta administradora habitual. O servidor direciona ao painel administrativo.
 4. Em **Turmas e vínculos**, cadastre as turmas e disciplinas reais. Confirme o vínculo de cada aluno pelo e-mail da conta já confirmada. Nenhuma turma ou pessoa fictícia é cadastrada automaticamente.
@@ -141,31 +144,23 @@ O registro final da migração, publicação e regressões está na seção abai
 
 ### Registro desta entrega
 
-- `npm test`, build estático e testes de navegador institucional, beta, social, sincronização, Tutor e HTML portátil: **aprovados**.
-- A regressão do Tutor identificou inicialmente o seletor de dificuldade com fonte de 13,6 px no celular. A regra de `study-focus.css` foi corrigida para o mínimo de 16 px, e a suíte completa do Tutor passou na nova execução. Nenhum teste conhecido permanece reprovado.
-- Antes da tentativa de ativação: banco com um administrador existente, três backups e três perfis sociais; nenhuma tabela `edu_*`.
-- **Migração de produção pendente.** A integração Supabase retornou `status=expired` em duas solicitações `apply_migration`, sem aprovação concluída. A consulta após a primeira tentativa confirmou zero tabelas `edu_*`. Não foi utilizado outro canal para contornar a confirmação.
-- O bootstrap foi validado em banco descartável; um conflito entre nome de variável e coluna foi corrigido antes da distribuição final do script.
-- O bootstrap do **Colégio Pitagoras** também está pendente, pois depende da migração. O código está pronto para vincular a única conta administradora confirmada; não foi criada instituição fictícia nem outra conta privilegiada.
-- Não houve testes com pessoas reais, entrega real de e-mails nem confirmação de Realtime em produção. Os resultados SQL/navegador descritos acima são locais e isolados.
-- O diagnóstico de segurança anterior apontou proteção contra senhas vazadas desativada e avisos informativos de RLS sem política em tabelas antigas de social/IA, destinadas ao acesso de serviço. Não houve alteração nessas políticas antigas. Os advisors precisam ser executados novamente depois que a migração for autorizada/aplicada.
+- Migração principal `20261112163758_pedagogical_support`: aplicada em produção com sucesso e registrada no histórico Supabase.
+- Migração complementar `20261112163954_pedagogical_support_fk_indexes`: aplicada com sucesso. Os nomes dos arquivos foram alinhados às versões efetivamente geradas pelo Supabase para manter o histórico consistente.
+- Bootstrap executado: **Colégio Pitagoras** criado e vinculado ao único administrador existente com e-mail confirmado. Nenhuma nova conta privilegiada foi criada.
+- Verificação: 12 tabelas `edu_*` com RLS ativo, sem SELECT anônimo e sem INSERT/UPDATE/DELETE diretos para `authenticated`. A RPC de mutação não permite execução por `anon`; o catálogo público é executável e limita-se aos dados institucionais de cadastro.
+- Publicação Realtime inclui `edu_notifications` com RLS individual. Isso confirma a configuração do banco, não uma sessão WebSocket real entre usuários.
+- Contexto e métricas da conta administradora verificados dentro de uma transação com papel `authenticated` e identidade definida apenas pelo operador SQL; transação revertida, sem criar atividades de teste em produção. Não substitui login real por JWT.
+- Preservação: três backups e três perfis sociais antes/depois. Instituição com zero turmas e zero disciplinas, aguardando nomes reais no painel administrativo.
+- Advisors de segurança: nenhum novo aviso do módulo. Permanecem os oito avisos informativos anteriores de RLS sem políticas em tabelas antigas de social/IA, destinadas ao acesso de serviço, e o aviso anterior de proteção contra senhas vazadas desativada. [Orientação para essa configuração](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+- Advisors de desempenho: três chaves estrangeiras compostas novas receberam índices completos; não permanecem chaves sem índice no módulo `edu_*`. Avisos de índices ainda não usados são esperados antes de existir tráfego. Permanecem cinco chaves sem índice em módulos antigos, fora desta migração. [Referência do advisor](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys).
+- `npm test`, build estático e testes de navegador institucional, beta, social, sincronização, Tutor e HTML portátil foram aprovados na implementação. A suíte SQL foi novamente executada para validar as duas migrações reaplicadas e o bootstrap em banco descartável.
+- As primeiras tentativas de aplicação haviam expirado; a nova autorização do usuário permitiu concluir a operação pela integração Supabase. Nenhum canal alternativo foi usado para contornar a confirmação.
+- Entrega real de e-mails, conversa entre duas contas reais e Realtime em rede móvel continuam dependentes da validação operacional. A chamada HTTP direta por Node foi bloqueada pela rede do ambiente (DNS e, com o proxy configurado, HTTP 403 no túnel); as verificações de produção acima foram feitas pela integração Supabase.
 
-### Ativação manual se a confirmação da integração não funcionar
+### Próximos passos da instituição
 
-No painel do projeto Supabase **missao escola**, abra **SQL Editor → New query**:
-
-1. Cole todo o conteúdo de `supabase/migrations/20261112142420_pedagogical_support.sql` e clique **Run**. Aguarde o sucesso antes do próximo passo.
-2. Em outra consulta, cole `supabase/bootstrap-pitagoras.sql` e clique **Run**. O script verifica a conta administradora e o nome informado antes do vínculo.
-3. Confira o resultado desta consulta sem expor e-mails ou credenciais:
-
-```sql
-select s.name,
-       (select count(*) from public.edu_admin_scopes a where a.school_id=s.id) as administradores_vinculados
-from public.edu_schools s
-where s.name='Colégio Pitagoras';
-```
-
-4. Entre no site com sua conta administradora habitual. Abra **Turmas e vínculos** para cadastrar os nomes reais. Enquanto a migração não estiver instalada, o apoio informa que ainda não foi ativado; os estudos existentes permanecem disponíveis.
-5. Execute **Database → Advisors** e confira a configuração de Auth descrita acima. Em implantação gerenciada por CLI, registre/reconcilie a migração executada manualmente antes de futuros `db push`; o SQL Editor não insere automaticamente o histórico da CLI.
-
-Não cole senha, chave secreta ou service_role no SQL ou no chat. Os arquivos fornecidos não precisam desses valores.
+1. Atualize o site e entre com a conta administradora habitual.
+2. Abra **Turmas e vínculos**, cadastre as turmas e disciplinas reais e confirme os vínculos dos alunos.
+3. Confira a configuração de e-mail e redirecionamento do Supabase Auth descrita neste relatório.
+4. Peça ao professor que solicite cadastro, confira o vínculo e autorize as combinações corretas de turma e disciplina.
+5. Valide um atendimento entre duas contas reais autorizadas. Não é necessário executar novamente os SQLs desta entrega.
