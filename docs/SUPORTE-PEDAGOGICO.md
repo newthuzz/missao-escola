@@ -164,3 +164,7 @@ O registro final da migração, publicação e regressões está na seção abai
 3. Confira a configuração de e-mail e redirecionamento do Supabase Auth descrita neste relatório.
 4. Peça ao professor que solicite cadastro, confira o vínculo e autorize as combinações corretas de turma e disciplina.
 5. Valide um atendimento entre duas contas reais autorizadas. Não é necessário executar novamente os SQLs desta entrega.
+
+## Conta com os três ambientes
+
+A conta administradora existente do Colégio Pitagoras recebeu uma autorização exclusiva para alternar entre administração, professor e aluno por três botões. As demais contas mantêm seus ambientes autorizados. A preferência visual não altera papéis nem concede permissões. Consulte [alternância de ambientes](ALTERNAR-AMBIENTES.md) para a migração, os controles de segurança e a validação.
