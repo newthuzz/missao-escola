@@ -2,7 +2,7 @@
 
 As ligas semanais ficam em **Ranks e conquistas → Ligas semanais**. A segunda aba mantém os ranks pessoais, as conquistas e as atividades existentes. Os pontos competitivos continuam separados do XP de estudo.
 
-**Minha conta** aparece em destaque logo abaixo de Central de estudos no menu lateral. No celular, o botão inferior mostra “Minha conta” e o atalho superior mostra “Ranks e ligas”. Perfil, amigos e sincronização permanecem em Minha conta, com um atalho para as ligas.
+**Minha conta** aparece em destaque como primeiro item da seção **Seu espaço** no menu lateral. No celular, o botão inferior mostra “Minha conta” e o atalho superior mostra “Ranks e ligas”. Perfil, amigos e sincronização permanecem em Minha conta, com um atalho para as ligas.
 
 `community-navigation.js` coordena os destinos e mantém uma única instância social por conta. A instância é transferida entre os painéis para preservar sessões e respostas pendentes. Sair ou trocar de conta descarta a instância anterior; respostas atrasadas não voltam a exibir seus dados. A navegação institucional mantém as permissões existentes.
 
