@@ -168,3 +168,7 @@ O registro final da migração, publicação e regressões está na seção abai
 ## Conta com os três ambientes
 
 A conta administradora existente do Colégio Pitagoras recebeu uma autorização exclusiva para alternar entre administração, professor e aluno por três botões. As demais contas mantêm seus ambientes autorizados. A preferência visual não altera papéis nem concede permissões. Consulte [alternância de ambientes](ALTERNAR-AMBIENTES.md) para a migração, os controles de segurança e a validação.
+
+## Cadastro de novas escolas
+
+O painel administrativo inclui **Escolas**, com cadastro e vínculo automático à conta que cria a instituição. O acesso a outras escolas existentes não é concedido por esse formulário. Veja [cadastro de escolas](CADASTRO-DE-ESCOLAS.md) para o fluxo, migração e verificações.
