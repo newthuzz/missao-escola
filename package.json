@@ -2,7 +2,7 @@
   "name": "missao-escola",
   "private": true,
   "scripts": {
-    "test": "node tests/cloud-api.test.mjs && node tests/pedagogy-api.test.mjs && node tests/pedagogy-db.test.mjs && node tests/owner-workspaces.test.mjs && node tests/admin-schools.test.mjs && node tests/social-api.test.mjs && node tests/avatar-catalog.test.mjs && node tests/island-avatar.test.mjs && node tests/rewards.test.mjs && node tests/avatar-motion.test.mjs && node tests/social-db.test.mjs && node tests/adaptive.test.cjs && node tests/worker.test.mjs && node tests/progress-sync.test.mjs && npm run test:tutor && npm run test:beta",
+    "test": "node tests/cloud-api.test.mjs && node tests/pedagogy-api.test.mjs && node tests/pedagogy-db.test.mjs && node tests/owner-workspaces.test.mjs && node tests/admin-schools.test.mjs && node tests/teacher-registration.test.mjs && node tests/social-api.test.mjs && node tests/avatar-catalog.test.mjs && node tests/island-avatar.test.mjs && node tests/rewards.test.mjs && node tests/avatar-motion.test.mjs && node tests/social-db.test.mjs && node tests/adaptive.test.cjs && node tests/worker.test.mjs && node tests/progress-sync.test.mjs && npm run test:tutor && npm run test:beta",
     "build": "node scripts/build.mjs",
     "test:tutor": "node tests/tutor-core.test.mjs && node tests/tutor-api.test.mjs && node tests/tutor-db.test.mjs && node tests/tutor-bundle.test.mjs",
     "local": "node scripts/serve-local.mjs",

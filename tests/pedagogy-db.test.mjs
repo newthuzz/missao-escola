@@ -1,7 +1,7 @@
 import {PGlite} from '@electric-sql/pglite';import fs from 'node:fs';import assert from 'node:assert/strict';
 export async function createPedagogyDB(){
  const db=new PGlite();await db.exec(`create schema auth;create table auth.users(id uuid primary key,email text unique,email_confirmed_at timestamptz,raw_user_meta_data jsonb not null default '{}');create table auth.sessions(id uuid primary key,user_id uuid references auth.users on delete cascade,not_after timestamptz);create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;create role anon;create role authenticated;create role service_role;grant usage on schema auth to authenticated;create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;`);
- const files=fs.readdirSync(new URL('../supabase/migrations/',import.meta.url)).filter(f=>/_(?:pedagogical_support(?:_fk_indexes)?|owner_workspaces|admin_school_registration)\.sql$/.test(f)).sort();for(const file of files){const sql=fs.readFileSync(new URL('../supabase/migrations/'+file,import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);}
+ const files=fs.readdirSync(new URL('../supabase/migrations/',import.meta.url)).filter(f=>/_(?:pedagogical_support(?:_fk_indexes)?|owner_workspaces|admin_school_registration|teacher_registration)\.sql$/.test(f)).sort();for(const file of files){const sql=fs.readFileSync(new URL('../supabase/migrations/'+file,import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);}
  return db;
 }
 export const uuid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');

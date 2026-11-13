@@ -9,6 +9,9 @@ export function teacherSignupBody(fields){
  if(application.full_name.length<2||!application.school_id||!application.class_ids.length||!application.subject_ids.length)throw Error('Selecione a instituição, as turmas e as disciplinas.');
  return {email:String(fields.get('email')||'').trim(),password,data:{pedagogical_application:application}};
 }
+export function teacherActivationBody(fields){
+ const password=String(fields.get('password')||'');if(password!==fields.get('password_confirm'))throw Error('As senhas precisam ser iguais.');if(password.length<10)throw Error('Use uma senha de pelo menos 10 caracteres.');return {email:String(fields.get('email')||'').trim(),password};
+}
 // Realtime is an optimization. A visible-page polling fallback always remains.
 export function subscribePedagogy({getToken,getUser,onChange,onStatus=()=>{},WebSocketClass=globalThis.WebSocket}){
  let socket=null,heartbeat=null,reconnect=null,closed=false,ref=0,attempt=0,tokenUsed=null;

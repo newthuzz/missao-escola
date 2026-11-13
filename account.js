@@ -95,10 +95,11 @@ page.addEventListener('submit',event=>{
   event.preventDefault();const f=new FormData(event.target);run(async()=>{if(f.get('password')!==f.get('password_confirm'))throw Error('As senhas precisam ser iguais.');await request('/auth/v1/user',{token:await token(),method:'PUT',body:{password:f.get('password')}});recovering=false;await pedagogy?.afterAuthentication({intent:pedagogy.intent});return 'Senha atualizada. Entre com sua nova senha nos próximos acessos.';});return;
  }
  if(event.target.id!=='account-form')return;event.preventDefault();const fields=new FormData(event.target),action=event.submitter?.value||'login',intent=pedagogy?.intent||'student';
- let body;try{body=action==='teacher-signup'?pedagogy.signupBody(fields):{email:fields.get('email').trim(),password:fields.get('password')};}catch(error){renderAccount(error.message);return;}
+ let body;try{body=action==='teacher-signup'?pedagogy.signupBody(fields):action==='teacher-activate'?pedagogy.activationBody(fields):{email:fields.get('email').trim(),password:fields.get('password')};}catch(error){renderAccount(error.message);return;}
  run(async()=>{
-  const signup=action==='signup'||action==='teacher-signup',redirect=encodeURIComponent(location.origin+location.pathname+'#social');
+  const signup=['signup','teacher-signup','teacher-activate'].includes(action),redirect=encodeURIComponent(location.origin+location.pathname+(action==='teacher-activate'?'?professor=ativar':'')+'#social');
   const result=await request(signup?'/auth/v1/signup?redirect_to='+redirect:'/auth/v1/token?grant_type=password',{method:'POST',body});
+  if(!result.access_token&&action==='teacher-activate')return 'Confira seu e-mail para confirmar a conta. Depois, entre como professor usando o e-mail cadastrado pela escola. Se já tem conta, use Entrar.';
   if(!result.access_token)return action==='teacher-signup'?'Confira seu e-mail para confirmar a conta. Depois, entre como professor para consultar a análise institucional. Se já possui conta, entre nela para solicitar acesso.':'Confira seu e-mail para confirmar a conta. Depois, entre aqui.';
   store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;
   const context=await pedagogy?.afterAuthentication({intent,redirect:!recovering});
