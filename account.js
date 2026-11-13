@@ -1,7 +1,7 @@
 import {mountPedagogy} from './pedagogy-ui.js';
 import {readAuthCallback} from './auth-callback.mjs';
 import {setIslandAvatarAccount,islandAvatarReceiver} from './island-avatar.js';
-import {mountSocial} from './social.js';
+import {mountCommunityNavigation} from './community-navigation.js';
 import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
 const SESSION_KEY='missao-escola-supabase-session', META_KEY='missao-escola-cloud-sync-v1';
@@ -13,8 +13,7 @@ if(authCallback){history.replaceState(null,'',location.pathname+location.search+
 const snapshot=()=>({progress,learner,routine});
 const page=document.createElement('section');page.id='page-social';page.className='page';page.setAttribute('aria-label','Minha conta');
 document.querySelector('.app-footer').before(page);labels.social='Minha conta';
-const nav=document.createElement('button');nav.className='nav-link nav-secondary';nav.dataset.page='social';nav.textContent='☁ Minha conta';document.querySelector('.side-nav').append(nav);
-document.querySelector('.mobile-nav').insertAdjacentHTML('beforeend','<button data-page="social" aria-label="Conta, amigos e liga"><span aria-hidden="true">☁</span><span>Conta</span></button>');
+
 function stopSync(){clearTimeout(syncTimer);sync?.stop();sync=null;}
 function store(value){
  if(session?.user?.id!==value?.user?.id)stopSync();session=value;setIslandAvatarAccount(session?.user?.id);
@@ -23,6 +22,7 @@ function store(value){
 }
 export {token as getAccountToken};
 export const getAccountUser=()=>session?.user?.id||null;
+const communityNavigation=mountCommunityNavigation({getToken:token,getUser:getAccountUser,isStaff:()=>Boolean(pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace)),makeProfileReceiver:islandAvatarReceiver});
 async function token(){
  if(!session?.access_token)throw Error('Entre na sua conta primeiro.');
  if(!session.expires_at||session.expires_at<Date.now()/1000+60){
@@ -42,8 +42,8 @@ function showSync(value){
 function renderAccount(message=''){
  const staffAccount=pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace);
  setIslandAvatarAccount(session?.user?.id);
- page.innerHTML=`${recovering&&session?.access_token?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Conta e comunidade'}</h1><p>Aprenda, explore e encontre sua companhia de jornada.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><article class="social-box" id="social-features"></article>`;
- const social=page.querySelector('#social-features');if(staffAccount)social.innerHTML='<h2>Acesso institucional</h2><p>Use seu painel para acompanhar os atendimentos e as permissões da sua escola.</p>';else if(session?.access_token)mountSocial(social,token,()=>session?.user?.id,islandAvatarReceiver(session?.user?.id));else social.innerHTML='<h2>Amigos e ligas</h2><p>Entre na sua conta para adicionar amigos e participar das ligas.</p>';
+ page.innerHTML=`${recovering&&session?.access_token?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Minha conta'}</h1><p>Seu perfil, seus amigos e seus estudos sincronizados.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><div id="account-community-slot"></div>`;
+ communityNavigation.renderAccount(page.querySelector('#account-community-slot'));
  pedagogy?.decorateAccount(page);
  if(busy)page.querySelectorAll('button,input,select,textarea').forEach(el=>el.disabled=true);
  showSync(syncStatus);
