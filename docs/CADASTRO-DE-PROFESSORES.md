@@ -19,7 +19,7 @@ Na inspeção de produção havia três escolas administradas pela conta proprie
 
 ## Arquivos e segurança
 
-Migração `supabase/migrations/20261113120353_teacher_registration.sql`; correção de dados `supabase/bootstrap-owner-teacher.sql`; interface em `pedagogy-ui.js`, `pedagogy.css`, `pedagogy-api.mjs` e `account.js`.
+Migração `supabase/migrations/20261113145811_teacher_registration.sql`; correção de dados `supabase/bootstrap-owner-teacher.sql`; interface em `pedagogy-ui.js`, `pedagogy.css`, `pedagogy-api.mjs` e `account.js`.
 
 `edu_teacher_registrations` possui RLS, leitura somente para o administrador da escola ou o docente já vinculado e nenhuma mutação direta por clientes. E-mails de terceiros não são expostos aos alunos. Operações privilegiadas estão no esquema privado `pedagogy`, com search_path fixo; a RPC pública continua SECURITY INVOKER e sem execução anônima.
 
@@ -37,12 +37,19 @@ Cadastro, papel docente, aprovação institucional, vínculos, auditoria e notif
 
 As capturas em `work/teacher-registration/` são prévias identificadas por dados locais de teste. Nenhum e-mail real foi enviado para validar o fluxo, e não foi comprovada a entrega de e-mails de confirmação do provedor em produção.
 
-## Situação de ativação
+## Ativação em produção
 
-**Pendente.** A integração Supabase retornou `status=expired` em duas chamadas `apply_migration`, sem executar a migração. Uma consulta posterior confirmou que `edu_teacher_registrations` não existe e que o proprietário ainda não tem o papel `teacher`.
+Migração `20261113145811_teacher_registration` aplicada com sucesso no Supabase em 13/11/2026, seguida do script `supabase/bootstrap-owner-teacher.sql`, após a confirmação do usuário. O nome do arquivo local foi alinhado ao histórico real da integração.
 
-O bootstrap não foi executado, pois depende da migração. O código não foi publicado no ramo de produção para evitar oferecer o cadastro novo antes da ativação. Os arquivos estão prontos para revisão e para aplicar pela integração quando sua confirmação for concluída.
+Verificações de produção:
 
-Ordem necessária: aplicar a migração, executar o bootstrap da conta proprietária, conferir RLS/permissões/contagens e advisors, e só então publicar a interface. Não é necessário enviar senha ou chave no chat.
+- Conta proprietária com papéis `admin` e `teacher`, três cadastros docentes reais e uma atribuição ativa na turma/disciplina já existentes na CDL-BH.
+- Colégio Pitagoras e Ari da Franca: proprietário listado como docente, sem inventar turmas ou disciplinas. As atribuições podem ser definidas depois pelo painel.
+- Uma transação revertida verificou o contexto administrativo e a lista de professores de cada escola com o papel `authenticated`: o e-mail retornado para o proprietário corresponde ao e-mail real da conta. O endereço não foi impresso nos resultados.
+- Permanece uma única conta autorizada a alternar os três ambientes. Três backups e três perfis sociais preservados.
+- RLS ativo em `edu_teacher_registrations`; leitura anônima, mutação direta por clientes e execução do auxiliar de ativação pelo cliente negadas.
+- Advisors sem novos problemas de segurança ou chaves estrangeiras sem índice neste recurso. Índices ainda sem uso são informativos. Permanecem os avisos anteriores dos módulos de social/IA e de [proteção contra senhas vazadas desativada](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
-Os avisos anteriores sobre tabelas antigas de social/IA e a [proteção contra senhas vazadas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) são independentes desta correção; precisam ser reavaliados depois da ativação.
+As duas tentativas anteriores de confirmação haviam expirado sem executar alterações. A nova confirmação permitiu concluir a ativação pela mesma integração; não foi usado um canal alternativo para contornar a confirmação.
+
+Não é necessário executar SQL manualmente. Atualize o site e abra **Administrador → Professores**. O cadastro por e-mail requer selecionar uma escola com turmas e disciplinas reais configuradas. Contas existentes e confirmadas são vinculadas no cadastro; pessoas sem conta usam o link de ativação apresentado e confirmam o próprio e-mail.

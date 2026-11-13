@@ -172,3 +172,8 @@ A conta administradora existente do Colégio Pitagoras recebeu uma autorização
 ## Cadastro de novas escolas
 
 O painel administrativo inclui **Escolas**, com cadastro e vínculo automático à conta que cria a instituição. O acesso a outras escolas existentes não é concedido por esse formulário. Veja [cadastro de escolas](CADASTRO-DE-ESCOLAS.md) para o fluxo, migração e verificações.
+
+
+## Cadastro direto de professores
+
+O painel **Professores** permite cadastrar por e-mail, escolher atribuições e compartilhar o link para quem ainda precisa criar e confirmar sua conta. O e-mail real aparece na lista administrativa. A conta proprietária foi vinculada como docente sem perder a administração ou os estudos. Consulte [cadastro de professores](CADASTRO-DE-PROFESSORES.md) para o fluxo e as verificações.
