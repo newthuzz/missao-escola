@@ -14,8 +14,25 @@
 .reward-goal progress{width:100%;height:9px;accent-color:var(--gold,#e2bd7a);margin:.5rem 0}.reward-goal p{font-size:.85rem;line-height:1.6;color:var(--muted);margin:.7rem 0 1rem}
 .reward-studio .reward-resources{display:grid;grid-template-columns:1fr 1.1fr;gap:1.2rem;margin:1.2rem 0}
 .reward-studio .reward-wallet{margin:0;padding:1.5rem;background:var(--panel);border:1px solid var(--line);border-radius:20px;display:flex;gap:1.2rem;align-items:center}.reward-wallet strong{font-size:2.5rem}.reward-wallet>p{font-size:.8rem;color:var(--muted)}
-.reward-studio .reward-daily{margin:0;padding:1.2rem 1.4rem;display:grid;grid-template-columns:75px minmax(0,1fr) auto;gap:.3rem 1rem;align-items:center;text-align:left;min-height:0;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
-.reward-daily .chest-art{width:75px;height:auto;grid-row:1/5;position:static;margin:0}.reward-daily .chest-art svg{width:100%;height:auto}.reward-daily>.section-kicker{grid-column:2;font-size:.6rem}.reward-daily h2{grid-column:2;font-size:1.1rem;margin:0}.reward-daily p{grid-column:2;font-size:.76rem;line-height:1.5;margin:0}.reward-daily>button{grid-column:3;grid-row:1/5;font-size:.8rem;max-width:145px}
+.reward-studio .reward-daily{
+  margin:0;
+  padding:1.2rem 1.4rem;
+  display:grid;
+  grid-template-columns:min(24%, 5rem) minmax(0, 1fr);
+  grid-template-areas:"art kicker" "art title" "art description" "claim claim";
+  gap:.35rem .8rem;
+  align-content:center;
+  text-align:left;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:var(--panel);
+}
+.reward-daily > .chest-art{grid-area:art;display:block;align-self:center;height:auto}
+.reward-daily .chest-art svg{width:100%;height:auto}
+.reward-daily > .section-kicker{grid-area:kicker;font-size:.7rem;margin:0}
+.reward-daily > h2{grid-area:title;font-size:1.1rem;line-height:1.3;margin:0}
+.reward-daily > p{grid-area:description;font-size:.8rem;line-height:1.5;margin:0}
+.reward-daily > .gold-button{grid-area:claim;max-width:none;min-height:44px;margin-top:.5rem}
 .reward-status{color:var(--ink);border-radius:12px;background:var(--mint-soft);padding:.8rem 1rem;line-height:1.6}.reward-status:empty{display:none}
 .reward-shop-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin:2rem 0 1.1rem}.reward-shop-heading h2{font-size:1.55rem;margin:.4rem 0}.reward-shop-heading p{color:var(--muted);font-size:.83rem;max-width:290px;line-height:1.6}
 .reward-toolbar{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1.2rem}.reward-toolbar button{background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:30px;padding:.65rem 1rem;font:inherit;font-size:.85rem;min-height:44px}.reward-toolbar button[aria-pressed=true]{border-color:var(--blue);color:var(--ink);background:var(--mint-soft)}
@@ -43,16 +60,12 @@
 .reward-studio button:focus-visible,.reward-dialog button:focus-visible{outline:3px solid var(--blue);outline-offset:4px}
 @media(max-width:1150px){.reward-hero{grid-template-columns:1fr}.reward-studio .reward-resources{grid-template-columns:1fr}.reward-goal{display:grid;grid-template-columns:110px 1fr;gap:.4rem 1rem;text-align:left}.reward-goal-art{grid-column:1;grid-row:1/6;align-self:center;width:100%}.reward-goal>.section-kicker,.reward-goal>h2,.reward-goal>label,.reward-goal>p,.reward-goal>button{grid-column:2}.reward-goal h2,.reward-goal p{margin:0}.reward-goal>.primary-button{justify-self:start}.reward-milestones{grid-template-columns:1fr}.reward-milestones article>div{flex:1}}
 @media(max-width:850px){.reward-studio .reward-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.reward-shop-heading{display:block}.reward-shop-heading p{max-width:none}}
-@media(max-width:560px){.reward-traveler{grid-template-columns:1fr}.reward-hero-art{min-height:0;padding:1.5rem 1rem .5rem}.reward-hero-art>svg{max-width:180px}.reward-traveler>div:last-child{padding:1.2rem}.reward-studio .reward-grid{grid-template-columns:1fr}.reward-item-art{min-height:210px}.reward-item-art>svg{width:165px}.reward-studio .reward-wallet{flex-direction:column;align-items:flex-start;gap:.5rem}.reward-wallet>p{margin:0}.reward-studio .reward-daily{grid-template-columns:64px 1fr;gap:.3rem .8rem}.reward-daily>.chest-art{width:60px}.reward-daily>button{grid-column:1/-1;grid-row:auto;max-width:none;margin-top:.7rem}.reward-goal{grid-template-columns:75px 1fr;padding:1.1rem}.reward-goal h2{font-size:1.1rem}.reward-goal p{font-size:.78rem}.reward-goal .section-kicker{font-size:.6rem;letter-spacing:.06em}.reward-goal>button{grid-column:1/-1;justify-self:stretch;margin-top:.6rem}.reward-dialog{padding:1.1rem}.reward-dialog-layout{grid-template-columns:1fr}.reward-detail-art{max-width:210px;justify-self:center}.reward-dialog h2{font-size:1.4rem}.reward-dialog-heading>button{font-size:.8rem}.reward-dialog-heading .section-kicker{font-size:.6rem}.reward-dialog .reward-detail-art{width:100%}}
+@media(max-width:560px){.reward-traveler{grid-template-columns:1fr}.reward-hero-art{min-height:0;padding:1.5rem 1rem .5rem}.reward-hero-art>svg{max-width:180px}.reward-traveler>div:last-child{padding:1.2rem}.reward-studio .reward-grid{grid-template-columns:1fr}.reward-item-art{min-height:210px}.reward-item-art>svg{width:165px}.reward-studio .reward-wallet{flex-direction:column;align-items:flex-start;gap:.5rem}.reward-wallet>p{margin:0}.reward-goal{grid-template-columns:75px 1fr;padding:1.1rem}.reward-goal h2{font-size:1.1rem}.reward-goal p{font-size:.78rem}.reward-goal .section-kicker{font-size:.6rem;letter-spacing:.06em}.reward-goal>button{grid-column:1/-1;justify-self:stretch;margin-top:.6rem}.reward-dialog{padding:1.1rem}.reward-dialog-layout{grid-template-columns:1fr}.reward-detail-art{max-width:210px;justify-self:center}.reward-dialog h2{font-size:1.4rem}.reward-dialog-heading>button{font-size:.8rem}.reward-dialog-heading .section-kicker{font-size:.6rem}.reward-dialog .reward-detail-art{width:100%}}
 @media(prefers-reduced-motion:reduce){.reward-studio *,.reward-dialog *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .reward-studio button,.reward-dialog button{max-width:100%;white-space:normal}.reward-goal>*,.reward-traveler>div,.reward-dialog-layout>div{min-width:0}.reward-goal h2,.reward-traveler h2,.reward-dialog h2{overflow-wrap:anywhere}.reward-look-controls button,.reward-goal-toggle{min-height:44px}
 @media(max-width:1150px){.reward-goal{grid-template-columns:110px minmax(0,1fr)}}
-@media(max-width:560px){.reward-goal{grid-template-columns:75px minmax(0,1fr)}.reward-studio .reward-daily{grid-template-columns:64px minmax(0,1fr)}}
+@media(max-width:560px){.reward-goal{grid-template-columns:75px minmax(0,1fr)}}
 .reward-studio>#avatar-choices[hidden]{display:none!important}
-.reward-studio .reward-daily{display:block;position:relative;padding:1.2rem 1.4rem 1.2rem 6.5rem}
-.reward-daily .chest-art{display:block;position:absolute;left:1rem;top:1.6rem;width:70px;height:70px;margin:0;transform:none}
-.reward-daily .chest-art svg{display:block;width:70px;height:65px;margin:0}
-.reward-daily>.section-kicker{display:block;margin:0 0 .4rem}.reward-daily h2{margin:0 0 .5rem}.reward-daily>button{width:100%;max-width:none;margin-top:.8rem}
 /* The figure uses a 232 × 360 drawing, with space for the raised hands. */
 .reward-hero-art{padding:1.3rem .6rem;gap:.3rem}
 .reward-avatar-interaction{display:block;width:100%;min-width:0;margin:0;padding:0;border:0;border-radius:20px;background:transparent;color:inherit;box-shadow:none;cursor:pointer;touch-action:manipulation}

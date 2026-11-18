@@ -32,10 +32,6 @@ body[data-screen="inicio"] .topbar { min-height:4.5rem; }
 .central-secondary .text-button { font-size:.875rem; min-height:2.75rem; padding:.4rem; color:var(--muted); }
 .central-secondary .text-button:hover { color:var(--brand); }
 .home-study :focus-visible,.central-systems :focus-visible,.central-secondary :focus-visible { outline:3px solid var(--brand); outline-offset:4px; }
-#page-recompensas .daily-chest { margin:0 0 1.5rem; text-align:left; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.5rem 1.5rem; }
-#page-recompensas .daily-chest .chest-art { display:none; }
-#page-recompensas .daily-chest>button { grid-column:2; grid-row:1/4; }
-#page-recompensas .daily-chest h2,#page-recompensas .daily-chest p { margin:0; }
 /* Short labels make the systems identifiable without repeating descriptions. */
 html[data-theme] .side-nav .nav-link { min-height:3rem; padding:.65rem .75rem; background:transparent; color:var(--ink); border-color:transparent; box-shadow:none; gap:.7rem; }
 html[data-theme] .side-nav .nav-link strong { font-size:1rem; font-weight:550; color:inherit; }
@@ -70,6 +66,4 @@ html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color
  .central-system-copy { flex:1; padding-right:1rem; gap:.2rem; }
  .central-system-arrow { position:static; }
  .central-secondary { gap:.25rem .75rem; margin-top:.75rem; }
- #page-recompensas .daily-chest { grid-template-columns:1fr; }
- #page-recompensas .daily-chest>button { grid-column:1; grid-row:auto; justify-self:start; }
 }

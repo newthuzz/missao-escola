@@ -1,4 +1,19 @@
 const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
+
+async function checkChestLayout(page){
+ const chest=page.locator('.reward-daily');
+ const [art,title,description,button]=await Promise.all([
+  chest.locator('.chest-art svg').boundingBox(),
+  chest.locator('h2').boundingBox(),
+  chest.locator('p').boundingBox(),
+  chest.locator('#claim-chest').boundingBox()
+ ]);
+ assert.ok(art?.width>0&&art.height>0,'daily chest illustration is visible');
+ assert.ok(title&&description&&button,'daily chest text and button are visible');
+ assert.ok(art.x+art.width<=title.x,'illustration is beside the text');
+ assert.ok(description.y+description.height<=button.y,'claim button is below the description');
+}
+
 (async()=>{const root=path.resolve(__dirname,'../../dist'),out=path.resolve(__dirname,'../../work/rewards-captures');fs.mkdirSync(out,{recursive:true});const server=http.createServer((req,res)=>{try{const file=path.join(root,req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0]);res.setHeader('Content-Type',({'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.woff2':'font/woff2','.webp':'image/webp'})[path.extname(file)]||'text/html');res.end(fs.readFileSync(file));}catch{res.writeHead(404);res.end();}});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});const context=await browser.newContext({viewport:{width:1440,height:1100},reducedMotion:'reduce',locale:'pt-BR'});await context.route('**/*.supabase.co/**',r=>r.abort());
  const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('http://127.0.0.1:'+server.address().port+'/#recompensas');await p.locator('#app-splash').waitFor({state:'detached'});await p.evaluate(()=>navigate('recompensas'));await p.locator('.reward-item [data-reward-detail="lanterna"]').waitFor();
@@ -15,8 +30,8 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
  const beforeChest=await balance();await p.locator('#claim-chest').click();assert.equal(await balance(),beforeChest+10);assert.ok(await p.locator('#claim-chest').isDisabled());await p.reload();await p.locator('#app-splash').waitFor({state:'detached'});await p.evaluate(()=>navigate('recompensas'));assert.ok(await p.locator('#claim-chest').isDisabled());
  await p.locator('[data-reward-filter="owned"]').click();assert.ok(await p.locator('.reward-item').count()>=3);await p.locator('[data-reward-filter="accessory"]').click();assert.equal(await p.locator('.reward-item').count(),5);await p.locator('#reward-grid').screenshot({path:out+'/accessories.png'});
  await p.locator('[data-reward-filter="avatar"]').click();
- for(const width of [360,768,1440])for(const theme of ['light','dark']){await p.setViewportSize({width,height:1100});await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'shop overflow');await p.locator('#page-recompensas').screenshot({path:out+`/shop-${width}-${theme}.png`});await card('dragao-eclipse').locator('[data-reward-detail]').click();assert.ok(await p.locator('.reward-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth),'dialog overflow');await p.screenshot({path:out+`/preview-${width}-${theme}.png`});await p.keyboard.press('Escape');}
- await p.setViewportSize({width:360,height:900});await p.evaluate(()=>document.documentElement.style.fontSize='200%');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'200% text overflow');await p.evaluate(()=>document.documentElement.style.fontSize='');await p.locator('[data-reward-filter="all"]').focus();await p.keyboard.press('Enter');assert.equal(await p.locator('.reward-item').count(),18);assert.deepEqual(errors,[]);
+ for(const width of [360,768,1440])for(const theme of ['light','dark']){await p.setViewportSize({width,height:1100});await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'shop overflow');await checkChestLayout(p);await p.locator('#page-recompensas').screenshot({path:out+`/shop-${width}-${theme}.png`});await card('dragao-eclipse').locator('[data-reward-detail]').click();assert.ok(await p.locator('.reward-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth),'dialog overflow');await p.screenshot({path:out+`/preview-${width}-${theme}.png`});await p.keyboard.press('Escape');}
+ await p.setViewportSize({width:360,height:900});await p.evaluate(()=>document.documentElement.style.fontSize='200%');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'200% text overflow');await checkChestLayout(p);await p.evaluate(()=>document.documentElement.style.fontSize='');await p.locator('[data-reward-filter="all"]').focus();await p.keyboard.press('Enter');assert.equal(await p.locator('.reward-item').count(),18);assert.deepEqual(errors,[]);
  console.log('PASS rewards: 18 illustrated items, legacy balance, target persistence, preview without charge, native dialog focus, purchases/duplicate guards, equipment on island, reload, shields, chest once/day, filters, 3 widths × 2 themes, 200% text and keyboard.');
  }finally{await browser?.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
