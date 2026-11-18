@@ -5,11 +5,11 @@ import {mountCommunityNavigation} from './community-navigation.js';
 import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
 const SESSION_KEY='missao-escola-supabase-session', META_KEY='missao-escola-cloud-sync-v1';
-let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null,pedagogy=null,recovering=false,callbackMessage='';
+let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null,pedagogy=null,callbackMessage='';
 let syncStatus={kind:'checking',message:'Conferindo seus estudos…'}, formDirty=false;
 try {session=JSON.parse(localStorage.getItem(SESSION_KEY));} catch {}
 const authCallback=location.protocol==='file:'?null:readAuthCallback(location.href);
-if(authCallback){history.replaceState(null,'',location.pathname+location.search+'#social');if(authCallback.session){session=authCallback.session;recovering=authCallback.recovery;}else callbackMessage=authCallback.error;}
+if(authCallback){history.replaceState(null,'',location.pathname+location.search+'#social');if(authCallback.session)session=authCallback.session;else callbackMessage=authCallback.error;}
 const snapshot=()=>({progress,learner,routine});
 const page=document.createElement('section');page.id='page-social';page.className='page';page.setAttribute('aria-label','Minha conta');
 document.querySelector('.app-footer').before(page);labels.social='Minha conta';
@@ -27,7 +27,7 @@ async function token(){
  if(!session?.access_token)throw Error('Entre na sua conta primeiro.');
  if(!session.expires_at||session.expires_at<Date.now()/1000+60){
   if(!refreshingToken){const original=session;refreshingToken=(async()=>{
-   try{const next=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:original.refresh_token}});if(session?.refresh_token!==original.refresh_token||session?.user?.id!==original.user?.id)throw Error('A conta foi alterada durante a renovação da sessão.');store({...next,expires_at:Date.now()/1000+next.expires_in});}
+   try{const next=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:original.refresh_token}});if(session?.refresh_token!==original.refresh_token||session?.user?.id!==original.user?.id)throw Error('A conta foi alterada durante a renovação da sessão.');store({...next,expires_at:Date.now()/1000+next.expires_in,recoveryPending:original.recoveryPending});}
    catch(e){if((e.status===400||e.status===401)&&session?.refresh_token===original.refresh_token&&session?.user?.id===original.user?.id){store(null);renderAccount('Sua sessão expirou. Entre novamente; seus estudos locais foram mantidos.');}throw e;}
   })().finally(()=>{refreshingToken=null;});}
   await refreshingToken;
@@ -42,7 +42,7 @@ function showSync(value){
 function renderAccount(message=''){
  const staffAccount=pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace);
  setIslandAvatarAccount(session?.user?.id);
- page.innerHTML=`${recovering&&session?.access_token?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Minha conta'}</h1><p>Seu perfil, seus amigos e seus estudos sincronizados.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><div id="account-community-slot"></div>`;
+ page.innerHTML=`${session?.recoveryPending&&session.user?.id?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Minha conta'}</h1><p>Seu perfil, seus amigos e seus estudos sincronizados.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><div id="account-community-slot"></div>`;
  communityNavigation.renderAccount(page.querySelector('#account-community-slot'));
  pedagogy?.decorateAccount(page);
  if(busy)page.querySelectorAll('button,input,select,textarea').forEach(el=>el.disabled=true);
@@ -92,7 +92,21 @@ for(const name of ['save','saveLearner','persistRoutine']){
 async function run(work){if(busy)return;busy=true;renderAccount('Conectando…');try{const message=await work();busy=false;renderAccount(message||'Pronto.');}catch(e){busy=false;renderAccount(e.message);}}
 page.addEventListener('submit',event=>{
  if(event.target.id==='account-reset-form'){
-  event.preventDefault();const f=new FormData(event.target);run(async()=>{if(f.get('password')!==f.get('password_confirm'))throw Error('As senhas precisam ser iguais.');await request('/auth/v1/user',{token:await token(),method:'PUT',body:{password:f.get('password')}});recovering=false;await pedagogy?.afterAuthentication({intent:pedagogy.intent});return 'Senha atualizada. Entre com sua nova senha nos próximos acessos.';});return;
+  event.preventDefault();
+  const fields=new FormData(event.target),accountId=session.user.id;
+  run(async()=>{
+   const password=fields.get('password');
+   if(password!==fields.get('password_confirm'))throw Error('As senhas precisam ser iguais.');
+   const access=await token();
+   if(session?.user?.id!==accountId||!session.recoveryPending)throw Error('Esta sessão de recuperação mudou. Abra o link novamente.');
+   await request('/auth/v1/user',{token:access,method:'PUT',body:{password}});
+   if(session?.user?.id===accountId){
+    store({...session,recoveryPending:false});
+    await pedagogy?.afterAuthentication({intent:pedagogy.intent});
+   }
+   return 'Senha atualizada. Entre com sua nova senha nos próximos acessos.';
+  });
+  return;
  }
  if(event.target.id!=='account-form')return;event.preventDefault();const fields=new FormData(event.target),action=event.submitter?.value||'login',intent=pedagogy?.intent||'student';
  let body;try{body=action==='teacher-signup'?pedagogy.signupBody(fields):action==='teacher-activate'?pedagogy.activationBody(fields):{email:fields.get('email').trim(),password:fields.get('password')};}catch(error){renderAccount(error.message);return;}
@@ -102,7 +116,7 @@ page.addEventListener('submit',event=>{
   if(!result.access_token&&action==='teacher-activate')return 'Confira seu e-mail para confirmar a conta. Depois, entre como professor usando o e-mail cadastrado pela escola. Se já tem conta, use Entrar.';
   if(!result.access_token)return action==='teacher-signup'?'Confira seu e-mail para confirmar a conta. Depois, entre como professor para consultar a análise institucional. Se já possui conta, entre nela para solicitar acesso.':'Confira seu e-mail para confirmar a conta. Depois, entre aqui.';
   store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;
-  const context=await pedagogy?.afterAuthentication({intent,redirect:!recovering});
+  const context=await pedagogy?.afterAuthentication({intent});
   if(context)store({...session,pedagogy_staff:['teacher','admin'].includes(context.role)});
   if(context?.canSwitchWorkspace&&pedagogy.workspace==='student'){await startSync();}else if(intent==='teacher'||context&&['teacher','admin'].includes(context.role)){stopSync();}else await startSync();
   window.dispatchEvent(new CustomEvent('missao-account-ready',{detail:{role:context?.role||'student'}}));return context?'Conta conectada. Suas permissões foram verificadas no servidor.':'Conta conectada. O apoio institucional está indisponível; seus estudos continuam disponíveis.';
@@ -113,7 +127,7 @@ page.addEventListener('click',event=>{
  const recoveryEmail=page.querySelector('[name=email]')?.value?.trim();
  run(async()=>{
   if(action==='recover'){if(!recoveryEmail)throw Error('Preencha seu e-mail para receber o link de recuperação.');await request('/auth/v1/recover?redirect_to='+encodeURIComponent(location.origin+location.pathname+'#social'),{method:'POST',body:{email:recoveryEmail}});return 'Se existir uma conta para este e-mail, você receberá um link de recuperação.';}
-  if(action==='logout'){await sync?.tick();await request('/auth/v1/logout',{token:await token(),method:'POST'});stopSync();recovering=false;store(null);backup=null;return 'Conta desconectada. Os estudos locais foram mantidos.';}
+  if(action==='logout'){await sync?.tick();await request('/auth/v1/logout',{token:await token(),method:'POST'});stopSync();store(null);backup=null;return 'Conta desconectada. Os estudos locais foram mantidos.';}
   if(!sync)startSync();
   if(action==='refresh'){await sync?.tick();return syncStatus.message;}
   if(action==='save'){if(!confirm('Usar o progresso deste aparelho? Isso substituirá a cópia mais recente da conta.'))return 'Envio cancelado.';await sync?.keepLocal();return syncStatus.message;}
@@ -156,10 +170,10 @@ async function prepareInitialAccount(){
   }finally{clearTimeout(timer);}
  }
  renderAccount(message);
- const context=await pedagogy?.afterAuthentication({redirect:!recovering});
+ const context=await pedagogy?.afterAuthentication({redirect:!session?.recoveryPending});
  if(context)store({...session,pedagogy_staff:['teacher','admin'].includes(context.role)});
  if(context?.canSwitchWorkspace&&pedagogy.workspace==='student'||!context&&!session?.pedagogy_staff||context?.role==='student'&&(!context.applications.some(a=>a.status==='pending')||context.memberships.length)){startSync();}else stopSync();
- if(recovering||location.hash==='#social')navigate('social',false);
+ if(session?.recoveryPending||location.hash==='#social')navigate('social',false);
  return {connectionError};
 }
 pedagogy=mountPedagogy({getToken:token,getUser:getAccountUser,refreshAccount:()=>renderAccount(),signOut:()=>page.querySelector('[data-account=logout]')?.click()});
@@ -167,7 +181,7 @@ window.addEventListener('missao-workspace-change',()=>{if(!pedagogy?.context)ret
 window.addEventListener('hashchange',()=>{
  const incoming=readAuthCallback(location.href);if(!incoming)return;
  history.replaceState(null,'',location.pathname+location.search+'#social');
- if(incoming.session){stopSync();session=incoming.session;recovering=incoming.recovery;callbackMessage='';prepareInitialAccount();}
+ if(incoming.session){stopSync();session=incoming.session;callbackMessage='';prepareInitialAccount();}
  else{callbackMessage=incoming.error;renderAccount(callbackMessage);navigate('social',false);}
 });
 renderAccount();
