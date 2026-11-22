@@ -1,8 +1,16 @@
 import {resolveRewardLook,renderLook} from './reward-look.js';
 import {validAvatar} from './avatar-catalog.mjs';
+import {avatar} from './social-art.js';
 // Display-only bridge. Never writes study progress, XP or the local reward collection.
 let account=null,chosen=null,revision=0;
 function refresh(){
+ const symbol=document.querySelector('#top-avatar-symbol');
+ if(symbol){
+  const badge=symbol.parentElement;
+  badge.querySelector('svg')?.remove();
+  symbol.hidden=Boolean(chosen);
+  if(chosen)badge.insertAdjacentHTML('beforeend',avatar(chosen));
+ }
  if(document.querySelector('#page-jornada.active'))window.renderMap?.();
 }
 export function setIslandAvatarAccount(id){

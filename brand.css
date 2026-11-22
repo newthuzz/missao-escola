@@ -17,6 +17,8 @@ html[data-theme] .nav-link.active strong, html[data-theme] .nav-link.active>span
 html[data-theme] .nav-link.active small { color:var(--ink); }
 html[data-theme] .profile-dock { border-color:var(--brand); background:var(--panel); color:var(--ink); }
 html[data-theme] .profile-dock b { background:var(--brand-soft); color:var(--brand); border-color:var(--brand); }
+#top-avatar { overflow:hidden; }
+#top-avatar > svg { display:block; width:100%; height:100%; }
 html[data-theme] .theme-toggle { background:var(--panel); color:var(--ink); border-color:var(--line); }
 html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color:var(--brand); border-color:var(--brand); }
 html[data-theme] .outline-button, html[data-theme] .quiet-button, html[data-theme] .mission-button { background:var(--panel-2); color:var(--ink); border-color:var(--line); }

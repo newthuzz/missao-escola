@@ -37,6 +37,7 @@ function invalidateSession(access){
 }
 export {token as getAccountToken};
 export const getAccountUser=()=>session?.user?.id||null;
+setIslandAvatarAccount(getAccountUser());
 const communityNavigation=mountCommunityNavigation({getToken:token,getUser:getAccountUser,isStaff:()=>Boolean(pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace)),makeProfileReceiver:islandAvatarReceiver,onInvalidSession:invalidateSession});
 async function token(){
  if(!session?.access_token)throw Error('Entre na sua conta primeiro.');
@@ -176,6 +177,7 @@ window.addEventListener('storage',event=>{
   const changed=session?.user?.id!==next?.user?.id;
   session=next;
   if(changed){
+   setIslandAvatarAccount(getAccountUser());
    sessionExpired=false;
    stopSync();backup=null;syncStatus=initialSyncStatus;
    window.dispatchEvent(new CustomEvent('missao-account-change'));

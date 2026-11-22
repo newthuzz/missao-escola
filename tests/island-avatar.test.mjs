@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 test('journey identity follows the active account and ignores late profile responses',async()=>{
  let active=true,renders=0;
- globalThis.document={querySelector:()=>active?{}:null};globalThis.window={renderMap:()=>renders++};
+ globalThis.document={querySelector:selector=>active&&selector==='#page-jornada.active'?{}:null};globalThis.window={renderMap:()=>renders++};
  const {setIslandAvatarAccount,islandAvatarReceiver}=await import('../island-avatar.js');
  const render=()=>window.JourneyAvatar.render();
  assert.match(render(),/data-journey-avatar="local-default"/);setIslandAvatarAccount('a');
