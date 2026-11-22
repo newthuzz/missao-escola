@@ -1,11 +1,11 @@
 import {MODEL,TutorError} from './tutor-shared.mjs';
 const encoder=new TextEncoder();
 export function createOpenAI(key) {
-  return {async run({messages,maxOutputTokens,stream,signal}) {
+  return {async run({messages,maxOutputTokens,stream,signal,timeoutMs=stream?75000:24000}) {
     const lifetime=new AbortController();
     const abort=()=>lifetime.abort();
     if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true});
-    const timer=setTimeout(abort,stream?75000:24000);
+    const timer=setTimeout(abort,timeoutMs);
     const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);};
     let response;
     try {

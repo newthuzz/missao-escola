@@ -2,10 +2,10 @@ import {TutorError} from './tutor-shared.mjs';
 export const GROQ_MODEL='openai/gpt-oss-20b';
 const encoder=new TextEncoder();
 export function createGroq(key,model=GROQ_MODEL){
- return {async run({messages,maxOutputTokens,stream,signal}){
+ return {async run({messages,maxOutputTokens,stream,signal,timeoutMs=stream?75000:24000}){
   const lifetime=new AbortController(),abort=()=>lifetime.abort();
   if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true});
-  const timer=setTimeout(abort,stream?75000:24000);
+  const timer=setTimeout(abort,timeoutMs);
   const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);};
   try{
    const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{

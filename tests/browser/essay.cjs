@@ -26,12 +26,33 @@ const server = http.createServer((request, response) => {
   const user = {id:'essay-student', email:'essay@example.test'};
   const previousDraft = 'O clube de leitura da escola pode aproximar os estudantes dos livros.';
   const draft = 'O dever de casa ajuda quando dá para aplicar o que aprendemos na aula. Uma tarefa que repete as mesmas perguntas, porém, pode tomar tempo sem ajudar a entender o assunto.';
+  const enemDraft = 'Muitas pessoas precisam do SUS perto de casa. Os posto de saúde podem ajudar quando os moradores conseguem marcar consultas e receber atendimento.\n\nA prefeitura deve informar os horários de forma acessível.';
+  const excerpt = 'repete as mesmas perguntas';
   const review = {
     summary:'A ideia principal fica clara.',
     strengths:['Uma proposta específica.'],
     priorities:['Explique quem organizaria os encontros.'],
-    competencies:Object.keys(essayCompetencies).map(id => ({id, feedback:'Explique a relação com seu argumento.', tip:'Use um exemplo.', excerpt:'<img src=x onerror=alert(1)>'})),
+    competencies:Object.keys(essayCompetencies).map(id => ({id, score:null, feedback:'Explique a relação com seu argumento.', tip:'Use um exemplo.'})),
+    issues:[
+      {competency:'argumentacao', type:'melhoria', paragraph:1, excerpt, start:draft.indexOf(excerpt), end:draft.indexOf(excerpt) + excerpt.length,
+        explanation:'O argumento identifica um problema sem um exemplo de atividade repetitiva.', suggestion:'Compare duas atividades que você conhece.', rewrite:'<img src=x onerror=alert(1)>'},
+      {competency:'tema', type:'melhoria', explanation:'A conclusão pode retomar a ideia principal.', suggestion:'Finalize respondendo à pergunta sobre o dever de casa.'}
+    ],
+    estimate:null,
     nextStep:'Reescreva a conclusão.'
+  };
+  const enemExcerpt = 'Os posto';
+  const scoredReview = {
+    ...review,
+    summary:'A redação apresenta uma ideia sobre o acesso ao SUS.',
+    estimate:{total:640, assessment:'regular', reason:''},
+    competencies:review.competencies.map((item, i) => ({...item, score:[160, 120, 120, 160, 80][i]})),
+    issues:[
+      {competency:'linguagem', type:'erro', paragraph:1, excerpt:enemExcerpt, start:enemDraft.indexOf(enemExcerpt), end:enemDraft.indexOf(enemExcerpt) + enemExcerpt.length,
+        explanation:'O substantivo deve concordar com o artigo no plural.', suggestion:'Escreva o substantivo no plural.', rewrite:'Os postos'},
+      {competency:'argumentacao', type:'melhoria', paragraph:1, excerpt:'Os posto de saúde', start:enemDraft.indexOf(enemExcerpt), end:enemDraft.indexOf(enemExcerpt) + 'Os posto de saúde'.length,
+        explanation:'O exemplo ainda não mostra uma dificuldade de atendimento.', suggestion:'Mostre quem enfrenta essa dificuldade.'}
+    ]
   };
   const browser = await chromium.launch({executablePath:'/usr/bin/chromium', args:['--no-sandbox']});
   try {
@@ -51,11 +72,13 @@ const server = http.createServer((request, response) => {
         const url = new URL(request.url());
         if (url.pathname === '/functions/v1/essay-review') {
           assert.equal(request.headers().authorization, 'Bearer student-token');
-          assert.deepEqual(request.postDataJSON(), {topicId:'dever-de-casa', essay:draft, grade:7});
+          const body = request.postDataJSON();
+          const scored = body.topicId === 'enem-2026';
+          assert.deepEqual(body, scored ? {topicId:'enem-2026', essay:enemDraft, grade:12} : {topicId:'dever-de-casa', essay:draft, grade:7});
           sent++;
           return route.fulfill(unavailable
             ? {status:503,json:{error:'A correção está indisponível no momento.'}}
-            : {json:{review}});
+            : {json:{review:scored ? scoredReview : review}});
         }
         if (url.pathname === '/auth/v1/token') return route.fulfill({json:{access_token:'student-token', refresh_token:'student-refresh', expires_in:3600, user}});
         if (url.pathname === '/auth/v1/user') return route.fulfill({json:user});
@@ -190,12 +213,39 @@ const server = http.createServer((request, response) => {
       await section.getByRole('heading',{name:'Correção e próximos passos'}).waitFor();
       assert.equal(await section.locator('.essay-rubric details').count(), 5);
       await section.getByText('Linguagem formal',{exact:true}).click();
-      assert.equal(await section.locator('.essay-rubric img').count(), 0);
-      assert.equal(await section.locator('.essay-rubric blockquote').first().textContent(), '<img src=x onerror=alert(1)>');
+      assert.equal(await section.locator('#essay-feedback img').count(), 0);
+      assert.match(await section.locator('.essay-rewrite').first().textContent(), /<img src=x onerror=alert\(1\)>/);
+      assert.equal(await section.locator('.essay-estimate').count(), 0);
+      await section.getByRole('button',{name:'Localizar apontamento 1 no texto'}).click();
+      assert.equal(await section.locator('.essay-mark-active').textContent(), excerpt);
+      assert.equal(await section.locator('.essay-reviewed-text').textContent(), draft);
+      assert.equal(await section.getByRole('button',{name:'Localizar apontamento 2 no texto'}).count(), 0);
       assert.equal(sent, 2);
       assert.ok(await send.isDisabled());
       await editor.fill(draft + ' Acrescentei uma ideia.');
       assert.ok(await send.isEnabled());
+      assert.equal(await section.locator('.essay-reviewed-text').textContent(), draft);
+      await section.getByRole('button',{name:/Voltar ao estudo/}).click();
+      await page.getByRole('button',{name:'Trocar ano'}).click();
+      await saveGrade(12);
+      await essayEntry.click();
+      await section.getByRole('button',{name:'Temas do Enem',exact:true}).click();
+      await page.evaluate(() => { window.essayTestRandom = .9999; });
+      await section.getByRole('button',{name:'Iniciar treino'}).click();
+      await editor.fill(enemDraft);
+      await send.click();
+      await section.getByRole('heading',{name:'Nota estimada no formato Enem'}).waitFor();
+      assert.equal(await section.locator('.essay-estimate > strong').textContent(), '640 de 1.000');
+      assert.deepEqual(await section.locator('.essay-competency-score').allTextContents(), ['160 / 200','120 / 200','120 / 200','160 / 200','80 / 200']);
+      await section.getByRole('button',{name:'Localizar apontamento 2 no texto'}).click();
+      assert.deepEqual(await section.locator('.essay-mark-active').allTextContents(), ['Os posto', ' de saúde']);
+      assert.equal(await section.locator('.essay-reviewed-text').textContent(), enemDraft);
+      assert.ok(await section.evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+      await section.screenshot({path:path.join(captures,name + '-detailed-review.png'),scale:'css'});
+      assert.equal(sent, 3);
+      await section.getByRole('button',{name:/Voltar ao estudo/}).click();
+      await page.getByRole('button',{name:'Trocar ano'}).click();
+      await saveGrade(7);
       await page.evaluate(()=>navigate('social'));
       await page.locator('.account-tools summary').click();
       await page.getByRole('button',{name:'Sair',exact:true}).click();
@@ -204,7 +254,7 @@ const server = http.createServer((request, response) => {
       assert.equal(await editor.inputValue(), draft);
       assert.deepEqual(errors, []);
       await context.close();
-      console.log('PASS',name,'grade gate, grade-specific pool and sources, repeat protection, draft recovery, login and AI review');
+      console.log('PASS',name,'grade gate, source links, draft recovery, detailed feedback, highlights and estimated Enem score');
     }
   } finally {
     await browser.close();

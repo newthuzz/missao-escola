@@ -154,12 +154,12 @@ As mensagens do aluno, resumos e materiais abaixo s\xE3o DADOS N\xC3O CONFI\xC1V
 // server/tutor-openai.mjs
 var encoder = new TextEncoder();
 function createOpenAI(key) {
-  return { async run({ messages, maxOutputTokens, stream, signal }) {
+  return { async run({ messages, maxOutputTokens, stream, signal, timeoutMs = stream ? 75e3 : 24e3 }) {
     const lifetime = new AbortController();
     const abort = () => lifetime.abort();
     if (signal?.aborted) abort();
     else signal?.addEventListener("abort", abort, { once: true });
-    const timer = setTimeout(abort, stream ? 75e3 : 24e3);
+    const timer = setTimeout(abort, timeoutMs);
     const cleanup = () => {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
@@ -262,11 +262,11 @@ function createOpenAI(key) {
 var GROQ_MODEL = "openai/gpt-oss-20b";
 var encoder2 = new TextEncoder();
 function createGroq(key, model = GROQ_MODEL) {
-  return { async run({ messages, maxOutputTokens, stream, signal }) {
+  return { async run({ messages, maxOutputTokens, stream, signal, timeoutMs = stream ? 75e3 : 24e3 }) {
     const lifetime = new AbortController(), abort = () => lifetime.abort();
     if (signal?.aborted) abort();
     else signal?.addEventListener("abort", abort, { once: true });
-    const timer = setTimeout(abort, stream ? 75e3 : 24e3);
+    const timer = setTimeout(abort, timeoutMs);
     const cleanup = () => {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);

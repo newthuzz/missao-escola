@@ -3,6 +3,8 @@
   --essay-quiet: #2a4059;
   --essay-accent: #f3cf91;
   --essay-note: #293e46;
+  --essay-mark: #f2dca6;
+  --essay-mark-ink: #352511;
 }
 
 html[data-theme="light"] #page-redacao {
@@ -10,6 +12,8 @@ html[data-theme="light"] #page-redacao {
   --essay-quiet: #f4f8f4;
   --essay-accent: #7c5222;
   --essay-note: #f2f7ee;
+  --essay-mark: #f9e2a8;
+  --essay-mark-ink: #352511;
 }
 
 #page-aprendizagem .study-essay-option {
@@ -29,7 +33,7 @@ html[data-theme="light"] #page-redacao {
 .essay-access h2 { margin: 0; font-size: 1.2rem; }
 .essay-access p { margin: .5rem 0 1rem; color: var(--muted); }
 .essay-guide { padding: .7rem 1.25rem; margin-bottom: 1.15rem; }
-.essay-guide summary, .essay-rubric summary {
+.essay-guide summary, .essay-rubric summary, .essay-annotated summary {
   padding: .65rem .25rem;
   min-height: 2.75rem;
   cursor: pointer;
@@ -111,9 +115,30 @@ html[data-theme="light"] #page-redacao {
 .essay-review-lists > div, .essay-next-step { padding: .85rem; border-radius: .8rem; background: var(--essay-note); border: 1px solid var(--line); }
 .essay-review-lists ul { padding-left: 1.15rem; margin: .45rem 0 0; }
 .essay-review-lists li { margin: .25rem 0; overflow-wrap: anywhere; }
+.essay-estimate, .essay-annotated {
+  margin: .75rem 0 1.1rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  background: var(--essay-editor);
+}
+.essay-estimate > strong { color: var(--brand); font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.2; }
+.essay-estimate a { display: inline-block; margin-top: .65rem; color: var(--brand); text-decoration: underline; }
+.essay-issues ol { display: grid; gap: .65rem; margin: .6rem 0 1.1rem; padding-left: 1.45rem; }
+.essay-issues li { min-width: 0; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: .85rem; }
+.essay-issues li::marker { color: var(--brand); font-weight: 700; }
+.essay-issues h4 { margin: 0 0 .4rem; color: var(--essay-accent); font-size: .86rem; }
+.essay-issues blockquote { margin: .45rem 0; padding: .3rem .65rem; background: var(--essay-quiet); border-radius: .35rem; overflow-wrap: anywhere; }
+.essay-issues strong, .essay-rubric strong { color: var(--ink); }
+.essay-issues .essay-rewrite { margin-top: .6rem; padding-left: .55rem; border-left: 2px solid var(--brand); }
+.essay-issues .essay-locate { margin-top: .3rem; min-height: 2.75rem; text-align: left; }
+.essay-annotated .essay-reviewed-text { color: var(--ink); white-space: pre-wrap; line-height: 1.8; margin: .45rem 0; }
+.essay-reviewed-text mark { background: var(--essay-mark); color: var(--essay-mark-ink); border-radius: .15em; }
+.essay-reviewed-text .essay-mark-active { outline: 2px solid var(--brand); outline-offset: 2px; }
 .essay-rubric details { border-bottom: 1px solid var(--line); padding: .3rem 0; }
 .essay-rubric details[open] { padding-bottom: .85rem; }
 .essay-rubric blockquote { margin: .65rem 0; padding: .4rem .65rem; border-left: 3px solid var(--brand); background: var(--essay-quiet); overflow-wrap: anywhere; }
+.essay-competency-score { display: inline-block; margin-left: .55rem; padding: .15rem .45rem; border-radius: .4rem; color: var(--ink); background: var(--brand-soft); font-size: .82rem; white-space: nowrap; }
 .essay-next-step { margin-top: .9rem; }
 #page-redacao [hidden] { display: none !important; }
 

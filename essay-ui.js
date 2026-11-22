@@ -186,7 +186,105 @@ function paragraph(tag, text) {
   return item;
 }
 
-function renderFeedback(review) {
+function renderMarkedEssay(essay, issues) {
+  const ranges = [];
+  for (const [index, issue] of issues.entries()) {
+    const {start, end, excerpt} = issue;
+    if (Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end > start &&
+      end <= essay.length && essay.slice(start, end) === excerpt) ranges.push({index, start, end});
+  }
+  const marks = new Map();
+  if (!ranges.length) return {marks};
+  const offsets = [...new Set([0, essay.length, ...ranges.flatMap(({start, end}) => [start, end])])].sort((a, b) => a - b);
+  const text = document.createElement('p');
+  text.className = 'essay-reviewed-text';
+  for (let i = 1; i < offsets.length; i++) {
+    const start = offsets[i - 1], end = offsets[i];
+    const segment = essay.slice(start, end);
+    const matching = ranges.filter(range => range.start <= start && range.end >= end);
+    if (!matching.length) {
+      text.append(segment);
+      continue;
+    }
+    const mark = paragraph('mark', segment);
+    mark.tabIndex = -1;
+    for (const {index} of matching) {
+      if (!marks.has(index)) marks.set(index, []);
+      marks.get(index).push(mark);
+    }
+    text.append(mark);
+  }
+  const snapshot = document.createElement('details');
+  snapshot.className = 'essay-annotated';
+  snapshot.append(paragraph('summary', 'Sua redação com destaques'), text);
+  return {snapshot, marks};
+}
+
+function renderIssues(issues, marks, snapshot) {
+  const section = document.createElement('div');
+  section.className = 'essay-issues';
+  section.append(paragraph('h3', 'Onde e como revisar'));
+  const list = document.createElement('ol');
+  for (const [index, issue] of issues.entries()) {
+    const item = document.createElement('li');
+    const location = issue.paragraph ? 'Parágrafo ' + issue.paragraph : 'Texto inteiro';
+    const kind = issue.type === 'erro' ? 'Erro' : 'Melhoria';
+    const label = paragraph('h4', kind + ' · ' + location + ' · ' + essayCompetencies[issue.competency]);
+    item.append(label);
+    if (issue.excerpt) item.append(paragraph('blockquote', issue.excerpt));
+    item.append(paragraph('p', issue.explanation));
+
+    const suggestion = paragraph('p', issue.suggestion);
+    suggestion.prepend(paragraph('strong', 'Como revisar '), '· ');
+    item.append(suggestion);
+    if (issue.rewrite) {
+      const rewrite = paragraph('p', issue.rewrite);
+      rewrite.className = 'essay-rewrite';
+      rewrite.prepend(paragraph('strong', 'Exemplo de reescrita '), '· ');
+      item.append(rewrite);
+    }
+    const matching = marks.get(index);
+    if (matching) {
+      const locate = paragraph('button', 'Localizar no texto');
+      locate.type = 'button';
+      locate.className = 'text-button essay-locate';
+      locate.setAttribute('aria-label', 'Localizar apontamento ' + (index + 1) + ' no texto');
+      locate.addEventListener('click', () => {
+        snapshot.open = true;
+        for (const segments of marks.values()) for (const mark of segments) mark.classList.remove('essay-mark-active');
+        for (const mark of matching) mark.classList.add('essay-mark-active');
+        matching[0].focus();
+        matching[0].scrollIntoView({block:'center'});
+      });
+      item.append(locate);
+    }
+    list.append(item);
+  }
+  section.append(list);
+  return section;
+}
+
+function renderEstimate(estimate) {
+  const section = document.createElement('div');
+  section.className = 'essay-estimate';
+  const total = paragraph('strong', count.format(estimate.total) + ' de 1.000');
+  const reference = paragraph('a', 'Ver critérios do Inep ↗');
+  const guide = element('essay-inep-guide');
+  reference.href = guide.href;
+  reference.target = guide.target;
+  reference.rel = guide.rel;
+  section.append(paragraph('h3', 'Nota estimada no formato Enem'), total,
+    paragraph('p', 'Estimativa para treino com base no texto digitado. A nota oficial passa pela correção de avaliadores do Inep.'), reference);
+  if (estimate.reason) {
+    const reason = paragraph('p', estimate.reason);
+    const labels = {'tangenciamento':'Tema abordado parcialmente', 'fuga-ao-tema':'Risco de nota zero por fuga ao tema', 'tipo-incompativel':'Risco de nota zero pelo tipo de texto'};
+    reason.prepend(paragraph('strong', labels[estimate.assessment] + ' '), '· ');
+    section.append(reason);
+  }
+  return section;
+}
+
+function renderFeedback(review, essay) {
   const overview = paragraph('p', review.summary);
   overview.className = 'essay-review-summary';
 
@@ -203,21 +301,36 @@ function renderFeedback(review) {
 
   const rubric = document.createElement('div');
   rubric.className = 'essay-rubric';
-  for (const note of review.competencies) {
+  for (const [index, note] of review.competencies.entries()) {
     const detail = document.createElement('details');
-    const title = note.id === 'intervencao' && selected.genre?.startsWith('Carta')
-      ? 'Finalidade da carta'
-      : essayCompetencies[note.id];
-    detail.append(paragraph('summary', title));
+    let title = essayCompetencies[note.id];
+    if (review.estimate) title = 'Competência ' + (index + 1) + ' · ' + title;
+    else if (note.id === 'intervencao') title = selected.genre?.startsWith('Carta') ? 'Finalidade da carta' : 'Finalidade do texto';
+    const summary = paragraph('summary', title);
+    if (Number.isInteger(note.score)) {
+      const score = paragraph('span', note.score + ' / 200');
+      score.className = 'essay-competency-score';
+      summary.append(score);
+    }
+    detail.append(summary);
     detail.append(paragraph('p', note.feedback));
-    if (note.excerpt) detail.append(paragraph('blockquote', note.excerpt));
-    detail.append(paragraph('p', 'Na próxima versão: ' + note.tip));
+    if (!review.issues && note.excerpt) detail.append(paragraph('blockquote', note.excerpt));
+    const tip = paragraph('p', note.tip);
+    tip.prepend(paragraph('strong', review.estimate ? 'Para avançar ' : 'Na próxima versão '), '· ');
+    detail.append(tip);
     rubric.append(detail);
   }
   const nextStep = document.createElement('div');
   nextStep.className = 'essay-next-step';
   nextStep.append(paragraph('h3', 'Próximo passo'), paragraph('p', review.nextStep));
-  feedback.replaceChildren(overview, priorities, paragraph('h3', 'Feedback por competência'), rubric, nextStep);
+  const content = [overview, priorities];
+  if (review.estimate) content.unshift(renderEstimate(review.estimate));
+  if (review.issues?.length) {
+    const {snapshot, marks} = renderMarkedEssay(essay, review.issues);
+    content.push(renderIssues(review.issues, marks, snapshot));
+    if (snapshot) content.push(snapshot);
+  }
+  feedback.replaceChildren(...content, paragraph('h3', 'Feedback por competência'), rubric, nextStep);
   reviewPanel.hidden = false;
 }
 
@@ -292,7 +405,7 @@ form.addEventListener('submit', async event => {
   const topicId = selected.id;
   const controller = new AbortController();
   inFlight = controller;
-  const timer = setTimeout(() => controller.abort(), 45000);
+  const timer = setTimeout(() => controller.abort(), 60000);
   updateEditor();
   status.textContent = 'A IA está lendo e comentando sua redação…';
   try {
@@ -311,7 +424,7 @@ form.addEventListener('submit', async event => {
       throw Error(response.status === 404 ? 'A correção de redações está indisponível no momento. Seu rascunho continua disponível.' :
         result?.error || 'Não foi possível corrigir agora. Tente novamente.');
     }
-    renderFeedback(result.review);
+    renderFeedback(result.review, essay);
     reviewedText = essay;
     status.textContent = editor.value.trim() === essay ? 'Correção pronta. Use o feedback para planejar a próxima versão.' : 'O feedback é da versão enviada. Corrija novamente para revisar o texto editado.';
     if (state.page === 'redacao') element('essay-review-title').focus();
