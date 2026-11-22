@@ -5,8 +5,9 @@ import {mountCommunityNavigation} from './community-navigation.js';
 import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
 const SESSION_KEY='missao-escola-supabase-session', META_KEY='missao-escola-cloud-sync-v1';
+const initialSyncStatus={kind:'checking',message:'Conferindo seus estudos…'};
 let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null,pedagogy=null,callbackMessage='';
-let syncStatus={kind:'checking',message:'Conferindo seus estudos…'}, formDirty=false;
+let syncStatus=initialSyncStatus, formDirty=false;
 try {session=JSON.parse(localStorage.getItem(SESSION_KEY));} catch {}
 const authCallback=location.protocol==='file:'?null:readAuthCallback(location.href);
 if(authCallback){history.replaceState(null,'',location.pathname+location.search+'#social');if(authCallback.session)session=authCallback.session;else callbackMessage=authCallback.error;}
@@ -90,6 +91,22 @@ for(const name of ['save','saveLearner','persistRoutine']){
  if(name==='persistRoutine'){const previous=persistRoutine;persistRoutine=function(...args){const result=previous(...args);scheduleSync();return result;};}
 }
 async function run(work){if(busy)return;busy=true;renderAccount('Conectando…');try{const message=await work();busy=false;renderAccount(message||'Pronto.');}catch(e){busy=false;renderAccount(e.message);}}
+function signOut(){
+ const access=session?.access_token;
+ if(!access||busy)return;
+ stopSync();
+ backup=null;
+ syncStatus=initialSyncStatus;
+ store(null);
+ if(state.page!=='social')navigate('social');
+ renderAccount('Conta desconectada. Os estudos locais foram mantidos.');
+ const status=page.querySelector('.account-tools > [role="status"]');
+ request('/auth/v1/logout?scope=local',{token:access,method:'POST',allowNoContent:true}).catch(error=>{
+  if(status.isConnected&&![401,403,404].includes(error.status)){
+   status.textContent='Conta desconectada neste aparelho. Não foi possível confirmar o encerramento com o servidor.';
+  }
+ });
+}
 page.addEventListener('submit',event=>{
  if(event.target.id==='account-reset-form'){
   event.preventDefault();
@@ -124,10 +141,10 @@ page.addEventListener('submit',event=>{
 });
 page.addEventListener('click',event=>{
  const action=event.target.closest('[data-account]')?.dataset.account;if(!action||busy)return;
+ if(action==='logout')return signOut();
  const recoveryEmail=page.querySelector('[name=email]')?.value?.trim();
  run(async()=>{
   if(action==='recover'){if(!recoveryEmail)throw Error('Preencha seu e-mail para receber o link de recuperação.');await request('/auth/v1/recover?redirect_to='+encodeURIComponent(location.origin+location.pathname+'#social'),{method:'POST',body:{email:recoveryEmail}});return 'Se existir uma conta para este e-mail, você receberá um link de recuperação.';}
-  if(action==='logout'){await sync?.tick();await request('/auth/v1/logout',{token:await token(),method:'POST'});stopSync();store(null);backup=null;return 'Conta desconectada. Os estudos locais foram mantidos.';}
   if(!sync)startSync();
   if(action==='refresh'){await sync?.tick();return syncStatus.message;}
   if(action==='save'){if(!confirm('Usar o progresso deste aparelho? Isso substituirá a cópia mais recente da conta.'))return 'Envio cancelado.';await sync?.keepLocal();return syncStatus.message;}
@@ -138,7 +155,16 @@ document.addEventListener('input',event=>{if(event.target.closest('#profile-form
 document.addEventListener('change',event=>{if(event.target.closest('#profile-form,#study-settings'))formDirty=true;});
 document.addEventListener('submit',event=>{if(['profile-form','study-settings'].includes(event.target.id)){formDirty=false;scheduleSync();}});
 window.addEventListener('storage',event=>{
- if(event.key===SESSION_KEY){let next=null;try{next=JSON.parse(event.newValue);}catch{}const changed=session?.user?.id!==next?.user?.id;session=next;if(changed){backup=null;prepareInitialAccount();renderAccount();window.dispatchEvent(new CustomEvent('missao-account-change'));}}
+ if(event.key===SESSION_KEY){
+  let next=null;try{next=JSON.parse(event.newValue);}catch{}
+  const changed=session?.user?.id!==next?.user?.id;
+  session=next;
+  if(changed){
+   stopSync();backup=null;syncStatus=initialSyncStatus;
+   window.dispatchEvent(new CustomEvent('missao-account-change'));
+   prepareInitialAccount();
+  }
+ }
  if([KEY,PERSONAL_KEY,ROUTINE_KEY].includes(event.key))scheduleSync();
 });
 window.addEventListener('online',()=>sync?.tick());window.addEventListener('focus',()=>sync?.tick());
@@ -176,7 +202,7 @@ async function prepareInitialAccount(){
  if(session?.recoveryPending||location.hash==='#social')navigate('social',false);
  return {connectionError};
 }
-pedagogy=mountPedagogy({getToken:token,getUser:getAccountUser,refreshAccount:()=>renderAccount(),signOut:()=>page.querySelector('[data-account=logout]')?.click()});
+pedagogy=mountPedagogy({getToken:token,getUser:getAccountUser,refreshAccount:()=>renderAccount(),signOut});
 window.addEventListener('missao-workspace-change',()=>{if(!pedagogy?.context)return;if(pedagogy.workspace==='student'){if(!sync)startSync()?.catch(error=>showSync({kind:'error',message:error.message}));}else stopSync();});
 window.addEventListener('hashchange',()=>{
  const incoming=readAuthCallback(location.href);if(!incoming)return;

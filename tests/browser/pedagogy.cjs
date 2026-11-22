@@ -13,7 +13,7 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
      if(url.pathname==='/auth/v1/recover'){recoveryCount++;return route.fulfill({json:{}});}
      if(url.pathname==='/auth/v1/token'){const rows=await serial(()=>db.query('select id,email,email_confirmed_at from auth.users where email=$1',[body.email]));if(!rows.rows[0]?.email_confirmed_at)return route.fulfill({status:400,json:{message:'Confirme seu e-mail antes de entrar.'}});const u=rows.rows[0];return route.fulfill({json:{access_token:'fixture-'+u.id,refresh_token:'refresh-'+u.id,expires_in:3600,user:u}});}
      if(url.pathname==='/auth/v1/user'){if(req.method()==='PUT')passwordUpdated=body.password==='nova-senha-fixture';const row=await serial(()=>db.query('select id,email from auth.users where id=$1',[user]));return route.fulfill({status:row.rows[0]?200:401,json:row.rows[0]||{message:'Sessão inválida'}});}
-     if(url.pathname==='/auth/v1/logout')return route.fulfill({json:{}});
+     if(url.pathname==='/auth/v1/logout')return route.fulfill({status:204});
      if(url.pathname==='/rest/v1/rpc/pedagogy_catalog')return route.fulfill({json:(await serial(()=>db.query('select public.pedagogy_catalog() value'))).rows[0].value});
      if(url.pathname==='/rest/v1/rpc/pedagogy_action'){const result=await serial(()=>action(db,user,body.p_op,body.p_body));if(dropMessageOnce&&body.p_op==='message'){dropMessageOnce=false;return route.abort('failed');}return route.fulfill({json:result});}
      if(url.pathname.includes('learner_backups'))return route.fulfill({json:[]});if(url.pathname.includes('save_learner_backup'))return route.fulfill({json:[{revision:1,snapshot:body.p_snapshot,updated_at:new Date().toISOString()}]});
@@ -46,6 +46,16 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
   assert.ok(!recovery.url().includes('access_token'));
   await recovery.reload();await ready(recovery);await recovery.locator('#account-reset-form').waitFor({timeout:5000});
   await recovery.locator('#account-reset-form [name=password]').fill('nova-senha-fixture');await recovery.locator('#account-reset-form [name=password_confirm]').fill('nova-senha-fixture');await recovery.getByRole('button',{name:'Salvar nova senha',exact:true}).click();await recovery.waitForFunction(()=>state.page==='professor');assert.equal(passwordUpdated,true);await recovery.getByRole('button',{name:'Sair',exact:true}).click();await recovery.locator('#account-form').waitFor();assert.ok(await recovery.locator('#page-social').isVisible());
+
+  await t.evaluate(()=>navigate('professor'));
+  await t.locator('#page-professor [data-peda-action="logout"]').click();
+  const login=t.locator('#account-form [value="login"]');
+  await login.waitFor({timeout:5000});
+  assert.equal(await t.locator('[data-teacher-fields], [data-teacher-activation-fields]').count(),0);
+  await t.locator('#account-form [name=email]').fill('new-teacher@example.test');
+  await t.locator('#account-form [name=password]').fill('nova-senha-fixture');
+  await login.click();
+  await t.waitForFunction(()=>state.page==='professor');
 
   const unavailable=await context();await unavailable.route('**/rest/v1/rpc/pedagogy_catalog',r=>r.fulfill({status:404,json:{code:'PGRST202'}}));const missing=await unavailable.newPage();missing.on('pageerror',e=>errors.push(e.message));await missing.goto(origin+'/#social');await ready(missing);await missing.getByRole('button',{name:'Entrar como professor',exact:true}).first().click();await missing.locator('[data-teacher-form]').click();await missing.locator('#page-social .peda-notice').getByText(/apoio pedagógico ainda não foi ativado/).waitFor();assert.ok(await missing.locator('#account-form').isVisible());
   assert.deepEqual(errors,[]);console.log('PASS pedagogy browser: signup/pending email, confirmation callback, admin gate/approval, teacher activation, student request, assigned conversation, failed-ack retry without duplicate, conclusion/history/notifications, polling fallback, class/subject/enrollment/assignment/suspension administration, recovery/logout, 3 widths × 2 themes and 200% text; local SQL and Auth fixtures only. Calls:',apiCalls);

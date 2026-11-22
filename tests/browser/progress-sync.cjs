@@ -1,15 +1,23 @@
-const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium,devices}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const http=require('http'),fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../..');
 (async()=>{
  const server=http.createServer((req,res)=>{const file=path.join(root,req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0]);try{res.setHeader('Content-Type',/\.(js|mjs)$/.test(file)?'text/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(file));}catch{res.writeHead(404);res.end();}});
- await new Promise(r=>server.listen(8128,'127.0.0.1',r));let browser;const state={cloud:{},offline:false,writes:[]};
+ await new Promise(r=>server.listen(8128,'127.0.0.1',r));let browser;const state={cloud:{},offline:false,writes:[],logouts:[],holdLogout:null};
  const read=async(page)=>page.evaluate(()=>({progress,learner,routine}));
- async function context(){const c=await browser.newContext();await c.route('https://pxnvttqsgjnakeukttdr.supabase.co/**',async route=>{
+ async function context(options){const c=await browser.newContext(options);await c.route('https://pxnvttqsgjnakeukttdr.supabase.co/**',async route=>{
  const req=route.request(),url=req.url(),body=req.postDataJSON(),user=req.headers().authorization?.replace('Bearer token-','');
  if(url.includes('/auth/v1/token?grant_type=password')){const id=body.email.startsWith('b')?'b':'a';return route.fulfill({json:{access_token:'token-'+id,refresh_token:'refresh-'+id,expires_in:3600,user:{id,email:body.email}}});}
  if(url.includes('/auth/v1/token?grant_type=refresh_token')){const id=body.refresh_token.endsWith('b')?'b':'a';state.refreshes=(state.refreshes||0)+1;return route.fulfill({json:{access_token:'token-'+id,refresh_token:'refresh-'+id,expires_in:3600,user:{id,email:id+'@example.com'}}});}
- if(url.includes('/auth/v1/logout'))return route.fulfill({json:{}});
+ if(url.endsWith('/auth/v1/user')&&user)return route.fulfill({json:{id:user,email:user+'@example.com'}});
+ if(url.includes('/auth/v1/logout')){
+  state.logouts.push({scope:new URL(url).searchParams.get('scope'),user});
+  if(state.holdLogout){
+   await state.holdLogout;
+   return route.fulfill({status:503,json:{message:'Auth indisponível no teste.'}});
+  }
+  return route.fulfill({status:204});
+ }
  if(state.offline)return route.abort();
  if(url.includes('/rest/v1/learner_backups'))return route.fulfill({json:state.cloud[user]?[state.cloud[user]]:[]});
  if(url.includes('/rest/v1/rpc/save_learner_backup')){
@@ -40,12 +48,49 @@ const root=path.resolve(__dirname,'../..');
  state.offline=true;await page.evaluate(()=>{J.award(progress,{id:'offline-earned',date:today,xp:10,coins:0,label:'Offline',kind:'questao'});save();});await page.waitForTimeout(1400);assert.equal(await page.evaluate(()=>J.xp(progress)),90);
  state.offline=false;await page.reload();await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));assert.ok(state.cloud.a.snapshot.progress.events.find(e=>e.id==='offline-earned'));console.log('PASS offline work survives reload and syncs without being replaced by old cloud data');
  // A clean second device receives the same authenticated snapshot.
- const cb=await context(),other=await cb.newPage();other.on('pageerror',e=>errors.push(e.message));await other.goto('http://127.0.0.1:8128/');await login(other);await other.waitForFunction(()=>J.xp(progress)===90);
+ const {defaultBrowserType,...mobile}=devices['iPhone 13'];
+ const cb=await context(mobile),other=await cb.newPage();other.on('pageerror',e=>errors.push(e.message));await other.goto('http://127.0.0.1:8128/');await login(other);await other.waitForFunction(()=>J.xp(progress)===90);
  state.offline=true;await page.evaluate(()=>{J.award(progress,{id:'conflicting-local',date:today,xp:10,coins:0,label:'Local',kind:'questao'});save();});await page.waitForTimeout(1300);
  state.offline=false;await other.evaluate(()=>{J.award(progress,{id:'other-device',date:today,xp:25,coins:0,label:'Other',kind:'questao'});save();});await other.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.dataset.state==='conflict');assert.equal(await page.evaluate(()=>J.xp(progress)),100);assert.ok(!state.cloud.a.snapshot.progress.events.some(e=>e.id==='conflicting-local'));console.log('PASS simultaneous device changes pause with explicit conflict instead of overwriting');
  await page.locator('.account-tools summary').click();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Carregar progresso da conta',exact:true}).click();await page.waitForFunction(()=>J.xp(progress)===115);console.log('PASS explicit cloud resolution loads latest revision');
- await page.locator('.account-tools').evaluate(el=>el.open=true);await page.getByRole('button',{name:'Sair',exact:true}).click();await login(page,'b@example.com');await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));assert.equal(await page.evaluate(()=>J.xp(progress)),0);assert.equal(state.cloud.b.snapshot.learner.profile,null);console.log('PASS switching to an empty account does not upload the prior account progress');
+ async function signOut(p){
+  await p.locator('.account-tools').evaluate(el=>el.open=true);
+  await p.getByRole('button',{name:'Sair',exact:true}).click();
+  await p.locator('#account-form [value="login"]').waitFor({timeout:5000});
+  assert.equal(await p.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')),null);
+ }
+ const sameBrowser=await c.newPage();sameBrowser.on('pageerror',e=>errors.push(e.message));
+ await sameBrowser.goto('http://127.0.0.1:8128/#social');
+ await sameBrowser.waitForFunction(()=>document.querySelector('#account-sync-status')?.dataset.state==='synced');
+ const firstLogout=page.waitForResponse(res=>res.url().includes('/auth/v1/logout'));
+ await signOut(page);
+ assert.equal((await firstLogout).status(),204);
+ assert.deepEqual(state.logouts[0],{scope:'local',user:'a'});
+ await sameBrowser.locator('#account-form [value="login"]').waitFor();
+ assert.equal(await other.locator('[data-account="logout"]').count(),1);
+ await sameBrowser.close();
+ await page.reload();await login(page);
+ await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.dataset.state==='synced');
+ assert.equal(await page.evaluate(()=>J.xp(progress)),115);
+ console.log('PASS logout accepts empty Auth response and same account can sign in after reload');
+
+ let finishLogout;
+ state.holdLogout=new Promise(resolve=>{finishLogout=resolve;});
+ const delayedLogout=other.waitForResponse(res=>res.url().includes('/auth/v1/logout'));
+ try{
+  await signOut(other);
+  await login(other,'b@example.com');
+  await other.waitForFunction(()=>document.querySelector('#account-sync-status')?.textContent.includes('salvo automaticamente'));
+  assert.equal(await other.evaluate(()=>J.xp(progress)),0);
+  assert.equal(state.cloud.b.snapshot.learner.profile,null);
+ }finally{finishLogout();state.holdLogout=null;}
+ assert.equal((await delayedLogout).status(),503);
+ assert.deepEqual(state.logouts[1],{scope:'local',user:'a'});
+ const sessionOwner=p=>p.evaluate(()=>JSON.parse(localStorage.getItem('missao-escola-supabase-session')).user.id);
+ assert.equal(await sessionOwner(other),'b');
+ assert.equal(await sessionOwner(page),'a');
+ console.log('PASS delayed logout on mobile allows another account to sign in while keeping progress isolated');
  assert.deepEqual(errors,[]);console.log('PASS no JavaScript errors');
  }finally{if(browser)await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

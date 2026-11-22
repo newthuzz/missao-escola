@@ -29,6 +29,12 @@ test('unexpected non-JSON server failure remains a failure',async()=>{
  await assert.rejects(()=>request('/rest/v1/learner_backups'),e=>e.status===502);
 });
 
+test('logout accepts a successful response with no body',async()=>{
+ globalThis.fetch=async()=>new Response(null,{status:204});
+ assert.equal(await request('/auth/v1/logout?scope=local',{method:'POST',allowNoContent:true}),null);
+ await assert.rejects(()=>request('/auth/v1/token',{method:'POST'}),/resposta inválida/);
+});
+
 test('slow connections time out and leave a clear retryable error',async()=>{
  globalThis.fetch=(url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
  await assert.rejects(()=>request('/auth/v1/token',{timeout:10}),/conexão demorou.*estudos locais/i);

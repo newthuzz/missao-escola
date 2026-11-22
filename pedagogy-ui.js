@@ -139,7 +139,25 @@ export function mountPedagogy({getToken,getUser,refreshAccount,signOut}){
    if(type==='assign'){await api('assign',{id:threadId,teacher_id:body.teacher_id});await loadThread(currentRoot().querySelector('.peda-view'));}
   });
  });
- window.addEventListener('missao-account-change',()=>{const next=getUser();if(next===activeOwner)return;activeOwner=next;generation++;ctx=null;lastSchool=null;lastTeacher=null;threadId=null;older=[];cleanupLive();setEnvironment();document.querySelectorAll('.peda-dialog').forEach(d=>d.close());for(const p of Object.values(pages))p.innerHTML='<p role="status">Verificando seu acesso…</p>';support.innerHTML='';if(!next)navigate('social');});
+ window.addEventListener('missao-account-change',()=>{
+  const next=getUser();
+  if(next===activeOwner)return;
+  activeOwner=next;generation++;ctx=null;lastSchool=null;lastTeacher=null;threadId=null;older=[];
+  cleanupLive();setEnvironment();
+  document.querySelectorAll('.peda-dialog').forEach(d=>d.close());
+  for(const p of Object.values(pages))p.innerHTML='<p role="status">Verificando seu acesso…</p>';
+  support.innerHTML='';
+  if(!next){
+   teacherForm=false;
+   teacherActivation=false;
+   const url=new URL(location.href);
+   if(url.searchParams.get('professor')==='ativar'){
+    url.searchParams.delete('professor');
+    history.replaceState(null,'',url);
+   }
+   navigate('social');
+  }
+ });
  document.addEventListener('visibilitychange',()=>{if(document.hidden)cleanupLive();else{activateLive();refreshData(true);}});window.addEventListener('online',()=>{activateLive();refreshData(true);});window.addEventListener('pagehide',cleanupLive);
  support.innerHTML='<h2 id="pedagogy-support-title">Solicitar ajuda a um professor</h2>'+(getUser()?'<p role="status">Verificando sua conta e a disponibilidade de apoio…</p>':'<p>Entre na sua conta para consultar a disponibilidade da sua instituição.</p>'+button('login','Entrar ou criar conta'));
  const initial=location.hash.slice(1);if(Object.values(pages).some(p=>p.id==='page-'+initial))navigate(initial,false);

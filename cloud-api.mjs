@@ -1,6 +1,6 @@
 export const URL = 'https://pxnvttqsgjnakeukttdr.supabase.co';
 export const KEY = 'sb_publishable_v3EJ6JyxoqHS6Jk75oXhOQ_lFS7KYsJ';
-export async function request(path, {token, method = 'GET', body, timeout = 15000} = {}) {
+export async function request(path, {token, method = 'GET', body, timeout = 15000, allowNoContent = false} = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
@@ -11,6 +11,7 @@ export async function request(path, {token, method = 'GET', body, timeout = 1500
     headers: {apikey: KEY, ...(token ? {Authorization: `Bearer ${token}`} : {}), ...(body !== undefined ? {'Content-Type': 'application/json'} : {})},
     ...(body !== undefined ? {body: JSON.stringify(body)} : {})
   });
+  if (allowNoContent && response.status === 204) return null;
   const data = await response.json().catch(error => {if(error.name === 'AbortError')throw error;return null;});
   if (!response.ok) {
     const error = new Error(data?.code === '40001' ? 'A cópia mudou em outro aparelho. Atualize a cópia antes de salvar.' : data?.msg || data?.message || data?.error_description || 'Não foi possível conectar ao Supabase.');

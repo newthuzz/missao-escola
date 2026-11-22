@@ -13,7 +13,7 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
      if(url.pathname==='/auth/v1/recover'){recoveryCount++;return route.fulfill({json:{}});}
      if(url.pathname==='/auth/v1/token'){const rows=await serial(()=>db.query('select id,email,email_confirmed_at from auth.users where email=$1',[body.email]));if(!rows.rows[0]?.email_confirmed_at)return route.fulfill({status:400,json:{message:'Confirme seu e-mail antes de entrar.'}});const u=rows.rows[0];return route.fulfill({json:{access_token:'fixture-'+u.id,refresh_token:'refresh-'+u.id,expires_in:3600,user:u}});}
      if(url.pathname==='/auth/v1/user'){if(req.method()==='PUT')passwordUpdated=body.password==='nova-senha-fixture';const row=await serial(()=>db.query('select id,email from auth.users where id=$1',[user]));return route.fulfill({status:row.rows[0]?200:401,json:row.rows[0]||{message:'Sessão inválida'}});}
-     if(url.pathname==='/auth/v1/logout')return route.fulfill({json:{}});
+     if(url.pathname==='/auth/v1/logout')return route.fulfill({status:204});
      if(url.pathname==='/rest/v1/rpc/pedagogy_catalog')return route.fulfill({json:(await serial(()=>db.query('select public.pedagogy_catalog() value'))).rows[0].value});
      if(url.pathname==='/rest/v1/rpc/pedagogy_action'){const result=await serial(()=>action(db,user,body.p_op,body.p_body));if(dropTeacherOnce&&body.p_op==='register_teacher'){dropTeacherOnce=false;return route.abort('failed');}if(dropMessageOnce&&body.p_op==='message'){dropMessageOnce=false;return route.abort('failed');}return route.fulfill({json:result});}
      if(url.pathname.includes('learner_backups'))return route.fulfill({json:[]});if(url.pathname.includes('save_learner_backup'))return route.fulfill({json:[{revision:1,snapshot:body.p_snapshot,updated_at:new Date().toISOString()}]});
@@ -34,6 +34,12 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
   a.on('dialog',d=>d.accept());await a.locator('[data-peda-action="teacher-access"][data-id="'+uuid(40)+'"]').click();await a.locator('[data-peda-action="teacher-access"][data-id="'+uuid(40)+'"][data-active="true"]').waitFor();assert.equal((await serial(()=>action(db,uuid(40),'context'))).role,'student');await a.locator('[data-peda-action="teacher-access"][data-id="'+uuid(40)+'"]').click();await a.locator('[data-peda-action="teacher-access"][data-id="'+uuid(40)+'"][data-active="false"]').waitFor();assert.equal((await serial(()=>action(db,uuid(40),'context'))).role,'teacher');
   await a.setViewportSize({width:360,height:1000});await a.evaluate(()=>document.documentElement.style.fontSize='200%');assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await a.evaluate(()=>document.documentElement.style.fontSize='');
   const pupil=await (await context(ids.student)).newPage();pupil.on('pageerror',e=>errors.push(e.message));await pupil.goto(origin);await ready(pupil);await pupil.evaluate(()=>navigate('administracao'));await pupil.getByText('Acesso não autorizado',{exact:true}).waitFor();assert.equal(await pupil.locator('[data-peda-form="register-teacher"]').count(),0);
-  assert.deepEqual(errors,[]);console.log('PASS teacher registration browser: owner real email, existing teacher linkage, lost-ack retry, pending pre-registration, signup without password sharing, email confirmation activation, teacher dashboard, scoped assignments, suspension/reactivation, student gate and responsive themes. Auth and SQL fixtures only.');
+  await t.evaluate(()=>navigate('professor'));
+  await t.locator('#page-professor [data-peda-action="logout"]').click();
+  await t.locator('#account-form [value="login"]').waitFor();
+  await t.reload();await ready(t);
+  await t.locator('#account-form [value="login"]').waitFor();
+  assert.equal(await t.locator('[data-teacher-activation-fields]').count(),0);
+  assert.deepEqual(errors,[]);console.log('PASS teacher registration browser: owner real email, existing teacher linkage, lost-ack retry, pending pre-registration, signup without password sharing, email confirmation activation, teacher dashboard, scoped assignments, suspension/reactivation, student gate, responsive themes, and return to sign-in after logout and reload. Auth and SQL fixtures only.');
  }finally{await browser?.close();await new Promise(r=>server.close(r));await db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
