@@ -169,7 +169,7 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
   <header class="essay-header">
     <button type="button" class="text-button" data-go="aprendizagem">← Voltar ao estudo</button>
     <h1 id="essay-title">Redação</h1>
-    <p>Escolha um tema, escreva no seu ritmo e descubra o que melhorar na próxima versão.</p>
+    <p>Treine com um tema surpresa e use a correção para orientar a próxima versão.</p>
   </header>
 
   <details class="essay-guide surface-card">
@@ -185,12 +185,17 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
 
   <div class="essay-grid">
     <aside class="essay-library surface-card" aria-labelledby="essay-library-title">
-      <h2 id="essay-library-title">Temas de treino</h2>
+      <h2 id="essay-library-title">Sortear tema</h2>
       <div class="essay-filters" id="essay-filters" role="group" aria-label="Nível da proposta"></div>
-      <div class="essay-topics" id="essay-topics" role="group" aria-label="Escolher tema"></div>
+      <p id="essay-draw-help">O tema aparece ao iniciar o treino.</p>
+      <button type="button" class="primary-button" id="essay-draw" aria-describedby="essay-draw-help">Iniciar treino</button>
+      <details class="essay-drafts" id="essay-drafts" hidden>
+        <summary>Meus rascunhos</summary>
+        <div class="essay-topics" id="essay-topics" role="group" aria-label="Abrir rascunho"></div>
+      </details>
     </aside>
 
-    <div class="essay-workspace">
+    <div class="essay-workspace" id="essay-workspace" hidden>
       <article class="essay-editor surface-card" aria-labelledby="essay-topic-title">
         <header class="essay-proposal">
           <p id="essay-topic-level" class="section-kicker"></p>

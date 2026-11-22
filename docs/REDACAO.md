@@ -1,6 +1,6 @@
 # Redação
 
-A área fica em **Estudo → Redação**. As propostas autorais cobrem escrita inicial e prática guiada. Os temas oficiais do Enem de 2022 a 2025 têm links para o Inep, onde estão as propostas e os textos motivadores. A correção produz comentários para treino por competência e uma prioridade de revisão.
+A área fica em **Estudo → Redação**. O tema é sorteado ao iniciar o treino, entre todas as dificuldades ou no nível escolhido. O sorteio prioriza temas que ainda faltam no nível. As propostas autorais cobrem escrita inicial e prática guiada. Os temas oficiais do Enem de 2022 a 2025 têm links para o Inep, onde estão as propostas e os textos motivadores. A correção produz comentários para treino por competência e uma prioridade de revisão.
 
 Os rascunhos ficam no navegador, separados por tema e conta. O texto é enviado ao provedor de IA apenas ao solicitar a correção. A função verifica a sessão no Supabase Auth e reserva uma chamada no mesmo orçamento do Tutor. A tabela de uso registra a conta e o horário da chamada sem guardar o texto da redação. A correção fica na tela durante a revisão.
 

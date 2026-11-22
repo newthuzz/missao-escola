@@ -8,17 +8,20 @@ const form = element('essay-form');
 const editor = element('essay-text');
 const levels = element('essay-filters');
 const topics = element('essay-topics');
+const draw = element('essay-draw');
+const workspace = element('essay-workspace');
 const submit = element('essay-submit');
 const login = element('essay-login');
 const status = element('essay-status');
 const reviewPanel = element('essay-review');
 const feedback = element('essay-feedback');
-const drafts = new Map();
+const saved = new Map();
 const count = new Intl.NumberFormat('pt-BR');
+const levelOptions = {todos: 'Todas as dificuldades', ...essayLevels};
 
 let owner = getAccountUser();
-let selected = lastTopic();
-let level = selected.level;
+let selected = null;
+let level = 'todos';
 let inFlight = null;
 let reviewedText = null;
 let returningFromLogin = false;
@@ -27,18 +30,9 @@ function storageKey(entry) {
   return 'missao-escola-essay-v1:' + (owner || 'visitante') + ':' + entry;
 }
 
-function lastTopic() {
-  try {
-    const id = localStorage.getItem(storageKey('ultimo-tema'));
-    return essayTopics.find(topic => topic.id === id) ?? essayTopics[0];
-  } catch {
-    return essayTopics[0];
-  }
-}
-
-function readDraft() {
-  const key = storageKey(selected.id);
-  if (drafts.has(key)) return drafts.get(key);
+function read(entry) {
+  const key = storageKey(entry);
+  if (saved.has(key)) return saved.get(key);
   try {
     return localStorage.getItem(key) ?? '';
   } catch {
@@ -46,14 +40,26 @@ function readDraft() {
   }
 }
 
-function saveDraft() {
-  const key = storageKey(selected.id);
-  const text = editor.value;
-  drafts.set(key, text);
+function write(entry, value) {
+  const key = storageKey(entry);
+  saved.set(key, value);
   try {
-    if (text) localStorage.setItem(key, text);
+    if (value) localStorage.setItem(key, value);
     else localStorage.removeItem(key);
+    return true;
   } catch {
+    return false;
+  }
+}
+
+function lastTopic() {
+  const drawn = read('tema-sorteado');
+  const id = drawn || read('ultimo-tema');
+  return essayTopics.find(topic => topic.id === id && (drawn || read(topic.id).trim())) ?? null;
+}
+
+function saveDraft() {
+  if (!write(selected.id, editor.value)) {
     status.textContent = 'O navegador não pôde salvar o rascunho. Seu texto continua disponível nesta aba.';
   }
 }
@@ -79,28 +85,53 @@ function cancelReview() {
 function chooseTopic(topic, focus = false) {
   cancelReview();
   selected = topic;
-  try { localStorage.setItem(storageKey('ultimo-tema'), topic.id); } catch {}
-  for (const button of topics.children) button.setAttribute('aria-pressed', String(button.dataset.essayTopic === topic.id));
-  element('essay-topic-level').textContent = topic.year ? 'Enem ' + topic.year : essayLevels[topic.level];
-  element('essay-topic-title').textContent = topic.title;
-  element('essay-topic-guide').textContent = topic.guide;
+  workspace.hidden = !topic;
+  draw.textContent = topic ? 'Sortear outro tema' : 'Iniciar treino';
+  element('essay-draw-help').textContent = topic ? 'A dificuldade vale para o próximo sorteio.' : 'O tema aparece ao iniciar o treino.';
+  if (topic) write('tema-sorteado', topic.id);
+  element('essay-topic-level').textContent = topic?.year ? 'Enem ' + topic.year : essayLevels[topic?.level] ?? '';
+  element('essay-topic-title').textContent = topic?.title ?? '';
+  element('essay-topic-guide').textContent = topic?.guide ?? '';
   const source = element('essay-topic-source');
-  source.hidden = !topic.source;
-  if (topic.source) source.href = topic.source;
+  source.hidden = !topic?.source;
+  if (topic?.source) source.href = topic.source;
   else source.removeAttribute('href');
-  editor.value = readDraft();
+  editor.value = topic ? read(topic.id) : '';
+  renderDrafts();
   updateEditor();
-  if (focus && matchMedia('(max-width: 820px)').matches) element('essay-topic-title').focus();
+  if (focus) element('essay-topic-title').focus();
 }
 
 function chooseLevel(value) {
   level = value;
+  write('nivel-sorteio', level);
   for (const button of levels.children) button.setAttribute('aria-pressed', String(button.dataset.essayLevel === level));
-  const entries = essayTopics.filter(topic => topic.level === level);
+}
+
+function drawTopic() {
+  const pool = essayTopics.filter(topic => level === 'todos' || topic.level === level);
+  const history = new Set(read('historico-sorteio').split(',').filter(Boolean));
+  if (selected) history.add(selected.id);
+  let available = pool.filter(topic => !history.has(topic.id));
+  if (!available.length) {
+    for (const topic of pool) history.delete(topic.id);
+    available = pool.filter(topic => topic !== selected);
+    if (!available.length) available = pool;
+  }
+  const topic = available[Math.floor(Math.random() * available.length)];
+  history.add(topic.id);
+  write('historico-sorteio', [...history].join(','));
+  chooseTopic(topic, true);
+}
+
+function renderDrafts() {
+  const entries = essayTopics.filter(topic => read(topic.id).trim());
+  element('essay-drafts').hidden = !entries.length;
   topics.replaceChildren(...entries.map(topic => {
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.essayTopic = topic.id;
+    button.setAttribute('aria-pressed', String(topic === selected));
     const title = document.createElement('strong');
     title.textContent = topic.title;
     if (topic.year) {
@@ -111,7 +142,6 @@ function chooseLevel(value) {
     button.append(title);
     return button;
   }));
-  chooseTopic(selected.level === level ? selected : entries[0]);
 }
 
 function paragraph(tag, text) {
@@ -152,7 +182,7 @@ function renderFeedback(review) {
   reviewPanel.hidden = false;
 }
 
-for (const [value, label] of Object.entries(essayLevels)) {
+for (const [value, label] of Object.entries(levelOptions)) {
   const button = document.createElement('button');
   button.type = 'button';
   button.dataset.essayLevel = value;
@@ -163,14 +193,18 @@ levels.addEventListener('click', event => {
   const value = event.target.closest('[data-essay-level]')?.dataset.essayLevel;
   if (value && value !== level) chooseLevel(value);
 });
+draw.addEventListener('click', drawTopic);
 topics.addEventListener('click', event => {
   const id = event.target.closest('[data-essay-topic]')?.dataset.essayTopic;
-  if (id && id !== selected.id) chooseTopic(essayTopics.find(topic => topic.id === id), true);
+  if (id && id !== selected?.id) chooseTopic(essayTopics.find(topic => topic.id === id), true);
 });
 editor.maxLength = essayLimits.max;
 editor.addEventListener('input', () => {
+  if (!selected) return;
   if (!inFlight) status.textContent = reviewedText !== null && editor.value.trim() !== reviewedText ? 'Você editou o texto. Corrija novamente para revisar esta versão.' : '';
+  const hadDraft = Boolean(read(selected.id).trim());
   saveDraft();
+  if (hadDraft !== Boolean(editor.value.trim())) renderDrafts();
   updateEditor();
 });
 login.addEventListener('click', () => {
@@ -184,11 +218,13 @@ window.addEventListener('missao-account-change', () => {
   const continuingGuestDraft = !owner && next && returningFromLogin;
   const guestDraft = continuingGuestDraft ? editor.value : '';
   owner = next;
-  if (!continuingGuestDraft) selected = lastTopic();
-  chooseLevel(selected.level);
+  if (!continuingGuestDraft) element('essay-drafts').open = false;
+  chooseLevel(continuingGuestDraft ? level : savedLevel());
+  chooseTopic(continuingGuestDraft ? selected : lastTopic());
   if (owner && guestDraft && !editor.value) {
     editor.value = guestDraft;
     saveDraft();
+    renderDrafts();
     updateEditor();
   }
 });
@@ -199,7 +235,7 @@ window.addEventListener('missao-account-ready', () => {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  if (!owner || inFlight) return;
+  if (!owner || !selected || inFlight) return;
   const essay = editor.value.trim();
   if (essay === reviewedText) return;
   if (essay.length < essayLimits.min || essay.length > essayLimits.max) {
@@ -245,4 +281,10 @@ form.addEventListener('submit', async event => {
   }
 });
 
-chooseLevel(level);
+function savedLevel() {
+  const value = read('nivel-sorteio');
+  return Object.hasOwn(levelOptions, value) ? value : 'todos';
+}
+
+chooseLevel(savedLevel());
+chooseTopic(lastTopic());

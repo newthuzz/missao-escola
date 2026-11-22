@@ -44,8 +44,13 @@ html[data-theme="light"] #page-redacao {
 .essay-guide a, .essay-proposal a { display: inline-block; color: var(--brand); padding: .55rem 0; text-decoration: underline; text-underline-offset: .15em; }
 
 .essay-grid { display: grid; grid-template-columns: minmax(14rem, .9fr) minmax(0, 2fr); align-items: start; gap: 1.15rem; }
+.essay-grid:has(> .essay-workspace[hidden]) { grid-template-columns: minmax(0, 42rem); }
 .essay-library { padding: 1rem; }
 .essay-library h2 { margin: .2rem .25rem 1rem; font-size: 1.2rem; }
+.essay-library p { color: var(--muted); font-size: .875rem; margin: .7rem 0; }
+.essay-library > .primary-button { min-height: 2.85rem; }
+.essay-drafts { margin-top: 1rem; padding-top: .55rem; border-top: 1px solid var(--line); }
+.essay-drafts summary { font-weight: 650; cursor: pointer; padding: .55rem .1rem; min-height: 2.75rem; }
 .essay-filters { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
 .essay-filters button, .essay-topics button {
   appearance: none;
