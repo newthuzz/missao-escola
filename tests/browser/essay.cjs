@@ -20,7 +20,7 @@ const server = http.createServer((request, response) => {
 });
 
 (async () => {
-  const {essayCompetencies, essayTopics} = await import('../../essay-catalog.mjs');
+  const {essayCompetencies, essayTopicsForGrade} = await import('../../essay-catalog.mjs');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = 'http://127.0.0.1:' + server.address().port;
   const user = {id:'essay-student', email:'essay@example.test'};
@@ -51,7 +51,7 @@ const server = http.createServer((request, response) => {
         const url = new URL(request.url());
         if (url.pathname === '/functions/v1/essay-review') {
           assert.equal(request.headers().authorization, 'Bearer student-token');
-          assert.deepEqual(request.postDataJSON(), {topicId:'dever-de-casa', essay:draft});
+          assert.deepEqual(request.postDataJSON(), {topicId:'dever-de-casa', essay:draft, grade:7});
           sent++;
           return route.fulfill(unavailable
             ? {status:503,json:{error:'A correção está indisponível no momento.'}}
@@ -69,13 +69,30 @@ const server = http.createServer((request, response) => {
       const page = await context.newPage();
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
-      await page.goto(origin + '/#aprendizagem');
+      await page.goto(origin + '/#redacao');
       await page.locator('#app-splash').waitFor({state:'detached'});
-      await page.getByRole('button',{name:'Redação',exact:true}).click();
       const section = page.locator('#page-redacao');
+      const essayEntry = page.getByRole('button',{name:'Redação',exact:true});
       const editor = section.getByRole('textbox',{name:'Sua redação'});
       const send = section.getByRole('button',{name:'Corrigir com IA'});
+      const saveGrade = async grade => {
+        await page.locator('#quick-grade').selectOption(String(grade));
+        await page.locator('#grade-save').click();
+      };
       await section.getByRole('heading',{name:'Redação',exact:true}).waitFor();
+      await section.getByRole('heading',{name:'Redação a partir do 7º ano'}).waitFor();
+      assert.ok(await section.getByRole('button',{name:'Iniciar treino'}).isHidden());
+      await section.getByRole('button',{name:'Informar meu ano escolar'}).click();
+      await saveGrade(6);
+      assert.ok(await essayEntry.isHidden());
+      await page.goto(origin + '/#redacao');
+      await section.getByText(/Seu perfil está no 6º ano/).waitFor();
+      assert.ok(await editor.isHidden());
+      await section.getByRole('button',{name:/Voltar ao estudo/}).click();
+      await page.getByRole('button',{name:'Trocar ano'}).click();
+      await saveGrade(12);
+      await essayEntry.click();
+      await section.getByText(/Temas para o 3º ano do Ensino Médio/).waitFor();
       await section.getByText('Dicas para escrever e revisar',{exact:true}).click();
       assert.ok(await section.getByRole('heading',{name:'Desenvolvimento',exact:true}).isVisible());
       await section.getByText('Dicas para escrever e revisar',{exact:true}).click();
@@ -89,18 +106,18 @@ const server = http.createServer((request, response) => {
       await section.getByRole('button',{name:'Todas as dificuldades'}).click();
       await page.evaluate(() => { window.essayTestRandom = .9999; });
       await section.getByRole('button',{name:'Iniciar treino'}).click();
-      assert.match(await section.getByRole('link',{name:/Ver proposta/}).getAttribute('href'), /2025/);
+      assert.match(await section.getByRole('link',{name:/Ver proposta/}).getAttribute('href'), /2026/);
       assert.equal(await editor.inputValue(), '');
       await editor.fill('Rascunho independente de outro tema.');
       await page.reload();
       await page.locator('#app-splash').waitFor({state:'detached'});
       assert.equal(await editor.inputValue(), 'Rascunho independente de outro tema.');
-      assert.equal(await section.locator('#essay-topic-level').innerText(), 'Enem 2025');
+      assert.match(await section.locator('#essay-topic-level').innerText(), /^Enem 2026/);
       await section.getByRole('button',{name:'Temas do Enem',exact:true}).click();
       const draw = section.getByRole('button',{name:'Sortear outro tema'});
-      const seen = new Set(['Enem 2025']);
+      const seen = new Set([await section.locator('#essay-topic-level').innerText()]);
       await page.evaluate(() => { window.essayTestRandom = 0; });
-      for (let i = 0; i < 3; i++) {
+      for (let i = 1; i < essayTopicsForGrade(12).filter(topic => topic.year).length; i++) {
         await draw.click();
         const year = await section.locator('#essay-topic-level').innerText();
         assert.match(year, /^Enem /);
@@ -110,13 +127,19 @@ const server = http.createServer((request, response) => {
       const previous = await section.locator('#essay-topic-level').innerText();
       await draw.click();
       assert.notEqual(await section.locator('#essay-topic-level').innerText(), previous);
+      await section.getByRole('button',{name:/Voltar ao estudo/}).click();
+      await page.getByRole('button',{name:'Trocar ano'}).click();
+      await saveGrade(7);
+      await essayEntry.click();
+      await section.getByText(/Temas para o 7º ano do Fundamental/).waitFor();
+      assert.ok(await section.getByRole('button',{name:'Temas do Enem',exact:true}).isHidden());
+      assert.ok(await editor.isHidden());
       await section.getByRole('button',{name:'Para começar',exact:true}).click();
-      assert.match(await section.locator('#essay-topic-level').innerText(), /^Enem /);
-      await draw.click();
+      await section.getByRole('button',{name:'Iniciar treino'}).click();
       assert.equal(await section.locator('#essay-topic-title').innerText(), 'Toda aula precisa ter dever de casa?');
       assert.equal(await editor.inputValue(), '');
       await editor.fill(draft);
-      for (const topic of essayTopics.filter(topic => topic.level === 'inicio').slice(1)) {
+      for (const topic of essayTopicsForGrade(7).filter(topic => topic.level === 'inicio').slice(1)) {
         await draw.click();
         assert.equal(await section.locator('#essay-topic-title').innerText(), topic.title);
       }
@@ -124,13 +147,20 @@ const server = http.createServer((request, response) => {
       assert.equal(await section.locator('#essay-topic-title').innerText(), 'Toda aula precisa ter dever de casa?');
       await section.getByRole('button',{name:'Prática guiada',exact:true}).click();
       await draw.click();
-      assert.equal(await section.locator('#essay-topic-title').innerText(), 'De quem é a responsabilidade quando um boato se espalha em um grupo de mensagens?');
+      await draw.click();
+      assert.equal(await section.locator('#essay-topic-title').innerText(), 'As redes sociais aproximam os amigos?');
+      assert.match(await section.locator('#essay-topic-level').innerText(), /Carta do leitor/);
+      assert.match(await section.getByRole('link',{name:/Ver atividade de referência/}).getAttribute('href'), /sme\.goiania/);
       await page.evaluate(value => localStorage.setItem('missao-escola-essay-v1:visitante:leitura', value), previousDraft);
       await page.reload();
       await page.locator('#app-splash').waitFor({state:'detached'});
       await section.getByText('Meus rascunhos',{exact:true}).click();
-      await section.getByRole('button',{name:/^Enem 2025/}).click();
+      await section.getByRole('button',{name:/^Enem 2026/}).click();
       assert.equal(await editor.inputValue(), 'Rascunho independente de outro tema.');
+      await page.reload();
+      await page.locator('#app-splash').waitFor({state:'detached'});
+      assert.equal(await editor.inputValue(), 'Rascunho independente de outro tema.');
+      await section.getByText('Meus rascunhos',{exact:true}).click();
       await section.getByRole('button',{name:'Como incentivar a leitura na escola?',exact:true}).click();
       assert.equal(await editor.inputValue(), previousDraft);
       await section.getByRole('button',{name:'Toda aula precisa ter dever de casa?',exact:true}).click();
@@ -174,7 +204,7 @@ const server = http.createServer((request, response) => {
       assert.equal(await editor.inputValue(), draft);
       assert.deepEqual(errors, []);
       await context.close();
-      console.log('PASS',name,'hidden topic, mixed and level draws, repeat protection, draft recovery, login and AI review');
+      console.log('PASS',name,'grade gate, grade-specific pool and sources, repeat protection, draft recovery, login and AI review');
     }
   } finally {
     await browser.close();

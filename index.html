@@ -169,21 +169,27 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
   <header class="essay-header">
     <button type="button" class="text-button" data-go="aprendizagem">← Voltar ao estudo</button>
     <h1 id="essay-title">Redação</h1>
-    <p>Treine com um tema surpresa e use a correção para orientar a próxima versão.</p>
+    <p id="essay-intro" hidden></p>
   </header>
 
-  <details class="essay-guide surface-card">
+  <section class="essay-access surface-card" id="essay-access" aria-labelledby="essay-access-title" hidden>
+    <h2 id="essay-access-title">Redação a partir do 7º ano</h2>
+    <p id="essay-access-message"></p>
+    <button type="button" class="primary-button" id="essay-set-grade">Informar meu ano escolar</button>
+  </section>
+
+  <details class="essay-guide surface-card" id="essay-guide" hidden>
     <summary>Dicas para escrever e revisar</summary>
     <div class="essay-tips">
       <div><h2>Introdução</h2><p>Apresente o tema e diga qual ideia você vai defender. Essa ideia é sua tese.</p></div>
       <div><h2>Desenvolvimento</h2><p>Organize um argumento por parágrafo. Explique como cada exemplo sustenta sua tese.</p></div>
-      <div><h2>Conclusão</h2><p>Retome a tese. Em temas do Enem, proponha uma ação, quem a fará, como e para quê, respeitando os direitos humanos.</p></div>
+      <div><h2>Conclusão</h2><p>Retome a ideia principal. Se a proposta pedir uma solução, explique quem agiria, como e com qual objetivo.</p></div>
       <div><h2>Revisão</h2><p>Releia em voz baixa. Confira se as ideias se conectam e se há repetições, frases confusas ou erros de pontuação.</p></div>
     </div>
-    <a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos" target="_blank" rel="noopener noreferrer">Consultar a Cartilha de Redação do Inep ↗</a>
+    <a id="essay-inep-guide" href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos" target="_blank" rel="noopener noreferrer" hidden>Consultar a Cartilha de Redação do Inep ↗</a>
   </details>
 
-  <div class="essay-grid">
+  <div class="essay-grid" id="essay-activities" hidden>
     <aside class="essay-library surface-card" aria-labelledby="essay-library-title">
       <h2 id="essay-library-title">Sortear tema</h2>
       <div class="essay-filters" id="essay-filters" role="group" aria-label="Nível da proposta"></div>
@@ -201,7 +207,7 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
           <p id="essay-topic-level" class="section-kicker"></p>
           <h2 id="essay-topic-title" tabindex="-1"></h2>
           <p id="essay-topic-guide"></p>
-          <a id="essay-topic-source" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver proposta e textos motivadores no Inep ↗</a>
+          <a id="essay-topic-source" target="_blank" rel="noopener noreferrer" hidden></a>
         </header>
 
         <form id="essay-form">
@@ -209,7 +215,7 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
             <label for="essay-text">Sua redação</label>
             <span id="essay-count"></span>
           </div>
-          <textarea id="essay-text" name="essay" rows="12" maxlength="5000" placeholder="Escreva aqui. Separe a introdução, os argumentos e a conclusão em parágrafos." aria-describedby="essay-writing-help"></textarea>
+          <textarea id="essay-text" name="essay" rows="12" maxlength="5000" placeholder="Escreva aqui. Organize suas ideias em parágrafos e siga as instruções da proposta." aria-describedby="essay-writing-help"></textarea>
           <p id="essay-writing-help">Seu rascunho fica neste navegador. Ao pedir a correção, o texto é enviado ao provedor de IA. Evite incluir dados pessoais.</p>
           <div class="essay-actions">
             <button type="submit" class="primary-button" id="essay-submit">Corrigir com IA <span aria-hidden="true">→</span></button>
@@ -591,7 +597,10 @@ state.subject=A.studyState(learner,today).subject;
 function requestGrade(){const box=$('grade-onboarding');box.hidden=false;$('quick-grade').value=A.schoolYear(learner)||'';box.scrollIntoView({block:'start'});$('quick-grade').focus();}
 $('quick-grade-form').addEventListener('submit',event=>{event.preventDefault();if(!A.setGrade(learner,$('quick-grade').value))return;state.subject=A.studyState(learner,today).subject;state.currentQuestion=null;state.planPractice=false;state.practiceSeen=[];selectTool('recuperacao');saveLearner();render();renderPlan();renderQuestion();renderSummary();fillProfile();if(routineInitialized)fillRoutineSubjectControls();$('grade-status').textContent='Ano salvo.';});
 const firstName=()=>learner.profile?.name.split(' ')[0]||'';
+let previousSchoolYear;
 function renderPersonalization(){
+ const schoolYear=A.schoolYear(learner);
+ if(previousSchoolYear!==schoolYear){previousSchoolYear=schoolYear;window.dispatchEvent(new Event('missao-school-year-change'));}
  const recommendation=A.recommend(learner,today)[0],profile=learner.profile,p=J.progress(progress);
  $('home-title').textContent=profile?`Olá, ${firstName()}.`:'Sua central de estudos';
  $('profile-name-chip').textContent=profile?firstName():'Meu perfil';

@@ -1,6 +1,6 @@
 import {getAccountToken, getAccountUser} from './account.js';
 import {KEY, URL} from './cloud-api.mjs';
-import {allEssayTopics, essayCompetencies, essayLevels, essayLimits, essayTopics} from './essay-catalog.mjs';
+import {allEssayTopics, essayCompetencies, essayLevels, essayLimits, essayTopicsForGrade} from './essay-catalog.mjs';
 
 const page = document.querySelector('#page-redacao');
 const element = id => page.querySelector('#' + id);
@@ -25,6 +25,8 @@ let level = 'todos';
 let inFlight = null;
 let reviewedText = null;
 let returningFromLogin = false;
+let grade;
+let gradeTopics = [];
 
 function storageKey(entry) {
   return 'missao-escola-essay-v1:' + (owner || 'visitante') + ':' + entry;
@@ -53,10 +55,16 @@ function write(entry, value) {
 }
 
 function lastTopic() {
+  if (!gradeTopics.length) return null;
+  const current = read('tema-sorteado-ano-' + grade);
+  if (current) {
+    const topic = allEssayTopics.find(entry => entry.id === current);
+    return topic && (gradeTopics.includes(topic) || read(current).trim()) ? topic : null;
+  }
   const drawn = read('tema-sorteado');
   const id = drawn || read('ultimo-tema');
-  if (read(id).trim()) return allEssayTopics.find(topic => topic.id === id) ?? null;
-  return drawn ? essayTopics.find(topic => topic.id === drawn) ?? null : null;
+  if (!id || (!drawn && !read(id).trim())) return null;
+  return gradeTopics.find(topic => topic.id === id) ?? null;
 }
 
 function saveDraft() {
@@ -89,12 +97,14 @@ function chooseTopic(topic, focus = false) {
   workspace.hidden = !topic;
   draw.textContent = topic ? 'Sortear outro tema' : 'Iniciar treino';
   element('essay-draw-help').textContent = topic ? 'A dificuldade vale para o próximo sorteio.' : 'O tema aparece ao iniciar o treino.';
-  if (topic) write('tema-sorteado', topic.id);
-  element('essay-topic-level').textContent = topic?.year ? 'Enem ' + topic.year : essayLevels[topic?.level] ?? '';
+  if (topic) write('tema-sorteado-ano-' + grade, topic.id);
+  const topicLevel = topic?.year ? 'Enem ' + topic.year : essayLevels[topic?.level];
+  element('essay-topic-level').textContent = [topicLevel, topic?.genre].filter(Boolean).join(' · ');
   element('essay-topic-title').textContent = topic?.title ?? '';
   element('essay-topic-guide').textContent = topic?.guide ?? '';
   const source = element('essay-topic-source');
   source.hidden = !topic?.source;
+  source.textContent = topic?.year ? 'Ver proposta e textos motivadores no Inep ↗' : 'Ver atividade de referência ↗';
   if (topic?.source) source.href = topic.source;
   else source.removeAttribute('href');
   editor.value = topic ? read(topic.id) : '';
@@ -104,13 +114,38 @@ function chooseTopic(topic, focus = false) {
 }
 
 function chooseLevel(value) {
-  level = value;
+  level = gradeTopics.some(topic => topic.level === value) ? value : 'todos';
   write('nivel-sorteio', level);
   for (const button of levels.children) button.setAttribute('aria-pressed', String(button.dataset.essayLevel === level));
 }
 
+function updateGrade() {
+  const next = A.schoolYear(learner);
+  if (next === grade) return;
+  grade = next;
+  gradeTopics = essayTopicsForGrade(grade);
+  const available = Boolean(gradeTopics.length);
+  element('essay-activities').hidden = !available;
+  element('essay-guide').hidden = !available;
+  element('essay-inep-guide').hidden = grade < 10;
+  element('essay-intro').hidden = !available;
+  element('essay-intro').textContent = available ? 'Temas para o ' + gradeLabel(grade) + '. Descubra a proposta ao iniciar o treino.' : '';
+  element('essay-access').hidden = available;
+  element('essay-access-message').textContent = grade
+    ? 'Seu perfil está no ' + gradeLabel(grade) + '. As propostas de redação começam no 7º ano.'
+    : 'Informe seu ano escolar para ver as propostas disponíveis para sua turma.';
+  element('essay-set-grade').hidden = Boolean(grade);
+  const gradeLevels = new Set(gradeTopics.map(topic => topic.level));
+  for (const button of levels.children) {
+    button.hidden = button.dataset.essayLevel !== 'todos' && !gradeLevels.has(button.dataset.essayLevel);
+  }
+  if (available) chooseLevel(savedLevel());
+  chooseTopic(lastTopic());
+}
+
 function drawTopic() {
-  const pool = essayTopics.filter(topic => level === 'todos' || topic.level === level);
+  const pool = gradeTopics.filter(topic => level === 'todos' || topic.level === level);
+  if (!pool.length) return;
   const history = new Set(read('historico-sorteio').split(',').filter(Boolean));
   if (selected) history.add(selected.id);
   let available = pool.filter(topic => !history.has(topic.id));
@@ -126,7 +161,7 @@ function drawTopic() {
 }
 
 function renderDrafts() {
-  const entries = allEssayTopics.filter(topic => read(topic.id).trim());
+  const entries = gradeTopics.length ? allEssayTopics.filter(topic => read(topic.id).trim()) : [];
   element('essay-drafts').hidden = !entries.length;
   topics.replaceChildren(...entries.map(topic => {
     const button = document.createElement('button');
@@ -170,7 +205,10 @@ function renderFeedback(review) {
   rubric.className = 'essay-rubric';
   for (const note of review.competencies) {
     const detail = document.createElement('details');
-    detail.append(paragraph('summary', essayCompetencies[note.id]));
+    const title = note.id === 'intervencao' && selected.genre?.startsWith('Carta')
+      ? 'Finalidade da carta'
+      : essayCompetencies[note.id];
+    detail.append(paragraph('summary', title));
     detail.append(paragraph('p', note.feedback));
     if (note.excerpt) detail.append(paragraph('blockquote', note.excerpt));
     detail.append(paragraph('p', 'Na próxima versão: ' + note.tip));
@@ -191,13 +229,19 @@ for (const [value, label] of Object.entries(levelOptions)) {
   levels.append(button);
 }
 levels.addEventListener('click', event => {
-  const value = event.target.closest('[data-essay-level]')?.dataset.essayLevel;
-  if (value && value !== level) chooseLevel(value);
+  const button = event.target.closest('[data-essay-level]');
+  if (button && !button.hidden && button.dataset.essayLevel !== level) chooseLevel(button.dataset.essayLevel);
 });
 draw.addEventListener('click', drawTopic);
+element('essay-set-grade').addEventListener('click', () => {
+  navigate('aprendizagem');
+  requestGrade();
+});
 topics.addEventListener('click', event => {
   const id = event.target.closest('[data-essay-topic]')?.dataset.essayTopic;
-  if (id && id !== selected?.id) chooseTopic(allEssayTopics.find(topic => topic.id === id), true);
+  if (gradeTopics.length && id && id !== selected?.id && read(id).trim()) {
+    chooseTopic(allEssayTopics.find(topic => topic.id === id), true);
+  }
 });
 editor.maxLength = essayLimits.max;
 editor.addEventListener('input', () => {
@@ -220,7 +264,7 @@ window.addEventListener('missao-account-change', () => {
   const guestDraft = continuingGuestDraft ? editor.value : '';
   owner = next;
   if (!continuingGuestDraft) element('essay-drafts').open = false;
-  chooseLevel(continuingGuestDraft ? level : savedLevel());
+  if (gradeTopics.length) chooseLevel(continuingGuestDraft ? level : savedLevel());
   chooseTopic(continuingGuestDraft ? selected : lastTopic());
   if (owner && guestDraft && !editor.value) {
     editor.value = guestDraft;
@@ -236,7 +280,7 @@ window.addEventListener('missao-account-ready', () => {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  if (!owner || !selected || inFlight) return;
+  if (!gradeTopics.length || !owner || !selected || inFlight) return;
   const essay = editor.value.trim();
   if (essay === reviewedText) return;
   if (essay.length < essayLimits.min || essay.length > essayLimits.max) {
@@ -258,7 +302,7 @@ form.addEventListener('submit', async event => {
       method:'POST',
       cache:'no-store',
       headers:{apikey:KEY, Authorization:'Bearer ' + token, 'Content-Type':'application/json'},
-      body:JSON.stringify({topicId, essay}),
+      body:JSON.stringify({topicId, essay, grade}),
       signal:controller.signal
     });
     const result = await response.json().catch(() => null);
@@ -287,5 +331,5 @@ function savedLevel() {
   return Object.hasOwn(levelOptions, value) ? value : 'todos';
 }
 
-chooseLevel(savedLevel());
-chooseTopic(lastTopic());
+window.addEventListener('missao-school-year-change', updateGrade);
+updateGrade();

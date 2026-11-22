@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {allEssayTopics, essayCompetencies} from '../essay-catalog.mjs';
+import {allEssayTopics, essayCompetencies, essayTopicsForGrade} from '../essay-catalog.mjs';
 import {handleEssayRequest, parseEssayReview} from '../server/essay-edge.mjs';
 
 const user = '00000000-0000-4000-8000-000000000001';
@@ -34,10 +34,25 @@ test('keeps only literal quotes and rejects an incomplete rubric', () => {
   assert.throws(() => parseEssayReview(JSON.stringify({...output, competencies:[output.competencies[0]]}), text), /incompleta/);
 });
 
+test('every eligible year has its own activity pool, guidance source and both difficulty levels', () => {
+  for (const grade of [null, 1, 6, 13, '7']) assert.deepEqual(essayTopicsForGrade(grade), []);
+  const featured = ['carta-redes', 'telas-e-caderno', 'lixo-no-bairro', 'celular-como-ferramenta', 'pressao-para-crescer', 'situacao-de-rua'];
+  for (const [index, id] of featured.entries()) {
+    const grade = index + 7;
+    const topics = essayTopicsForGrade(grade);
+    assert.ok(topics.filter(topic => topic.level === 'inicio').length >= 2);
+    assert.ok(topics.filter(topic => topic.level === 'pratica').length >= 2);
+    assert.equal(topics.some(topic => topic.level === 'enem'), grade >= 10);
+    assert.match(topics.find(topic => topic.id === id).source, /^https:\/\//);
+    assert.ok(!featured.some(other => other !== id && topics.some(topic => topic.id === other)));
+  }
+});
+
 test('authenticates first, reserves shared quota and sends the theme and text to the provider', async () => {
   const previous = globalThis.fetch;
   let calls = [], deny = false, fail = false;
   let expectedTopic = allEssayTopics.find(topic => topic.id === payload.topicId);
+  let expectedGrade;
   globalThis.fetch = async (url, options) => {
     calls.push(url);
     if (url.endsWith('/auth/v1/user')) {
@@ -58,12 +73,15 @@ test('authenticates first, reserves shared quota and sends the theme and text to
     assert.equal(submitted.level, expectedTopic.level);
     assert.equal(submitted.topic, expectedTopic.title);
     assert.equal(submitted.guide, expectedTopic.guide);
+    assert.equal(submitted.genre, expectedTopic.genre);
+    assert.equal(submitted.grade, expectedGrade);
     assert.ok(!JSON.stringify(body).includes('private-service-key'));
     return Response.json({status:fail?'incomplete':'completed', output:[{type:'message', content:[{type:'output_text', text:JSON.stringify(output)}]}]});
   };
   try {
     for (const [body, options, status] of [[payload,{noAuth:true},401],[payload,{origin:'https://unknown.example'},403],
-      [{...payload,topicId:'unknown'},{},400],[{...payload,essay:'curto'},{},400],[{...payload,essay:'x'.repeat(5001)},{},400]]) {
+      [{...payload,topicId:'unknown'},{},400],[{...payload,essay:'curto'},{},400],[{...payload,essay:'x'.repeat(5001)},{},400],
+      [{...payload,grade:6},{},403],[{...payload,topicId:'carta-redes'},{},403]]) {
       const res = await handleEssayRequest({request:request(body, options), env});
       assert.equal(res.status, status);
     }
@@ -82,8 +100,9 @@ test('authenticates first, reserves shared quota and sends the theme and text to
     assert.equal(result.headers.get('Access-Control-Allow-Origin'), 'https://school.example');
     assert.equal((await result.json()).review.nextStep, output.nextStep);
 
-    expectedTopic = allEssayTopics.find(topic => topic.id === 'dever-de-casa');
-    const newTopicReview = await handleEssayRequest({request:request({...payload, topicId:expectedTopic.id}), env});
+    expectedTopic = allEssayTopics.find(topic => topic.id === 'carta-redes');
+    expectedGrade = 7;
+    const newTopicReview = await handleEssayRequest({request:request({...payload, topicId:expectedTopic.id, grade:expectedGrade}), env});
     assert.equal(newTopicReview.status, 200);
   } finally {
     globalThis.fetch = previous;

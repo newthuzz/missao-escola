@@ -25,6 +25,9 @@ html[data-theme="light"] #page-redacao {
 .essay-header button { font-weight: 600; }
 
 #page-redacao .surface-card { min-width: 0; border-radius: 1.25rem; }
+.essay-access { max-width: 42rem; padding: clamp(1rem, 3vw, 1.5rem); }
+.essay-access h2 { margin: 0; font-size: 1.2rem; }
+.essay-access p { margin: .5rem 0 1rem; color: var(--muted); }
 .essay-guide { padding: .7rem 1.25rem; margin-bottom: 1.15rem; }
 .essay-guide summary, .essay-rubric summary {
   padding: .65rem .25rem;
