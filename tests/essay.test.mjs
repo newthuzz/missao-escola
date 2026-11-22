@@ -36,13 +36,15 @@ test('keeps only literal quotes and rejects an incomplete rubric', () => {
 
 test('every eligible year has its own activity pool, guidance source and both difficulty levels', () => {
   for (const grade of [null, 1, 6, 13, '7']) assert.deepEqual(essayTopicsForGrade(grade), []);
+  assert.equal(new Set(allEssayTopics.map(topic => topic.id)).size, allEssayTopics.length);
   const featured = ['carta-redes', 'telas-e-caderno', 'lixo-no-bairro', 'celular-como-ferramenta', 'pressao-para-crescer', 'situacao-de-rua'];
   for (const [index, id] of featured.entries()) {
     const grade = index + 7;
     const topics = essayTopicsForGrade(grade);
-    assert.ok(topics.filter(topic => topic.level === 'inicio').length >= 2);
-    assert.ok(topics.filter(topic => topic.level === 'pratica').length >= 2);
-    assert.equal(topics.some(topic => topic.level === 'enem'), grade >= 10);
+    assert.ok(topics.filter(topic => topic.level === 'inicio').length >= 6);
+    assert.ok(topics.filter(topic => topic.level === 'pratica').length >= 6);
+    const enemYears = topics.filter(topic => topic.level === 'enem' && topic.source).map(topic => topic.year);
+    assert.deepEqual(enemYears, grade >= 10 ? Array.from({length:12}, (_, i) => 2015 + i) : []);
     assert.match(topics.find(topic => topic.id === id).source, /^https:\/\//);
     assert.ok(!featured.some(other => other !== id && topics.some(topic => topic.id === other)));
   }
@@ -100,7 +102,7 @@ test('authenticates first, reserves shared quota and sends the theme and text to
     assert.equal(result.headers.get('Access-Control-Allow-Origin'), 'https://school.example');
     assert.equal((await result.json()).review.nextStep, output.nextStep);
 
-    expectedTopic = allEssayTopics.find(topic => topic.id === 'carta-redes');
+    expectedTopic = allEssayTopics.find(topic => topic.id === 'carta-faixa-escola');
     expectedGrade = 7;
     const newTopicReview = await handleEssayRequest({request:request({...payload, topicId:expectedTopic.id, grade:expectedGrade}), env});
     assert.equal(newTopicReview.status, 200);

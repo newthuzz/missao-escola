@@ -1,6 +1,6 @@
 # Redação
 
-A área fica em **Estudo → Redação** e usa o ano escolar informado no estudo ou no perfil. A partir do 7º ano, o aluno pode iniciar o treino e sortear um tema adequado ao seu ano, entre todas as dificuldades ou no nível escolhido. O sorteio prioriza temas ainda não vistos. Cada ano tem atividades de escrita inicial, prática guiada e pelo menos uma adaptação de material público com link no enunciado. No Ensino Médio, também entram no sorteio os temas oficiais do Enem de 2022 a 2026, com acesso aos textos motivadores do Inep.
+A área fica em **Estudo → Redação** e usa o ano escolar informado no estudo ou no perfil. A partir do 7º ano, o aluno pode iniciar o treino e sortear um tema adequado ao seu ano, entre todas as dificuldades ou no nível escolhido. O sorteio prioriza temas ainda não vistos. Cada ano tem atividades de escrita inicial, prática guiada e pelo menos uma adaptação de material público com link no enunciado. No Ensino Médio, também entram no sorteio 12 temas oficiais do Enem, de 2015 a 2026, com acesso aos textos motivadores do Inep.
 
 A correção considera o gênero solicitado e o ano escolar informado. As referências consultadas incluem atividades do Conexão Escola (SME Goiânia), planos da NOVA ESCOLA, materiais Revisa Goiás e Redação Nota 1000 da Seduc-GO, além de provas do Inep.
 
