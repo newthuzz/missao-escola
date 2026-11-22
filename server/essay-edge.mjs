@@ -1,5 +1,5 @@
 import {KEY as publicKey, URL as defaultUrl, isInvalidAuthSession} from '../cloud-api.mjs';
-import {essayCompetencies, essayLimits, essayTopics} from '../essay-catalog.mjs';
+import {allEssayTopics, essayCompetencies, essayLimits} from '../essay-catalog.mjs';
 import {TutorError} from './tutor-shared.mjs';
 import {tutorProvider} from './tutor-provider.mjs';
 import {readTutorJson, tutorRuntimeEnv, withTutorCors} from './tutor-http.mjs';
@@ -71,7 +71,7 @@ async function reviewRequest(request, env) {
 
   try {
     const body = await readTutorJson(request);
-    const topic = essayTopics.find(entry => entry.id === body?.topicId);
+    const topic = allEssayTopics.find(entry => entry.id === body?.topicId);
     const essay = typeof body?.essay === 'string' ? body.essay.trim() : '';
     if (!topic) throw new TutorError('Escolha um tema da área de Redação.');
     if (essay.length < essayLimits.min || essay.length > essayLimits.max) {

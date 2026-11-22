@@ -20,11 +20,12 @@ const server = http.createServer((request, response) => {
 });
 
 (async () => {
-  const {essayCompetencies} = await import('../../essay-catalog.mjs');
+  const {essayCompetencies, essayTopics} = await import('../../essay-catalog.mjs');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = 'http://127.0.0.1:' + server.address().port;
   const user = {id:'essay-student', email:'essay@example.test'};
-  const draft = 'O clube de leitura da escola pode aproximar os estudantes dos livros. No recreio, os participantes podem compartilhar histórias e ajudar os colegas a escolher novas leituras.';
+  const previousDraft = 'O clube de leitura da escola pode aproximar os estudantes dos livros.';
+  const draft = 'O dever de casa ajuda quando dá para aplicar o que aprendemos na aula. Uma tarefa que repete as mesmas perguntas, porém, pode tomar tempo sem ajudar a entender o assunto.';
   const review = {
     summary:'A ideia principal fica clara.',
     strengths:['Uma proposta específica.'],
@@ -50,7 +51,7 @@ const server = http.createServer((request, response) => {
         const url = new URL(request.url());
         if (url.pathname === '/functions/v1/essay-review') {
           assert.equal(request.headers().authorization, 'Bearer student-token');
-          assert.deepEqual(request.postDataJSON(), {topicId:'leitura', essay:draft});
+          assert.deepEqual(request.postDataJSON(), {topicId:'dever-de-casa', essay:draft});
           sent++;
           return route.fulfill(unavailable
             ? {status:503,json:{error:'A correção está indisponível no momento.'}}
@@ -112,13 +113,27 @@ const server = http.createServer((request, response) => {
       await section.getByRole('button',{name:'Para começar',exact:true}).click();
       assert.match(await section.locator('#essay-topic-level').innerText(), /^Enem /);
       await draw.click();
-      assert.equal(await section.locator('#essay-topic-title').innerText(), 'Como incentivar a leitura na escola?');
+      assert.equal(await section.locator('#essay-topic-title').innerText(), 'Toda aula precisa ter dever de casa?');
       assert.equal(await editor.inputValue(), '');
       await editor.fill(draft);
+      for (const topic of essayTopics.filter(topic => topic.level === 'inicio').slice(1)) {
+        await draw.click();
+        assert.equal(await section.locator('#essay-topic-title').innerText(), topic.title);
+      }
+      await draw.click();
+      assert.equal(await section.locator('#essay-topic-title').innerText(), 'Toda aula precisa ter dever de casa?');
+      await section.getByRole('button',{name:'Prática guiada',exact:true}).click();
+      await draw.click();
+      assert.equal(await section.locator('#essay-topic-title').innerText(), 'De quem é a responsabilidade quando um boato se espalha em um grupo de mensagens?');
+      await page.evaluate(value => localStorage.setItem('missao-escola-essay-v1:visitante:leitura', value), previousDraft);
+      await page.reload();
+      await page.locator('#app-splash').waitFor({state:'detached'});
       await section.getByText('Meus rascunhos',{exact:true}).click();
       await section.getByRole('button',{name:/^Enem 2025/}).click();
       assert.equal(await editor.inputValue(), 'Rascunho independente de outro tema.');
       await section.getByRole('button',{name:'Como incentivar a leitura na escola?',exact:true}).click();
+      assert.equal(await editor.inputValue(), previousDraft);
+      await section.getByRole('button',{name:'Toda aula precisa ter dever de casa?',exact:true}).click();
       assert.equal(await editor.inputValue(), draft);
       await page.reload();
       await page.locator('#app-splash').waitFor({state:'detached'});

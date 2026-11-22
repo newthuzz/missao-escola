@@ -19,17 +19,92 @@ var essayCompetencies = {
   intervencao: "Proposta de interven\xE7\xE3o"
 };
 var prova = (year) => "https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/provas-e-gabaritos/" + year;
-var essayTopics = [
+var previousEssayTopics = [
   { id: "leitura", level: "inicio", title: "Como incentivar a leitura na escola?", guide: "Defenda uma ideia simples, explique por que ela ajudaria e d\xEA um exemplo do cotidiano escolar." },
   { id: "patio", level: "inicio", title: "Como melhorar o conv\xEDvio no recreio?", guide: "Escolha uma situa\xE7\xE3o comum e proponha uma medida que alunos e escola possam colocar em pr\xE1tica." },
   { id: "celular", level: "inicio", title: "O celular ajuda ou atrapalha na hora de estudar?", guide: "Escolha uma posi\xE7\xE3o e explique em quais situa\xE7\xF5es o celular pode ser \xFAtil ou prejudicial." },
   { id: "desperdicio", level: "pratica", title: "Como reduzir o desperd\xEDcio de alimentos na escola?", guide: "Apresente uma causa, explique uma consequ\xEAncia e sugira uma a\xE7\xE3o vi\xE1vel indicando quem poderia realiz\xE1-la." },
-  { id: "internet", level: "pratica", title: "O papel da escola no combate \xE0 desinforma\xE7\xE3o digital", guide: "Formule uma tese e desenvolva dois argumentos. Pense em como ensinar a verificar fontes e em quais barreiras dificultam esse trabalho." },
+  { id: "internet", level: "pratica", title: "O papel da escola no combate \xE0 desinforma\xE7\xE3o digital", guide: "Formule uma tese e desenvolva dois argumentos. Pense em como ensinar a verificar fontes e em quais barreiras dificultam esse trabalho." }
+];
+var essayTopics = [
+  {
+    id: "dever-de-casa",
+    level: "inicio",
+    title: "Toda aula precisa ter dever de casa?",
+    guide: "Diga quando o dever ajuda a aprender e quando pode virar s\xF3 mais uma tarefa. Use um exemplo para defender sua opini\xE3o."
+  },
+  {
+    id: "trabalho-em-grupo",
+    level: "inicio",
+    title: "Como dividir um trabalho em grupo de um jeito justo?",
+    guide: "Imagine que cada colega tem uma habilidade diferente. Explique como voc\xEA dividiria as tarefas e o que faria se algu\xE9m tivesse dificuldade de participar."
+  },
+  {
+    id: "errar-em-aula",
+    level: "inicio",
+    title: "O que a turma pode fazer para que ningu\xE9m tenha medo de errar?",
+    guide: "Pense em algu\xE9m que quer responder a uma pergunta, mas fica calado por medo de virar piada. Explique o que poderia mudar nessa situa\xE7\xE3o e por qu\xEA."
+  },
+  {
+    id: "notificacao-no-estudo",
+    level: "inicio",
+    title: "Vale a pena silenciar o celular na hora de estudar?",
+    guide: "Compare duas situa\xE7\xF5es: receber mensagens enquanto estuda e conferir tudo depois. Defenda a escolha que faria e explique quando abriria uma exce\xE7\xE3o."
+  },
+  {
+    id: "comida-no-prato",
+    level: "inicio",
+    title: "Escolher quanto colocar no prato ajuda a evitar desperd\xEDcio?",
+    guide: "Imagine a hora da merenda. Pense no que pode acontecer se todos receberem a mesma por\xE7\xE3o ou puderem escolher o quanto querem comer."
+  },
+  {
+    id: "lugares-do-bairro",
+    level: "inicio",
+    title: "O que faria mais diferen\xE7a para os jovens no seu bairro?",
+    guide: "Pense em algo que voc\xEA gostaria de ter por perto, como uma pra\xE7a, uma quadra ou uma biblioteca. Escolha uma ideia e explique quem se beneficiaria e por qu\xEA."
+  },
+  {
+    id: "nota-e-aprendizado",
+    level: "inicio",
+    title: "Uma nota mostra tudo o que um aluno aprendeu?",
+    guide: "Imagine dois alunos com a mesma nota que aprenderam coisas diferentes. Use um exemplo para explicar o que a nota mostra e o que pode ficar de fora."
+  },
+  {
+    id: "mensagens-de-grupo",
+    level: "pratica",
+    title: "De quem \xE9 a responsabilidade quando um boato se espalha em um grupo de mensagens?",
+    guide: "Compare o papel de quem criou o boato com o de quem compartilhou a mensagem. Explique como os participantes do grupo poderiam evitar que ela se espalhasse."
+  },
+  {
+    id: "ia-no-trabalho-escolar",
+    level: "pratica",
+    title: "At\xE9 onde vale usar intelig\xEAncia artificial nos trabalhos da escola?",
+    guide: "Compare pedir ajuda para entender um assunto e entregar uma resposta pronta. Defenda um limite para o uso da ferramenta e explique como ele ajudaria a turma a aprender."
+  },
+  {
+    id: "uniforme-escolar",
+    level: "pratica",
+    title: "O uniforme escolar deveria ser obrigat\xF3rio?",
+    guide: "Considere o custo para as fam\xEDlias e a liberdade de escolher a roupa. Defenda sua posi\xE7\xE3o e responda a um argumento de quem pensa diferente."
+  },
+  {
+    id: "transporte-escolar",
+    level: "pratica",
+    title: "Como o caminho at\xE9 a escola pode atrapalhar os estudos?",
+    guide: "Compare a rotina de quem mora perto com a de quem demora para chegar. Explique como o deslocamento afeta o dia do aluno e proponha uma medida indicando quem poderia realiz\xE1-la."
+  },
+  {
+    id: "esporte-para-todos",
+    level: "pratica",
+    title: "Como fazer mais alunos participarem dos esportes na escola?",
+    guide: "Considere por que alunos com experi\xEAncias ou habilidades diferentes podem participar menos. Proponha uma mudan\xE7a que ajude a inclu\xED-los e explique como ela funcionaria."
+  },
   { id: "enem-2022", level: "enem", year: 2022, source: prova(2022), title: "Desafios para a valoriza\xE7\xE3o de comunidades e povos tradicionais no Brasil", guide: "Leia os textos motivadores da prova e formule uma interven\xE7\xE3o que respeite os direitos humanos e a autonomia das comunidades." },
   { id: "enem-2023", level: "enem", year: 2023, source: "https://download.inep.gov.br/enem/provas_e_gabaritos/tema_redacao_2023.pdf", title: "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil", guide: "Explore a rela\xE7\xE3o entre a divis\xE3o do trabalho de cuidado e sua pouca visibilidade social. Use seus pr\xF3prios argumentos." },
   { id: "enem-2024", level: "enem", year: 2024, source: prova(2024), title: "Desafios para a valoriza\xE7\xE3o da heran\xE7a africana no Brasil", guide: "Considere como diferentes institui\xE7\xF5es podem valorizar a heran\xE7a africana. Evite afirma\xE7\xF5es gen\xE9ricas sem explica\xE7\xE3o." },
   { id: "enem-2025", level: "enem", year: 2025, source: prova(2025), title: "Perspectivas acerca do envelhecimento na sociedade brasileira", guide: "Delimite o aspecto do envelhecimento que sua tese vai defender. Relacione suas propostas aos obst\xE1culos discutidos no texto." }
 ];
+var allEssayTopics = [...essayTopics, ...previousEssayTopics];
 
 // server/tutor-shared.mjs
 var MODEL = "gpt-5-mini";
@@ -385,7 +460,7 @@ async function reviewRequest(request, env) {
   if (!/^Bearer \S+$/.test(auth)) return reply({ error: "Entre na sua conta para corrigir a reda\xE7\xE3o." }, 401);
   try {
     const body = await readTutorJson(request);
-    const topic = essayTopics.find((entry) => entry.id === body?.topicId);
+    const topic = allEssayTopics.find((entry) => entry.id === body?.topicId);
     const essay = typeof body?.essay === "string" ? body.essay.trim() : "";
     if (!topic) throw new TutorError("Escolha um tema da \xE1rea de Reda\xE7\xE3o.");
     if (essay.length < essayLimits.min || essay.length > essayLimits.max) {

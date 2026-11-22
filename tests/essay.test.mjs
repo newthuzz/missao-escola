@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {essayCompetencies} from '../essay-catalog.mjs';
+import {allEssayTopics, essayCompetencies} from '../essay-catalog.mjs';
 import {handleEssayRequest, parseEssayReview} from '../server/essay-edge.mjs';
 
 const user = '00000000-0000-4000-8000-000000000001';
@@ -37,6 +37,7 @@ test('keeps only literal quotes and rejects an incomplete rubric', () => {
 test('authenticates first, reserves shared quota and sends the theme and text to the provider', async () => {
   const previous = globalThis.fetch;
   let calls = [], deny = false, fail = false;
+  let expectedTopic = allEssayTopics.find(topic => topic.id === payload.topicId);
   globalThis.fetch = async (url, options) => {
     calls.push(url);
     if (url.endsWith('/auth/v1/user')) {
@@ -54,8 +55,9 @@ test('authenticates first, reserves shared quota and sends the theme and text to
     assert.equal(body.store, false);
     const submitted = JSON.parse(body.input[0].content);
     assert.equal(submitted.essay, text);
-    assert.equal(submitted.level, 'inicio');
-    assert.match(submitted.topic, /leitura/);
+    assert.equal(submitted.level, expectedTopic.level);
+    assert.equal(submitted.topic, expectedTopic.title);
+    assert.equal(submitted.guide, expectedTopic.guide);
     assert.ok(!JSON.stringify(body).includes('private-service-key'));
     return Response.json({status:fail?'incomplete':'completed', output:[{type:'message', content:[{type:'output_text', text:JSON.stringify(output)}]}]});
   };
@@ -79,6 +81,10 @@ test('authenticates first, reserves shared quota and sends the theme and text to
     assert.equal(result.status, 200);
     assert.equal(result.headers.get('Access-Control-Allow-Origin'), 'https://school.example');
     assert.equal((await result.json()).review.nextStep, output.nextStep);
+
+    expectedTopic = allEssayTopics.find(topic => topic.id === 'dever-de-casa');
+    const newTopicReview = await handleEssayRequest({request:request({...payload, topicId:expectedTopic.id}), env});
+    assert.equal(newTopicReview.status, 200);
   } finally {
     globalThis.fetch = previous;
   }

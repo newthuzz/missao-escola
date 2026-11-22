@@ -1,6 +1,6 @@
 import {getAccountToken, getAccountUser} from './account.js';
 import {KEY, URL} from './cloud-api.mjs';
-import {essayCompetencies, essayLevels, essayLimits, essayTopics} from './essay-catalog.mjs';
+import {allEssayTopics, essayCompetencies, essayLevels, essayLimits, essayTopics} from './essay-catalog.mjs';
 
 const page = document.querySelector('#page-redacao');
 const element = id => page.querySelector('#' + id);
@@ -55,7 +55,8 @@ function write(entry, value) {
 function lastTopic() {
   const drawn = read('tema-sorteado');
   const id = drawn || read('ultimo-tema');
-  return essayTopics.find(topic => topic.id === id && (drawn || read(topic.id).trim())) ?? null;
+  if (read(id).trim()) return allEssayTopics.find(topic => topic.id === id) ?? null;
+  return drawn ? essayTopics.find(topic => topic.id === drawn) ?? null : null;
 }
 
 function saveDraft() {
@@ -125,7 +126,7 @@ function drawTopic() {
 }
 
 function renderDrafts() {
-  const entries = essayTopics.filter(topic => read(topic.id).trim());
+  const entries = allEssayTopics.filter(topic => read(topic.id).trim());
   element('essay-drafts').hidden = !entries.length;
   topics.replaceChildren(...entries.map(topic => {
     const button = document.createElement('button');
@@ -196,7 +197,7 @@ levels.addEventListener('click', event => {
 draw.addEventListener('click', drawTopic);
 topics.addEventListener('click', event => {
   const id = event.target.closest('[data-essay-topic]')?.dataset.essayTopic;
-  if (id && id !== selected?.id) chooseTopic(essayTopics.find(topic => topic.id === id), true);
+  if (id && id !== selected?.id) chooseTopic(allEssayTopics.find(topic => topic.id === id), true);
 });
 editor.maxLength = essayLimits.max;
 editor.addEventListener('input', () => {
