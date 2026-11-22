@@ -1,16 +1,10 @@
 import {URL as DEFAULT_URL,KEY as PUBLIC_KEY} from '../cloud-api.mjs';
 import {TutorError,authorizedContext,memoryWindow,modelMessages,arithmeticChecks} from './tutor-core.mjs';
 import {tutorProvider} from './tutor-provider.mjs';
+import {readTutorJson} from './tutor-http.mjs';
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>Response.json(body,{status,headers});
 const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-async function readBody(request) {
-  let raw='',size=0;const reader=request.body?.getReader();
-  if(!reader)throw new TutorError('Requisição vazia.');
-  const decoder=new TextDecoder();
-  for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>14000){await reader.cancel();throw new TutorError('Mensagem muito grande.',413);}raw+=decoder.decode(value,{stream:true});}
-  try{return JSON.parse(raw+decoder.decode());}catch{throw new TutorError('Mensagem inválida.');}
-}
 function deadline(promise,ms,signal) {
   return new Promise((resolve,reject)=>{
     const stop=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);};
@@ -28,7 +22,7 @@ export async function onRequest({request,env,waitUntil}) {
   if(!env.SUPABASE_SERVICE_ROLE_KEY)return reply({error:'O tutor ainda não está disponível. Tente novamente mais tarde.'},503);
   const base=env.SUPABASE_URL||DEFAULT_URL,publicKey=env.SUPABASE_ANON_KEY||PUBLIC_KEY;
   try {
-    const body=await readBody(request);
+    const body=await readTutorJson(request);
     if(!body||!['state','send','delete'].includes(body.op))throw new TutorError('Operação inválida.');
     const userResponse=await fetch(base+'/auth/v1/user',{headers:{apikey:publicKey,Authorization:auth},signal:AbortSignal.timeout(8000)});
     if(!userResponse.ok)throw new TutorError('Sua sessão expirou. Entre novamente.',401);

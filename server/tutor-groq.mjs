@@ -1,4 +1,4 @@
-import {TutorError} from './tutor-core.mjs';
+import {TutorError} from './tutor-shared.mjs';
 export const GROQ_MODEL='openai/gpt-oss-20b';
 const encoder=new TextEncoder();
 export function createGroq(key,model=GROQ_MODEL){

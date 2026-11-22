@@ -1,4 +1,4 @@
-import {MODEL,TutorError} from './tutor-core.mjs';
+import {MODEL,TutorError} from './tutor-shared.mjs';
 import {createOpenAI} from './tutor-openai.mjs';
 import {createGroq,GROQ_MODEL} from './tutor-groq.mjs';
 export function tutorProvider(env){

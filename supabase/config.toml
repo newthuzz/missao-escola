@@ -2,3 +2,6 @@
 # The legacy JWT gateway must not reject publishable/asymmetric-key requests first.
 [functions.quick-endpoint]
 verify_jwt = false
+
+[functions.essay-review]
+verify_jwt = false

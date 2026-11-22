@@ -1,4 +1,4 @@
-import {MODEL,TutorError} from './tutor-core.mjs';
+import {MODEL,TutorError} from './tutor-shared.mjs';
 const encoder=new TextEncoder();
 export function createOpenAI(key) {
   return {async run({messages,maxOutputTokens,stream,signal}) {

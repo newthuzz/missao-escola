@@ -1,10 +1,8 @@
 import catalog from './tutor-catalog.json' with {type:'json'};
-export const MODEL='gpt-5-mini';
+import {TutorError} from './tutor-shared.mjs';
+export {MODEL,TutorError} from './tutor-shared.mjs';
 export const questions=new Map(catalog.questions.map(q=>[q.id,q]));
 const units=new Map(catalog.units.map(u=>[u.id,u]));
-export class TutorError extends Error {
-  constructor(message,status=400){super(message);this.status=status;}
-}
 export function authorizedContext(input={},snapshot={}) {
   if(!input||typeof input!=='object')throw new TutorError('Contexto inválido.');
   const learner=snapshot.learner||{},savedGrade=Number(learner.profile?.grade);

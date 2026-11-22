@@ -43,7 +43,7 @@ body[data-screen="aprendizagem"] .mobile-tools { display:none; }
 #page-aprendizagem .study-legacy-controls[hidden],#study-settings[hidden],#learning-library[hidden],.study-return[hidden]{display:none!important}
 #page-aprendizagem:not(.study-in-activity)>#tool-recuperacao{display:none}
 #page-aprendizagem.study-in-activity .study-entry,#page-aprendizagem.study-in-activity .study-subject-picker,#page-aprendizagem.study-in-activity .study-time,#page-aprendizagem.study-in-activity .study-secondary{display:none!important}
-#page-aprendizagem.study-needs-grade .study-subject-picker,#page-aprendizagem.study-needs-grade .study-time{display:none}
+#page-aprendizagem.study-needs-grade .study-time{display:none}
 .study-subject-picker{margin:.5rem 0 1.4rem}
 .study-section-intro h2,.study-time h2,.study-modes h2{font-size:1.25rem;line-height:1.35;color:var(--ink);margin:.35rem 0 .5rem}
 .study-section-intro p,.study-time p,.study-modes>p{color:var(--muted);font-size:.9rem;line-height:1.6;margin:0 0 .9rem}
