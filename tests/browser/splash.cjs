@@ -11,13 +11,14 @@ const root=path.resolve(__dirname,'../../dist');
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
-  for(const scenario of ['public','css-reset','slow-logo','background','stalled-font','opera-agent','authenticated','expired','offline','slow-auth','slow-resources','mobile','landscape','reduced','slow-cpu']){
+  for(const scenario of ['revoked','public','css-reset','slow-logo','background','stalled-font','opera-agent','authenticated','expired','offline','slow-auth','slow-resources','mobile','landscape','reduced','slow-cpu']){
    const context=await browser.newContext({viewport:{width:scenario==='mobile'?360:scenario==='landscape'?640:1280,height:scenario==='landscape'?360:900},reducedMotion:scenario==='reduced'?'reduce':'no-preference',...(scenario==='opera-agent'?{userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 OPR/115.0.0.0'}:{})});
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
-   if(['authenticated','expired','offline','slow-auth'].includes(scenario))await page.addInitScript(()=>localStorage.setItem('missao-escola-supabase-session',JSON.stringify({access_token:'test-token',refresh_token:'test-refresh',expires_at:Date.now()/1000+3600,user:{id:'test-user',email:'test@example.com'}})));
+   if(['authenticated','expired','revoked','offline','slow-auth'].includes(scenario))await page.addInitScript(()=>localStorage.setItem('missao-escola-supabase-session',JSON.stringify({access_token:'test-token',refresh_token:'test-refresh',expires_at:Date.now()/1000+3600,user:{id:'test-user',email:'test@example.com'}})));
    await page.route('**/*.supabase.co/**',async route=>{
     if(route.request().url().includes('/auth/v1/user')){
      if(scenario==='offline')return route.abort();
+     if(scenario==='revoked')return route.fulfill({status:403,json:{error_code:'session_not_found'}});
      if(scenario==='authenticated')await new Promise(r=>setTimeout(r,1400));
      if(scenario==='slow-auth')await new Promise(r=>setTimeout(r,6200));
      return route.fulfill({status:scenario==='expired'?401:200,json:scenario==='expired'?{message:'Expired'}:{id:'test-user',email:'test@example.com'}}).catch(()=>{});
@@ -87,6 +88,12 @@ const root=path.resolve(__dirname,'../../dist');
    assert.equal(await page.locator('.app-shell').evaluate(el=>el.inert),false);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    if(scenario==='expired')assert.equal(await page.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')),null);
+   if(scenario==='revoked'){
+    assert.equal(await page.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')),null);
+    assert.equal(await page.locator('.startup-notice').count(),0);
+    await page.locator('#account-form [value="login"]').waitFor();
+    assert.match(await page.locator('.account-tools [role="status"]').innerText(),/Sua sessão expirou/);
+   }
    if(scenario==='offline'){
     assert.ok(await page.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')));
     await page.locator('.startup-notice button').getByText('Tentar novamente',{exact:true}).waitFor({state:'visible'});

@@ -20,7 +20,9 @@
    const notice=document.createElement('aside');notice.className='startup-notice';notice.setAttribute('aria-label','Conexão');
    const message=document.createElement('p');message.textContent=retryMessage;message.setAttribute('role','status');
    const retry=document.createElement('button');retry.type='button';retry.textContent='Tentar novamente';retry.onclick=()=>location.reload();
-   const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.onclick=()=>notice.remove();
+   function dismiss(){notice.remove();window.removeEventListener('missao-account-ready',dismiss);}
+   const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.onclick=dismiss;
+   window.addEventListener('missao-account-ready',dismiss,{once:true});
    notice.append(message,retry,close);document.body.append(notice);
   }
  }

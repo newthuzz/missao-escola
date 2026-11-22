@@ -1,4 +1,5 @@
 import {validAvatar} from '../../avatar-catalog.mjs';
+import {isInvalidAuthSession} from '../../cloud-api.mjs';
 const OPS = new Set(['state','register','profile','invite','accept','decline','remove','block','unblock','join','start','answer']);
 const reply = (body,status=200) => new Response(JSON.stringify(body), {status,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 export function questions(random = max => crypto.getRandomValues(new Uint32Array(1))[0] % max) {
@@ -23,10 +24,15 @@ export async function onRequest({request,env}) {
     let body;try {body=JSON.parse(raw);} catch {return reply({error:'JSON inválido.'},400);}
     if(!body || !OPS.has(body.op)) return reply({error:'Operação inválida.'},400);
     const headers={apikey:env.SUPABASE_SERVICE_ROLE_KEY,Authorization:auth};
-    const userResponse=await fetch(base+'/auth/v1/user',{headers});
-    if(!userResponse.ok) return reply({error:'Sessão inválida. Entre novamente.'},401);
-    const user=await userResponse.json();
-    if(!user.id) return reply({error:'Sessão inválida.'},401);
+    const userResponse=await fetch(base+'/auth/v1/user',{headers,cache:'no-store'});
+    const user=await userResponse.json().catch(()=>null);
+    if(!userResponse.ok){
+      if(isInvalidAuthSession(userResponse.status,user?.error_code||user?.code)&&user?.message!=='Invalid API key'){
+        return reply({error:'Sua sessão expirou. Entre novamente.',code:'invalid_session'},401);
+      }
+      return reply({error:'Não foi possível verificar sua conta agora. Tente novamente.'},502);
+    }
+    if(typeof user?.id!=='string'||!user.id)return reply({error:'Não foi possível verificar sua conta agora. Tente novamente.'},502);
     // Never accept caller-supplied identity, points, correct answers or questions.
     const args={};
     for(const key of ['nickname','avatar','cover','frame','title','code','target','session','cursor','answer']) if(Object.hasOwn(body,key)) args[key]=body[key];

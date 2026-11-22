@@ -1,6 +1,6 @@
 import {mountSocial} from './social.js';
 const personIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
-export function mountCommunityNavigation({getToken,getUser,isStaff,makeProfileReceiver}){
+export function mountCommunityNavigation({getToken,getUser,isStaff,makeProfileReceiver,onInvalidSession}){
  const side=document.querySelector('.side-nav'),accountNav=document.createElement('button');accountNav.type='button';accountNav.className='nav-link account-nav';accountNav.dataset.page='social';accountNav.innerHTML=`<span class="account-nav-icon">${personIcon}</span><span><strong>Minha conta</strong><small>Perfil, amigos e sincronização</small></span>`;side.querySelector('.secondary-caption').after(accountNav);
  const mobile=document.createElement('button');mobile.type='button';mobile.dataset.page='social';mobile.className='mobile-account-nav';mobile.setAttribute('aria-label','Minha conta, perfil e amigos');mobile.innerHTML=`<span class="account-nav-icon">${personIcon}</span><span>Minha conta</span>`;document.querySelector('.mobile-nav').append(mobile);
  const ranks=document.querySelector('#page-conquistas'),intro=ranks.querySelector('.page-intro');ranks.querySelector('#badges-title').innerHTML='Ranks, ligas e conquistas';intro.querySelector('p').textContent='Participe da liga semanal ou acompanhe sua evolução pessoal. Pontos da liga e XP de estudo ficam separados.';
@@ -23,7 +23,7 @@ export function mountCommunityNavigation({getToken,getUser,isStaff,makeProfileRe
   const inLeague=state.page==='conquistas'&&rankTab==='league',destination=inLeague?leagueHost:accountSlot;
   if(model&&!inLeague&&state.page!=='social')return;
   if(!destination)return;
-  if(!model){social=document.createElement('article');social.id='social-features';social.className='social-box';destination.replaceChildren(social);modelOwner=owner;model=mountSocial(social,getToken,getUser,makeProfileReceiver(owner),{section:inLeague?'league':'community',onOpenAccount:()=>navigate('social'),onOpenLeagues:openLeagues});}
+  if(!model){social=document.createElement('article');social.id='social-features';social.className='social-box';destination.replaceChildren(social);modelOwner=owner;model=mountSocial(social,getToken,getUser,makeProfileReceiver(owner),{section:inLeague?'league':'community',onOpenAccount:()=>navigate('social'),onOpenLeagues:openLeagues,onInvalidSession});}
   else{if(social.parentElement!==destination)destination.replaceChildren(social);model.showSection(inLeague?'league':'community');}
  }
  tabs.addEventListener('click',e=>{const b=e.target.closest('[data-ranks-tab]');if(b)selectTab(b.dataset.ranksTab);});

@@ -34,6 +34,17 @@ test('rejects invalid answers and invalid JWTs before database mutation',async()
  globalThis.fetch=async()=>new Response('',{status:401});
  assert.equal((await onRequest(context({op:'join'}))).status,401);
 });
+test('distinguishes a revoked session from an upstream outage',async()=>{
+ globalThis.fetch=async()=>Response.json({error_code:'session_not_found'},{status:403});
+ const revoked=await onRequest(context({op:'state'}));
+ assert.equal(revoked.status,401);
+ assert.equal((await revoked.json()).code,'invalid_session');
+
+ globalThis.fetch=async()=>new Response(null,{status:503});
+ assert.equal((await onRequest(context({op:'state'}))).status,502);
+ globalThis.fetch=async()=>Response.json({message:'Invalid API key'},{status:401});
+ assert.equal((await onRequest(context({op:'state'}))).status,502);
+});
 test('question answer indexes match arithmetic and choices are unique',()=>{
  for(let j=0;j<100;j++)for(const q of questions()){
  const [a,b]=q.question.match(/\d+/g).map(Number);const value=q.question.includes('−')?a-b:a+b;

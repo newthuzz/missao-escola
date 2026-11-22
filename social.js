@@ -36,7 +36,20 @@ export function mountSocial(container,getToken,getUser=()=>null,onProfile=()=>{}
   container.setAttribute('aria-busy',String(busy));container.querySelectorAll('button,input,select').forEach(el=>el.disabled=busy);
   if(focus)container.querySelector(`[data-action="${focus}"]`)?.focus();
  }
- async function api(op,body={}){checkOwner();const access=await getToken();checkOwner();const r=await fetch('/api/social',{signal:AbortSignal.timeout(15000),method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${access}`},body:JSON.stringify({op,...body})});const v=await r.json().catch(()=>({error:'A comunidade está indisponível.'}));if(!r.ok||v?.error){if(op==='answer'&&r.status<500)pendingAnswer=null;throw Error(r.status>=500?'A comunidade está indisponível. Tente novamente mais tarde.':v.error||'Não foi possível concluir.');}checkOwner();return v;}
+ async function api(op,body={}){
+  checkOwner();
+  const access=await getToken();
+  checkOwner();
+  const r=await fetch('/api/social',{signal:AbortSignal.timeout(15000),method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${access}`},body:JSON.stringify({op,...body})});
+  const v=await r.json().catch(()=>({error:'A comunidade está indisponível.'}));
+  checkOwner();
+  if(!r.ok||v?.error){
+   if(r.status===401&&v?.code==='invalid_session')options.onInvalidSession?.(access);
+   if(op==='answer'&&r.status<500)pendingAnswer=null;
+   throw Error(r.status>=500?'A comunidade está indisponível. Tente novamente mais tarde.':v.error||'Não foi possível concluir.');
+  }
+  return v;
+ }
  async function execute(op,body={}){
   if(busy)return false;busy=true;error=false;notice='Conectando à sua comunidade…';render();
   try{const v=await api(op,body);if(op==='answer'){result=v;pendingAnswer=null;notice=`${v.correct?'Resposta correta!':'Vamos revisar juntos.'} ${v.explanation} +${v.points} pontos confirmados.${v.finished?' Desafio concluído.':''}`;data=await api('state');}else{data=v;notice=op==='profile'?'Perfil salvo. Sua identidade está pronta!':op==='register'?'Boas-vindas à sua base! Personalize seu perfil.':op==='invite'?'Convite enviado.':op==='block'?'Jogador bloqueado e amizade removida.':op==='unblock'?'Jogador desbloqueado.':'Comunidade atualizada.';}

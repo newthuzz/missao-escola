@@ -2,12 +2,13 @@ import {mountPedagogy} from './pedagogy-ui.js';
 import {readAuthCallback} from './auth-callback.mjs';
 import {setIslandAvatarAccount,islandAvatarReceiver} from './island-avatar.js';
 import {mountCommunityNavigation} from './community-navigation.js';
-import {request, saveBackup, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
+import {request, saveBackup, isInvalidAuthSession, URL as SUPABASE_URL, KEY as SUPABASE_KEY} from './cloud-api.mjs';
 import {createProgressSync} from './progress-sync.mjs';
 const SESSION_KEY='missao-escola-supabase-session', META_KEY='missao-escola-cloud-sync-v1';
 const initialSyncStatus={kind:'checking',message:'Conferindo seus estudos…'};
+const expiredSessionMessage='Sua sessão expirou. Entre novamente; seus estudos locais foram mantidos.';
 let session=null,backup=null,busy=false,sync=null,syncTimer=null,refreshingToken=null,pedagogy=null,callbackMessage='';
-let syncStatus=initialSyncStatus, formDirty=false;
+let syncStatus=initialSyncStatus, formDirty=false, sessionExpired=false;
 try {session=JSON.parse(localStorage.getItem(SESSION_KEY));} catch {}
 const authCallback=location.protocol==='file:'?null:readAuthCallback(location.href);
 if(authCallback){history.replaceState(null,'',location.pathname+location.search+'#social');if(authCallback.session)session=authCallback.session;else callbackMessage=authCallback.error;}
@@ -21,18 +22,32 @@ function store(value){
  try{if(value)localStorage.setItem(SESSION_KEY,JSON.stringify(value));else localStorage.removeItem(SESSION_KEY);}catch{}
  window.dispatchEvent(new CustomEvent('missao-account-change'));
 }
+function clearLocalSession(){
+ stopSync();
+ backup=null;
+ syncStatus=initialSyncStatus;
+ store(null);
+}
+function invalidateSession(access){
+ if(!access||session?.access_token!==access)return;
+ clearLocalSession();
+ sessionExpired=true;
+ if(state.page!=='social')navigate('social');
+ renderAccount();
+}
 export {token as getAccountToken};
 export const getAccountUser=()=>session?.user?.id||null;
-const communityNavigation=mountCommunityNavigation({getToken:token,getUser:getAccountUser,isStaff:()=>Boolean(pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace)),makeProfileReceiver:islandAvatarReceiver});
+const communityNavigation=mountCommunityNavigation({getToken:token,getUser:getAccountUser,isStaff:()=>Boolean(pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace)),makeProfileReceiver:islandAvatarReceiver,onInvalidSession:invalidateSession});
 async function token(){
  if(!session?.access_token)throw Error('Entre na sua conta primeiro.');
  if(!session.expires_at||session.expires_at<Date.now()/1000+60){
   if(!refreshingToken){const original=session;refreshingToken=(async()=>{
    try{const next=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:original.refresh_token}});if(session?.refresh_token!==original.refresh_token||session?.user?.id!==original.user?.id)throw Error('A conta foi alterada durante a renovação da sessão.');store({...next,expires_at:Date.now()/1000+next.expires_in,recoveryPending:original.recoveryPending});}
-   catch(e){if((e.status===400||e.status===401)&&session?.refresh_token===original.refresh_token&&session?.user?.id===original.user?.id){store(null);renderAccount('Sua sessão expirou. Entre novamente; seus estudos locais foram mantidos.');}throw e;}
+   catch(e){if((e.status===400||isInvalidAuthSession(e.status,e.code))&&session?.refresh_token===original.refresh_token&&session?.user?.id===original.user?.id)invalidateSession(original.access_token);throw e;}
   })().finally(()=>{refreshingToken=null;});}
   await refreshingToken;
  }
+ if(!session?.access_token)throw Error('Entre na sua conta primeiro.');
  return session.access_token;
 }
 function showSync(value){
@@ -41,6 +56,7 @@ function showSync(value){
  const copy=page.querySelector('#account-copy-date');if(copy)copy.textContent=backup?'Última cópia consultada: '+new Date(backup.updated_at).toLocaleString('pt-BR'):'';
 }
 function renderAccount(message=''){
+ if(sessionExpired&&!session&&!busy)message=expiredSessionMessage;
  const staffAccount=pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace);
  setIslandAvatarAccount(session?.user?.id);
  page.innerHTML=`${session?.recoveryPending&&session.user?.id?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Minha conta'}</h1><p>Seu perfil, seus amigos e seus estudos sincronizados.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><div id="account-community-slot"></div>`;
@@ -90,14 +106,12 @@ for(const name of ['save','saveLearner','persistRoutine']){
  if(name==='saveLearner'){const previous=saveLearner;saveLearner=function(...args){const result=previous(...args);scheduleSync();return result;};}
  if(name==='persistRoutine'){const previous=persistRoutine;persistRoutine=function(...args){const result=previous(...args);scheduleSync();return result;};}
 }
-async function run(work){if(busy)return;busy=true;renderAccount('Conectando…');try{const message=await work();busy=false;renderAccount(message||'Pronto.');}catch(e){busy=false;renderAccount(e.message);}}
+async function run(work){if(busy)return;sessionExpired=false;busy=true;renderAccount('Conectando…');try{const message=await work();busy=false;renderAccount(message||'Pronto.');}catch(e){busy=false;renderAccount(e.message);}}
 function signOut(){
  const access=session?.access_token;
  if(!access||busy)return;
- stopSync();
- backup=null;
- syncStatus=initialSyncStatus;
- store(null);
+ sessionExpired=false;
+ clearLocalSession();
  if(state.page!=='social')navigate('social');
  renderAccount('Conta desconectada. Os estudos locais foram mantidos.');
  const status=page.querySelector('.account-tools > [role="status"]');
@@ -134,8 +148,10 @@ page.addEventListener('submit',event=>{
   if(!result.access_token)return action==='teacher-signup'?'Confira seu e-mail para confirmar a conta. Depois, entre como professor para consultar a análise institucional. Se já possui conta, entre nela para solicitar acesso.':'Confira seu e-mail para confirmar a conta. Depois, entre aqui.';
   store({...result,expires_at:Date.now()/1000+result.expires_in});backup=null;
   const context=await pedagogy?.afterAuthentication({intent});
+  if(!session?.access_token)return expiredSessionMessage;
   if(context)store({...session,pedagogy_staff:['teacher','admin'].includes(context.role)});
   if(context?.canSwitchWorkspace&&pedagogy.workspace==='student'){await startSync();}else if(intent==='teacher'||context&&['teacher','admin'].includes(context.role)){stopSync();}else await startSync();
+  if(!session?.access_token)return expiredSessionMessage;
   window.dispatchEvent(new CustomEvent('missao-account-ready',{detail:{role:context?.role||'student'}}));return context?'Conta conectada. Suas permissões foram verificadas no servidor.':'Conta conectada. O apoio institucional está indisponível; seus estudos continuam disponíveis.';
  });
 });
@@ -160,6 +176,7 @@ window.addEventListener('storage',event=>{
   const changed=session?.user?.id!==next?.user?.id;
   session=next;
   if(changed){
+   sessionExpired=false;
    stopSync();backup=null;syncStatus=initialSyncStatus;
    window.dispatchEvent(new CustomEvent('missao-account-change'));
    prepareInitialAccount();
@@ -173,7 +190,7 @@ setInterval(()=>{if(!document.hidden)sync?.tick();},20000);
 async function prepareInitialAccount(){
  let message=callbackMessage,access=null,connectionError=false;
  if(session?.access_token){
-  const userId=session.user?.id,controller=new AbortController();let timer;
+  const initialAccess=session.access_token,userId=session.user?.id,controller=new AbortController();let timer;
   try{
    // Use the existing refresh path; never trust only a saved access token.
    await Promise.race([
@@ -183,17 +200,24 @@ async function prepareInitialAccount(){
       headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${access}`},
       cache:'no-store',signal:controller.signal
      });
-     if(!response.ok){const error=Error('Não foi possível verificar a sessão.');error.status=response.status;throw error;}
-     const user=await response.json();
+     const user=await response.json().catch(()=>null);
+     if(!response.ok)throw Object.assign(Error('Não foi possível verificar a sessão.'),{status:response.status,code:user?.error_code||user?.code});
+     if(!user?.id)throw Error('Não foi possível verificar a sessão.');
      if(session?.access_token===access&&session?.user?.id===userId)store({...session,user});
     })(),
     new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('A verificação da conta demorou.'));},4500);})
    ]);
   }catch(error){
-   if((error.status===400||error.status===401)&&session?.access_token===access){
-    stopSync();store(null);message='Sua sessão expirou. Entre novamente; seus estudos locais foram mantidos.';
-   }else{connectionError=true;message='Não foi possível verificar a conta agora. Seus estudos locais continuam disponíveis.';}
+   const checkedAccess=access||initialAccess;
+   if(session?.access_token===checkedAccess){
+    if(error.status===400||isInvalidAuthSession(error.status,error.code)){
+     invalidateSession(checkedAccess);
+     return {connectionError:false};
+    }
+    connectionError=true;message='Não foi possível verificar a conta agora. Seus estudos locais continuam disponíveis.';
+   }
   }finally{clearTimeout(timer);}
+  if(session?.access_token!==(access||initialAccess)&&(!session?.access_token||session.user?.id!==userId))return {connectionError:false};
  }
  renderAccount(message);
  const context=await pedagogy?.afterAuthentication({redirect:!session?.recoveryPending});

@@ -7,7 +7,11 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
  for(const file of ['social.sql','social-personalization.sql','social-avatar-studio.sql'])await db.exec(fs.readFileSync(path.resolve(__dirname,'../../supabase',file),'utf8'));
  const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000000002';await db.query('insert into auth.users values($1),($2)',[A,B]);
  const rpc=async(user,op,body={})=>(await db.query('select public.social_action($1,$2,$3) as result',[user,op,JSON.stringify(body)])).rows[0].result;
- global.fetch=async(url,opts)=>{if(url.includes('/auth/v1/user'))return Response.json({id:opts.headers.Authorization==='Bearer token-a'?A:B});try{const b=JSON.parse(opts.body);return Response.json(await rpc(b.p_user,b.p_op,b.p_body));}catch(e){return Response.json({code:e.cause?.code||e.code||'P0001',message:e.message},{status:400});}};
+ let revokedAccess=null;
+ global.fetch=async(url,opts)=>{if(url.includes('/auth/v1/user')){
+  if(opts.headers.Authorization===revokedAccess)return Response.json({error_code:'session_not_found'},{status:403});
+  return Response.json({id:opts.headers.Authorization==='Bearer token-a'?A:B});
+ }try{const b=JSON.parse(opts.body);return Response.json(await rpc(b.p_user,b.p_op,b.p_body));}catch(e){return Response.json({code:e.cause?.code||e.code||'P0001',message:e.message},{status:400});}};
  let unavailable=false,holdNextState=false,releaseState=null,observeHold=null;const root=path.resolve(__dirname,'../../dist');
  const server=http.createServer(async(req,res)=>{
   if(req.url==='/api/social'){let raw='';for await(const chunk of req)raw+=chunk;const response=unavailable?Response.json({error:'unavailable'},{status:503}):await onRequest({env:{SUPABASE_SERVICE_ROLE_KEY:'local-test'},request:new Request('http://127.0.0.1:'+server.address().port+req.url,{method:req.method,headers:req.headers,body:raw})});if(holdNextState&&JSON.parse(raw).op==='state'&&req.headers.authorization==='Bearer token-a'){holdNextState=false;await new Promise(resolve=>{releaseState=resolve;observeHold?.();});}res.writeHead(response.status,Object.fromEntries(response.headers));res.end(await response.text());return;}
@@ -56,6 +60,22 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   for(const destination of ['recompensas','conquistas','social']){await a.locator(`.mobile-spaces [data-page="${destination}"]`).click();assert.equal(await a.evaluate(()=>state.page),destination);}
   await base(a).getByRole('button',{name:'Amigos',exact:true}).click();await base(a).screenshot({path:'work/social-captures/friends.png'});await openLeague(a);await base(a).screenshot({path:'work/social-captures/league.png'});
   unavailable=true;await base(a).getByRole('button',{name:'Atualizar',exact:true}).click();await base(a).getByRole('button',{name:'Tentar novamente',exact:true}).waitFor();assert.ok(!(await base(a).textContent()).includes('Cloudflare'));unavailable=false;await a.getByRole('button',{name:'Tentar novamente',exact:true}).click();await a.waitForFunction(()=>!document.querySelector('#social-features [disabled]'));assert.deepEqual(errors,[]);
+  const localXp=await b.evaluate(()=>{J.award(progress,{id:'revoked-local',date:today,xp:25,coins:0,label:'Local test',kind:'questao'});save();return J.xp(progress);});
+  revokedAccess='Bearer token-b';
+  await base(b).getByRole('button',{name:'Atualizar',exact:true}).click();
+  await b.locator('#account-form [value="login"]').waitFor({timeout:5000});
+  assert.equal(await b.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')),null);
+  assert.equal(await b.evaluate(()=>J.xp(progress)),localXp);
+  assert.equal(await base(b).count(),0);
+  assert.match(await b.locator('.account-tools [role="status"]').innerText(),/Sua sessão expirou/);
+  await b.route(/\/auth\/v1\/token\?grant_type=password$/,route=>route.fulfill({json:{access_token:'token-b-new',refresh_token:'refresh-b-new',expires_in:3600,user:{id:B,email:'test@example.test'}}}));
+  await b.locator('#account-form [name="email"]').fill('test@example.test');
+  await b.locator('#account-form [name="password"]').fill('test-password');
+  await b.locator('#account-form [value="login"]').click();
+  await base(b).getByText('Noah do bosque',{exact:true}).first().waitFor();
+  assert.equal(await b.evaluate(()=>J.xp(progress)),localXp);
+  console.log('PASS revoked community session opens sign-in and a new session restores the profile');
+
   holdNextState=true;const held=new Promise(resolve=>observeHold=resolve);await base(a).getByRole('button',{name:'Atualizar',exact:true}).click();await held;
   await a.evaluate(()=>{navigate('jornada');localStorage.removeItem('missao-escola-supabase-session');window.dispatchEvent(new StorageEvent('storage',{key:'missao-escola-supabase-session',newValue:null}));});assert.equal(await a.locator('.journey-social-avatar').getAttribute('data-journey-avatar'),'local-default');assert.equal(await a.locator('.avatar-bob').count(),1);releaseState();await a.waitForTimeout(100);assert.equal(await a.locator('#social-features').count(),0);assert.ok(!(await a.locator('#league-features').innerText()).includes('Lia das ilhas'));assert.ok(!(await a.locator('#account-community-slot').innerText()).includes('Lia das ilhas'));
   console.log('PASS journey avatar in six islands + mobile + logout fallback; SQL-backed browsers (24-model avatar studio with palette/accessory/filter): profile persistence/cancel/focus, invitations, block/unblock, league and resumed challenge, errors, 3 widths × 2 themes.');

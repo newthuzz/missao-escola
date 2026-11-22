@@ -1,5 +1,9 @@
 export const URL = 'https://pxnvttqsgjnakeukttdr.supabase.co';
 export const KEY = 'sb_publishable_v3EJ6JyxoqHS6Jk75oXhOQ_lFS7KYsJ';
+const invalidSessionCodes = new Set(['session_not_found', 'user_not_found', 'refresh_token_not_found', 'refresh_token_already_used', 'bad_jwt']);
+export function isInvalidAuthSession(status, code) {
+  return status === 401 || invalidSessionCodes.has(code);
+}
 export async function request(path, {token, method = 'GET', body, timeout = 15000, allowNoContent = false} = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
@@ -16,7 +20,7 @@ export async function request(path, {token, method = 'GET', body, timeout = 1500
   if (!response.ok) {
     const error = new Error(data?.code === '40001' ? 'A cópia mudou em outro aparelho. Atualize a cópia antes de salvar.' : data?.msg || data?.message || data?.error_description || 'Não foi possível conectar ao Supabase.');
     error.status = response.status;
-    error.code = data?.code;
+    error.code = data?.error_code || data?.code;
     throw error;
   }
   if(data === null)throw Error('A conta enviou uma resposta inválida. Tente novamente; seus estudos locais foram mantidos.');
