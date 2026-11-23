@@ -104,3 +104,16 @@
  html.tutor-keyboard-open .tutor-form textarea { min-height:48px; max-height:96px; }
  html.tutor-keyboard-open .tutor-status { padding-bottom:4px; }
 }
+
+@media (max-width:760px) and (prefers-reduced-motion:no-preference) {
+ #mobile-menu[open] { animation:mobile-menu-slide-in 220ms cubic-bezier(.2,.75,.25,1); }
+ #mobile-menu[open]::backdrop { animation:mobile-menu-fade-in 220ms ease-out; }
+}
+@keyframes mobile-menu-slide-in {
+ from { transform:translateX(-100%); }
+ to { transform:translateX(0); }
+}
+@keyframes mobile-menu-fade-in {
+ from { opacity:0; }
+ to { opacity:1; }
+}
