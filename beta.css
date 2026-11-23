@@ -18,11 +18,9 @@ html[data-theme] #practice-skill,html[data-theme] #practice-bank-count,html[data
 #choice-list{margin:0;display:grid;gap:.65rem}#choice-list button{min-height:3rem;padding:.75rem 1rem;font-size:1rem}
 .exercise-result:empty{display:none}.study-notice{font-size:.875rem;color:var(--muted);margin:1rem 0}.study-notice:empty{display:none}
 .study-result{padding:1.5rem}.study-result h2{font-size:1.6rem}.study-result-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin:1.25rem 0}
-html[data-theme] .mobile-nav button:not(.active){background:transparent;border-color:transparent;box-shadow:none;color:var(--muted)}
-html[data-theme] .mobile-nav button.active{background:var(--brand-soft);border:1px solid var(--brand);color:var(--ink);box-shadow:inset 0 -3px var(--brand)}
 @media(max-width:760px){
- html[data-theme] .topbar{position:static;display:flex;flex-wrap:wrap;padding:.6rem 1rem;gap:.5rem}
- html[data-theme] .topbar .mobile-brand{flex:1 1 auto;min-width:0;gap:.4rem}
+ html[data-theme] .topbar{display:flex;flex-wrap:wrap;padding:.6rem 1rem;gap:.5rem}
+ html[data-theme] .topbar .mobile-brand{flex:1;min-width:0;gap:.4rem}
  html[data-theme] .topbar .mobile-brand>.brand-name{white-space:nowrap;font-size:1.35rem;overflow-wrap:normal}
  html[data-theme] .topbar .mobile-brand>.brand-logo{width:2.25rem;height:1.75rem;flex-shrink:0}
  html[data-theme] .topbar .top-pill,html[data-theme] .topbar .top-divider{display:none}
@@ -43,22 +41,7 @@ html[data-theme] .exercise-result:not(.bad):not(.good){color:var(--muted)}
  html[data-theme] .mobile-header-actions>.profile-dock,html[data-theme] .mobile-header-actions>.tutor-launcher{flex:1 1 8rem;width:auto;overflow-wrap:normal}
  html[data-theme] .mobile-header-actions .profile-dock span strong,html[data-theme] .mobile-header-actions .tutor-launcher strong{overflow-wrap:normal}
  html[data-theme] .topbar .mobile-brand>.brand-name{white-space:normal}
- html[data-theme] .mobile-nav{grid-template-columns:repeat(6,minmax(min-content,1fr));overflow-x:auto;max-width:100vw;overscroll-behavior-x:contain}
- html[data-theme] .mobile-nav button{white-space:nowrap;padding-inline:.2rem}
  .study-option button,.study-option select{max-width:100%;min-width:0;overflow-wrap:anywhere}
  .library-unit-top,.study-choice-top{flex-wrap:wrap}
 }
 #page-aprendizagem.study-needs-grade .study-secondary,#page-aprendizagem.study-needs-grade .tool-panel,#page-aprendizagem.study-needs-grade .study-year-context{display:none}
-/* Keep the student's collection and community directly reachable on mobile. */
-@media(max-width:760px){
- html[data-theme] .mobile-tools.mobile-spaces{position:fixed;bottom:var(--mobile-primary-nav-height,calc(4.7rem + env(safe-area-inset-bottom)));left:0;right:0;z-index:15;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3rem;padding:.35rem .6rem;background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 -5px 18px #0000000a}
- html[data-theme] .mobile-spaces button{min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;padding:.45rem .15rem;border:1px solid transparent;border-radius:.65rem;color:var(--ink);font-size:.8rem;line-height:1.3;white-space:normal;overflow-wrap:anywhere;background:transparent}
- html[data-theme] .mobile-spaces button svg{width:21px;height:21px;flex-shrink:0}
- html[data-theme] .mobile-spaces button.active{border-color:var(--brand);background:var(--brand-soft);color:var(--ink)}
- html[data-theme] .content-wrap{padding-bottom:calc(var(--mobile-navigation-height,10rem) + 1.5rem)}
- html[data-theme]{scroll-padding-bottom:calc(var(--mobile-navigation-height,10rem) + 1rem)}
- html[data-theme] #tutor-panel.tutor-panel{bottom:calc(var(--mobile-navigation-height,10rem) + .5rem)}
- html[data-theme] .toast{bottom:calc(var(--mobile-navigation-height,10rem) + 1rem)}
- html.tutor-keyboard-open .mobile-spaces{visibility:hidden;pointer-events:none}
- html.tutor-keyboard-open #tutor-panel.tutor-panel{bottom:auto}
-}

@@ -74,7 +74,8 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   await a.setViewportSize({width:360,height:844});
   await portrait(a).waitFor({timeout:5000});
   assert.equal(await profilePortrait(),socialPortrait);
-  for(const destination of ['recompensas','conquistas','social']){await a.locator(`.mobile-spaces [data-page="${destination}"]`).click();assert.equal(await a.evaluate(()=>state.page),destination);}
+  for(const destination of ['recompensas','conquistas','social']){await a.locator('.mobile-menu-toggle').click();await a.locator(destination==='social'?'[data-mobile-friends]':`.mobile-spaces [data-page="${destination}"]`).click();assert.equal(await a.evaluate(()=>state.page),destination);}
+  assert.equal(await base(a).getByRole('button',{name:'Amigos',exact:true}).getAttribute('aria-current'),'page');
   await base(a).getByRole('button',{name:'Amigos',exact:true}).click();await base(a).screenshot({path:'work/social-captures/friends.png'});await openLeague(a);await base(a).screenshot({path:'work/social-captures/league.png'});
   unavailable=true;await base(a).getByRole('button',{name:'Atualizar',exact:true}).click();await base(a).getByRole('button',{name:'Tentar novamente',exact:true}).waitFor();assert.ok(!(await base(a).textContent()).includes('Cloudflare'));unavailable=false;await a.getByRole('button',{name:'Tentar novamente',exact:true}).click();await a.waitForFunction(()=>!document.querySelector('#social-features [disabled]'));assert.deepEqual(errors,[]);
   const localXp=await b.evaluate(()=>{J.award(progress,{id:'revoked-local',date:today,xp:25,coins:0,label:'Local test',kind:'questao'});save();return J.xp(progress);});

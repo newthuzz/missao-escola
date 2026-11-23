@@ -68,12 +68,12 @@
 .tutor-checks { display:block; font-size:.75rem; color:var(--muted); white-space:normal; margin-top:10px; padding-top:8px; border-top:1px solid var(--line); }
 .tutor-panel :focus-visible,.tutor-launcher:focus-visible { outline:2px solid var(--brand); outline-offset:3px; }
 @media(max-width:760px) {
- .tutor-launcher { right:10px; bottom:var(--tutor-dock-bottom,160px); width:54px; height:54px; min-height:54px; padding:4px; border-radius:16px; justify-content:center; }
+ .tutor-launcher { right:10px; bottom:calc(14px + env(safe-area-inset-bottom)); width:54px; height:54px; min-height:54px; padding:4px; border-radius:16px; justify-content:center; }
  .tutor-launcher>span:first-child { width:42px; height:42px; }
- .profile-dock { bottom:var(--tutor-dock-bottom,160px); }
+ .profile-dock { bottom:calc(14px + env(safe-area-inset-bottom)); }
  .tutor-launcher>span:nth-child(2) { display:none; }
  .tutor-launcher::after { content:'Tutor'; position:absolute; bottom:-18px; left:0; width:100%; text-align:center; font-size:.875rem; background:var(--bg); border-radius:5px; }
- .tutor-panel { right:10px; bottom:calc(var(--tutor-dock-bottom,160px) + 72px); width:calc(100vw - 20px); height:min(700px,calc(100dvh - var(--tutor-dock-bottom,160px) - 86px)); }
+ .tutor-panel { right:10px; bottom:calc(86px + env(safe-area-inset-bottom)); width:calc(100vw - 20px); height:min(700px,calc(100dvh - 100px - env(safe-area-inset-bottom))); }
  .tutor-form { padding:10px 12px; }
  .tutor-header { padding:10px 14px; }
  .tutor-identity>.tutor-mascot { width:30px; height:36px; }

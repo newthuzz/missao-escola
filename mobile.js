@@ -6,7 +6,7 @@
  const actions=document.createElement('div');actions.className='mobile-header-actions';actions.setAttribute('role','group');actions.setAttribute('aria-label','Perfil e ajuda nos estudos');
  const mobile=matchMedia('(max-width:760px)');
  function layout(){
-  if(mobile.matches){header.append(actions);actions.append(profile,tutor);}
+  if(mobile.matches){header.after(actions);actions.append(profile,tutor);}
   else{[profile,tutor].forEach((node,i)=>anchors[i].after(node));actions.remove();}
  }
  mobile.addEventListener('change',layout);layout();
@@ -40,16 +40,31 @@
  update();
 })();
 
-// Both mobile navigation rows reserve their real height, including large text
-// and the device safe area. Reuse the app's existing data-page click handlers.
+// Keep the app's original navigation buttons inside a native modal drawer.
 (()=>{
- const primary=document.querySelector('.mobile-nav'),spaces=document.querySelector('.mobile-spaces');if(!primary||!spaces)return;
- const root=document.documentElement,mobile=matchMedia('(max-width:760px)');
- function measure(){
-  if(!mobile.matches){root.style.removeProperty('--mobile-primary-nav-height');root.style.removeProperty('--mobile-navigation-height');return;}
-  const mainHeight=primary.getBoundingClientRect().height,total=mainHeight+spaces.getBoundingClientRect().height;
-  root.style.setProperty('--mobile-primary-nav-height',mainHeight+'px');root.style.setProperty('--mobile-navigation-height',total+'px');
- }
- if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(measure);observer.observe(primary);observer.observe(spaces);}
- window.addEventListener('resize',measure);mobile.addEventListener('change',measure);document.fonts?.ready.then(measure);measure();
+ const menu=document.querySelector('#mobile-menu');
+ const toggle=document.querySelector('.mobile-menu-toggle');
+ const mobile=matchMedia('(max-width:760px)');
+ const close=()=>{if(menu.open)menu.close();};
+
+ toggle.hidden=false;
+ toggle.addEventListener('click',()=>{
+  menu.showModal();
+  toggle.setAttribute('aria-expanded','true');
+ });
+ menu.addEventListener('close',()=>toggle.setAttribute('aria-expanded',String(menu.open)));
+ menu.addEventListener('click',event=>{
+  if(event.target.closest('.mobile-menu-close, [data-page], [data-mobile-friends]')){
+   close();
+   return;
+  }
+  if(event.target===menu){
+   const {left,right,top,bottom}=menu.getBoundingClientRect();
+   if(event.clientX<left||event.clientX>=right||event.clientY<top||event.clientY>=bottom)close();
+  }
+ });
+ mobile.addEventListener('change',close);
+ new MutationObserver(()=>{
+  if(document.body.classList.contains('pedagogy-staff'))close();
+ }).observe(document.body,{attributes:true,attributeFilter:['class']});
 })();

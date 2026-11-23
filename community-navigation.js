@@ -2,7 +2,7 @@ import {mountSocial} from './social.js';
 const personIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
 export function mountCommunityNavigation({getToken,getUser,isStaff,makeProfileReceiver,onInvalidSession}){
  const side=document.querySelector('.side-nav'),accountNav=document.createElement('button');accountNav.type='button';accountNav.className='nav-link account-nav';accountNav.dataset.page='social';accountNav.innerHTML=`<span class="account-nav-icon">${personIcon}</span><span><strong>Minha conta</strong><small>Perfil, amigos e sincronização</small></span>`;side.querySelector('.secondary-caption').after(accountNav);
- const mobile=document.createElement('button');mobile.type='button';mobile.dataset.page='social';mobile.className='mobile-account-nav';mobile.setAttribute('aria-label','Minha conta, perfil e amigos');mobile.innerHTML=`<span class="account-nav-icon">${personIcon}</span><span>Minha conta</span>`;document.querySelector('.mobile-nav').append(mobile);
+ const mobile=document.createElement('button');mobile.type='button';mobile.dataset.page='social';mobile.setAttribute('aria-label','Minha conta, perfil e amigos');mobile.innerHTML=`<span class="account-nav-icon">${personIcon}</span><span>Minha conta</span>`;document.querySelector('.mobile-nav').append(mobile);
  const ranks=document.querySelector('#page-conquistas'),intro=ranks.querySelector('.page-intro');ranks.querySelector('#badges-title').innerHTML='Ranks, ligas e conquistas';intro.querySelector('p').textContent='Participe da liga semanal ou acompanhe sua evolução pessoal. Pontos da liga e XP de estudo ficam separados.';
  const personal=document.createElement('section');personal.id='rank-personal-panel';personal.setAttribute('role','tabpanel');personal.setAttribute('aria-labelledby','rank-personal-tab');personal.tabIndex=0;
  while(intro.nextSibling)personal.append(intro.nextSibling);
@@ -29,7 +29,7 @@ export function mountCommunityNavigation({getToken,getUser,isStaff,makeProfileRe
  tabs.addEventListener('click',e=>{const b=e.target.closest('[data-ranks-tab]');if(b)selectTab(b.dataset.ranksTab);});
  tabs.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();selectTab(e.key==='Home'?'league':e.key==='End'?'personal':rankTab==='league'?'personal':'league',true);});
  league.addEventListener('click',e=>{if(e.target.closest('[data-ranks-login]'))navigate('social');});
- document.addEventListener('click',e=>{const b=e.target.closest('[data-page="social"]');if(!b)return;if(model&&state.page==='social'){model.showSection('community',b.closest('.mobile-spaces')?'friends':'overview');}});
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-page="social"],[data-mobile-friends]');if(!b)return;if(model&&state.page==='social'){model.showSection('community',b.hasAttribute('data-mobile-friends')?'friends':'overview');}});
  window.addEventListener('missao-account-change',()=>{if(modelOwner!==getUser())dispose();update();});
  const previousNavigate=navigate;navigate=function(...args){const result=previousNavigate(...args);update();return result;};
  selectTab('league');

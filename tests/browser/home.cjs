@@ -61,8 +61,8 @@ const root=path.resolve(__dirname,'../../dist');
     }
   }
   await page.setViewportSize({width:390,height:950});await page.evaluate(()=>document.documentElement.style.fontSize='125%');
-  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.equal(await page.locator('.mobile-nav [data-page="social"]').getAttribute('aria-label'),'Conta, amigos e liga');
-  await page.locator('.mobile-nav [data-page="social"]').click();assert.ok(await page.locator('#account-form').isVisible());
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.equal(await page.locator('.mobile-nav [data-page="social"]').getAttribute('aria-label'),'Minha conta, perfil e amigos');
+  await page.locator('.mobile-menu-toggle').click();await page.locator('.mobile-nav [data-page="social"]').click();assert.ok(await page.locator('#account-form').isVisible());
   assert.deepEqual(errors,[]);console.log('PASS both themes, 320–1440px, larger type, keyboard and mobile account navigation; no browser errors');
  }finally{await browser?.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

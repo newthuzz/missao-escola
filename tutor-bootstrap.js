@@ -7,11 +7,6 @@
   launcher.setAttribute('aria-label','Abrir Tutor IA');
   launcher.innerHTML='<span aria-hidden="true"><img class="tutor-mascot" src="./assets/mascot/mascot.webp" alt="" width="48" height="56" decoding="async"></span><span><strong>Tutor IA</strong><small>Vamos aprender?</small></span>';
   document.body.append(launcher);
-  const navigation=document.querySelector('.mobile-nav');
-  const dockClearance=()=>document.documentElement.style.setProperty('--tutor-dock-bottom',Math.ceil(navigation?.getBoundingClientRect().height||144)+14+'px');
-  if(navigation&&'ResizeObserver' in window)new ResizeObserver(dockClearance).observe(navigation);
-  else window.addEventListener('resize',dockClearance);
-  dockClearance();
   const snapshot=()=>{
     let q=null,mode='general',answer='';
     if(state.page==='diagnostico'&&learner.diagnostic&&!learner.diagnostic.finished){

@@ -94,7 +94,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
    await page.setViewportSize({width,height});const bounds=await page.locator('#tutor-panel').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await page.locator('#tutor-send').scrollIntoViewIfNeeded();const sendBox=await page.locator('#tutor-send').boundingBox();assert.ok(sendBox.y>=0&&sendBox.y+sendBox.height<=height);
-   if(width<=760){const dock=await page.locator('#tutor-launcher').boundingBox(),nav=await page.locator('.mobile-nav').boundingBox();assert.ok(dock.y+dock.height<nav.y);}
+   if(width<=760)assert.ok(await page.locator('#mobile-menu').isHidden());
   }
   await page.setViewportSize({width:390,height:844});
   const mobileSpace=await page.locator('#tutor-messages').boundingBox(),mobilePanel=await page.locator('#tutor-panel').boundingBox();
@@ -126,7 +126,7 @@ const A='00000000-0000-4000-8000-000000000001',B='00000000-0000-4000-8000-000000
   assert.equal(await page.evaluate(()=>visualViewport.scale),2,'Manual zoom must not be reset');
   await page.evaluate(()=>{for(const key of ['height','offsetTop','scale'])delete visualViewport[key];visualViewport.dispatchEvent(new Event('resize'));});
   await field.blur();await page.waitForFunction(()=>!document.documentElement.classList.contains('tutor-keyboard-open'));
-  assert.ok(await page.locator('.mobile-nav').isVisible());assert.equal(await field.inputValue(),'Minha dúvida continua aqui');
+  assert.ok(await page.locator('.mobile-menu-toggle').isVisible());assert.equal(await field.inputValue(),'Minha dúvida continua aqui');
   console.log('PASS 16px mobile fields, keyboard viewport/pan, reachable send, manual zoom and draft preservation');
   await field.focus();await page.keyboard.press('Escape');assert.ok(await page.locator('#tutor-panel').isHidden());
   const touch=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
