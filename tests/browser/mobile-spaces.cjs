@@ -28,6 +28,40 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
    await menu.waitFor({state:'hidden'});
    await p.waitForFunction(()=>document.querySelector('.mobile-menu-toggle').getAttribute('aria-expanded')==='false');
   };
+  // Partially scroll the account screen so the cards pass directly under the sticky header.
+  await visit(destinations.find(({selector})=>selector==='[data-page="social"]'));
+  const header=p.locator('.topbar');
+  const readHeaderHits=()=>header.evaluate(el=>Array.from(
+   el.querySelectorAll('.mobile-menu-toggle, .mobile-brand, .theme-toggle'),
+   control=>{
+    const r=control.getBoundingClientRect();
+    return control.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+   }
+  ));
+  assert.deepEqual(await readHeaderHits(),[true,true,true]);
+  const cards=p.locator('.mobile-header-actions');
+  assert.ok((await cards.boundingBox()).y>=(await header.boundingBox()).height);
+  await p.evaluate(()=>{
+   const bar=document.querySelector('.topbar').getBoundingClientRect();
+   const cards=document.querySelector('.mobile-header-actions').getBoundingClientRect();
+   scrollBy({top:cards.top+cards.height/2-(bar.top+bar.height/2),behavior:'instant'});
+  });
+  const scrolled=await p.evaluate(()=>scrollY);
+  assert.ok(scrolled>0);
+  assert.ok((await cards.boundingBox()).y<(await header.boundingBox()).height);
+  for(const theme of ['light','dark']){
+   await p.evaluate(value=>document.documentElement.dataset.theme=value,theme);
+   assert.deepEqual(await readHeaderHits(),[true,true,true],`header is covered after scrolling in ${theme} mode`);
+   const menuButton=await toggle.boundingBox();
+   await p.touchscreen.tap(menuButton.x+menuButton.width/2,menuButton.y+menuButton.height/2);
+   await menu.waitFor({state:'visible'});
+   const closeButton=await menu.getByRole('button',{name:'Fechar menu'}).boundingBox();
+   await p.touchscreen.tap(closeButton.x+closeButton.width/2,closeButton.y+closeButton.height/2);
+   await menu.waitFor({state:'hidden'});
+   assert.ok(await p.evaluate(expected=>Math.abs(scrollY-expected)<=1,scrolled),'closing the menu preserves the scroll position');
+   assert.deepEqual(await readHeaderHits(),[true,true,true]);
+  }
+
   for(const width of [320,360,390,740])for(const theme of ['light','dark']){
    await p.setViewportSize({width,height:width===740?390:844});await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    await p.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
