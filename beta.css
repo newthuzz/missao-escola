@@ -3,7 +3,7 @@
 .grade-onboarding[hidden],.study-entry[hidden],.tutor-panel [hidden]{display:none!important}
 .grade-onboarding form{display:grid;gap:.75rem;max-width:32rem}.grade-onboarding select{width:100%;padding:.75rem;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:.5rem}
 .grade-onboarding small{display:block;margin-top:1rem;color:var(--muted)}
-.study-year-context{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;color:var(--muted);font-size:.875rem}
+.study-year-context{display:flex;align-items:center;gap:.55rem .9rem;flex-wrap:wrap;margin-bottom:1rem;color:var(--muted);font-size:.875rem}
 body[data-screen="aprendizagem"][data-study-tool="exercicios"] .study-entry,
 body[data-screen="aprendizagem"][data-study-tool="resumo"] .study-entry,
 body[data-screen="aprendizagem"][data-study-tool="concluido"] .study-entry,

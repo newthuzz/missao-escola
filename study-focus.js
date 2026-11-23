@@ -9,7 +9,7 @@
  const panels=[...page.querySelectorAll('.tool-panel')];entry.after(...panels,notice,secondary);
  const subjects=document.createElement('section');subjects.className='study-subject-picker';subjects.setAttribute('aria-label','Escolha uma matéria');year.after(subjects);
  const time=document.createElement('section');time.className='study-time';time.setAttribute('aria-label','Tempo para estudar');entry.after(time);
- const returnButton=document.createElement('button');returnButton.type='button';returnButton.className='text-button study-return';returnButton.dataset.studyHome='';returnButton.textContent='← Escolher outro estudo';returnButton.hidden=true;time.after(returnButton);
+ const returnButton=document.createElement('button');returnButton.type='button';returnButton.className='study-nav-button study-return';returnButton.dataset.studyHome='';returnButton.innerHTML='<span aria-hidden="true">←</span> Escolher outro estudo';returnButton.hidden=true;time.after(returnButton);
  const strip=page.querySelector('.subject-strip');strip.classList.add('study-legacy-controls');strip.hidden=true;secondary.append(strip);
  for(const node of [page.querySelector('#adaptive-insight'),page.querySelector('#study-choices')]){if(node){node.hidden=true;node.classList.add('study-legacy-controls');secondary.append(node);}}
  const settings=page.querySelector('#study-settings');
@@ -36,7 +36,7 @@
  function updateEntry(){
   document.querySelector('#learning-title').textContent='Seu estudo de hoje';
   document.querySelector('#learning-greeting').textContent='Entenda um exemplo, pratique e revise. Um passo de cada vez.';
-  const grade=A.schoolYear(learner);page.classList.toggle('study-needs-grade',!grade);year.innerHTML=grade?`<span>${esc(gradeLabel(grade))}</span><button class="text-button" data-edit-grade>Trocar ano</button>`:'';
+  const grade=A.schoolYear(learner);page.classList.toggle('study-needs-grade',!grade);year.innerHTML=grade?`<span>${esc(gradeLabel(grade))}</span><button type="button" class="study-nav-button" data-edit-grade><span aria-hidden="true">↔</span> Trocar ano</button>`:'';
   const subjectChoices=grade?A.subjects(learner).map(item=>`<button type="button" data-study-select="${item.id}" aria-pressed="${item.id===state.subject}">${esc(subjectName(item.id).replace('Ciências / Biologia',grade<=9?'Ciências':'Biologia'))}</button>`).join(''):'';
   const essayOption=grade>=7?'<button type="button" class="study-essay-option" data-go="redacao">Redação <span aria-hidden="true">→</span></button>':'';
   subjects.innerHTML=`<div class="study-section-intro"><span class="section-kicker">ESCOLHA POR ONDE COMEÇAR</span><h2>O que você quer estudar?</h2></div><div class="study-subject-buttons" role="group" aria-label="Matérias">${subjectChoices}${essayOption}</div>`;
