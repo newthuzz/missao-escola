@@ -55,7 +55,9 @@ const root=path.resolve(__dirname,'../..');
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>document.querySelector('#account-sync-status')?.dataset.state==='conflict');assert.equal(await page.evaluate(()=>J.xp(progress)),100);assert.ok(!state.cloud.a.snapshot.progress.events.some(e=>e.id==='conflicting-local'));console.log('PASS simultaneous device changes pause with explicit conflict instead of overwriting');
  await page.locator('.account-tools > summary').click();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Carregar progresso da conta',exact:true}).click();await page.waitForFunction(()=>J.xp(progress)===115);console.log('PASS explicit cloud resolution loads latest revision');
  async function signOut(p){
-  await p.locator('.account-tools').evaluate(el=>el.open=true);
+  const settings=p.locator('.account-settings > summary');
+  if(await settings.isVisible())await settings.click();
+  else await p.locator('.account-tools').evaluate(el=>el.open=true);
   await p.getByRole('button',{name:'Sair',exact:true}).click();
   await p.locator('#account-form [value="login"]').waitFor({timeout:5000});
   assert.equal(await p.evaluate(()=>localStorage.getItem('missao-escola-supabase-session')),null);
