@@ -25,14 +25,12 @@ html[data-theme] #practice-skill,html[data-theme] #practice-bank-count,html[data
  html[data-theme] .topbar .mobile-brand>.brand-logo{width:2.25rem;height:1.75rem;flex-shrink:0}
  html[data-theme] .topbar .top-pill,html[data-theme] .topbar .top-divider{display:none}
  html[data-theme] .topbar .top-stats{flex:0 0 auto;gap:0}
- html[data-theme] .topbar .theme-toggle{padding:.4rem .5rem;font-size:.875rem;min-height:2.75rem}
  html[data-theme] .mobile-tools{display:none}
  #tool-exercicios .practice-card{padding:1rem}.study-year-context{margin-bottom:.75rem}
  .study-result-actions{display:grid}.practice-actions{display:flex;flex-wrap:wrap;gap:.75rem}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}.page.active{animation:none!important}}
 html[data-theme] .exercise-result:not(.bad):not(.good){color:var(--muted)}
-@media(max-width:380px){html[data-theme] .topbar .theme-toggle span:last-child{display:none}html[data-theme] .topbar .theme-toggle{min-width:2.75rem}}
 /* Let enlarged text reflow instead of squeezing words into fixed mobile columns. */
 .study-secondary{min-width:0;grid-template-columns:minmax(0,1fr)}.study-option,#study-settings{min-width:0;overflow-wrap:anywhere}
 #exercise-question,.study-result{overflow-wrap:anywhere}#tool-exercicios .practice-heading{flex-wrap:wrap}

@@ -37,7 +37,6 @@ body[data-screen="aprendizagem"] .mobile-tools { display:none; }
  body[data-screen="aprendizagem"] .mobile-brand>.brand-logo { width:2.5rem; height:1.875rem; }
  body[data-screen="aprendizagem"] .mobile-brand>.brand-name { white-space:nowrap; font-size:1.35rem; }
  body[data-screen="aprendizagem"] .topbar .top-stats { flex-shrink:0; }
- body[data-screen="aprendizagem"] .topbar .theme-toggle { font-size:.8125rem; padding:.35rem .5rem; }
 }
 /* A visible starting point, followed by direct choices instead of accordion navigation. */
 #page-aprendizagem .study-legacy-controls[hidden],#study-settings[hidden],#learning-library[hidden],.study-return[hidden]{display:none!important}

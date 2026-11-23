@@ -1,6 +1,11 @@
 /* Mobile navigation uses a modal drawer so the page can use the full viewport. */
 .mobile-menu-toggle, .mobile-menu-toggle[hidden], #mobile-menu { display:none; }
 
+.theme-toggle-icon {
+ display:block; width:1.125rem; height:1.125rem; flex:none;
+ fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+}
+
 /* A 16px minimum avoids focus zoom on iPhone while preserving pinch zoom and
    larger text preferences. Labels and buttons keep their own typography. */
 @media(max-width:760px), (hover:none) and (pointer:coarse) {
@@ -13,7 +18,6 @@
  body[data-screen="inicio"] .topbar { min-height:0; }
  .topbar .mobile-brand { font-size:1.5rem; line-height:1.3; flex:1; min-width:0; }
  .topbar .top-stats { gap:.4rem; flex-wrap:wrap; justify-content:flex-end; }
- .topbar .theme-toggle { min-height:2.75rem; padding:.4rem .65rem; font-size:.875rem; white-space:nowrap; }
  .mobile-header-actions { padding:.5rem 1rem; gap:.65rem; }
  /* These cards scroll under the sticky header instead of floating above it. */
  .mobile-header-actions .profile-dock,.mobile-header-actions .tutor-launcher {
@@ -28,8 +32,11 @@
  .mobile-header-actions .profile-dock small { font-size:.875rem; margin:0; line-height:1.3; }
  .mobile-header-actions .profile-dock-arrow,.mobile-header-actions .tutor-launcher small { display:none; }
  .mobile-header-actions .tutor-launcher>span:first-child { width:2rem; height:2.25rem; }
- html[data-theme] .topbar .theme-toggle { width:44px; min-height:44px; }
- html[data-theme] .topbar .theme-toggle span:last-child { display:none; }
+ #theme-toggle {
+  display:grid; place-items:center; width:44px; height:44px; min-height:44px; padding:0; gap:0;
+ }
+ #theme-toggle .theme-toggle-icon { width:20px; height:20px; }
+ #theme-toggle .theme-toggle-label { display:none; }
  .mobile-menu-toggle:not([hidden]), #mobile-menu .mobile-menu-close {
   display:grid; place-items:center; flex:none; width:44px; height:44px;
   padding:0; border:1px solid var(--line); border-radius:.7rem;

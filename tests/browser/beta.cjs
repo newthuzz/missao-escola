@@ -45,6 +45,51 @@ await todayBlocks.getByRole('button',{name:'Ver semana'}).click();
 assert.ok(await p.locator('#routine-week-heading').evaluate(el=>document.activeElement===el));
 await todayBlocks.getByRole('button',{name:'Ajustes da rotina'}).click();
 assert.ok(await p.locator('#routine-mode-options').evaluate(el=>document.activeElement===el));
+for(const [width,scale] of [[320,100],[360,100],[390,100],[430,100],[320,200]]){
+ await p.setViewportSize({width,height:844});
+ await p.evaluate(scale=>document.documentElement.style.fontSize=scale+'%',scale);
+ const form=p.locator('#routine-settings-form');
+ const layout=await form.evaluate(form=>{
+  const bounds=form.getBoundingClientRect();
+  const rect=id=>form.querySelector('#'+id).getBoundingClientRect();
+  const [wake,bed,daily,duration,interval]=['routine-wake','routine-bed','routine-daily-limit',
+   'routine-session-length','routine-break'].map(rect);
+  const near=(a,b)=>Math.abs(a-b)<=1;
+  const contained=[...form.querySelectorAll('input:not([type="checkbox"]),select')].every(el=>{
+   const r=el.getBoundingClientRect();
+   return !el.getClientRects().length||(r.left>=bounds.left-1&&r.right<=bounds.right+1&&r.height>=44);
+  });
+  return {
+   contained,
+   aligned:near(wake.left,daily.left)&&near(bed.right,daily.right)
+    &&near(duration.left,daily.left)&&near(interval.right,daily.right)
+    &&(near(duration.top,interval.top)||near(duration.right,interval.right))
+  };
+ });
+ assert.deepEqual(layout,{contained:true,aligned:true},`rotina ${width}px / ${scale}%`);
+ for(const theme of ['light','dark']){
+  if(await p.getAttribute('html','data-theme')!==theme)await p.locator('#theme-toggle').click();
+  assert.ok(await p.locator('#theme-toggle').evaluate(button=>{
+   const b=button.getBoundingClientRect(),icon=button.querySelector('svg').getBoundingClientRect();
+   return b.width>=44&&b.height>=44
+    &&Math.abs((b.left+b.right)-(icon.left+icon.right))<=1
+    &&Math.abs((b.top+b.bottom)-(icon.top+icon.bottom))<=1;
+  }),`tema ${width}px / ${scale}% / ${theme}`);
+ }
+}
+await p.evaluate(()=>document.documentElement.style.fontSize='');
+await p.setViewportSize({width:390,height:844});
+await p.locator('#routine-new-commitment').click();
+const commitment=p.locator('#routine-commitment-dialog');
+assert.ok(await commitment.evaluate(dialog=>{
+ const bounds=dialog.getBoundingClientRect();
+ return [...dialog.querySelectorAll('input[type="time"]')].every(input=>{
+  const rect=input.getBoundingClientRect();
+  return rect.left>=bounds.left&&rect.right<=bounds.right;
+ });
+}));
+await p.locator('.routine-close-commitment').click();
+pass('Campos da Rotina e ícone de tema alinhados de 320 a 430 px e com texto a 200%.');
 await p.setViewportSize({width:1366,height:900});
 assert.ok(await todayBlocks.isHidden());
 pass('Rotina móvel mostra blocos futuros e pendentes em ordem, com acesso direto à semana e aos ajustes.');

@@ -296,3 +296,42 @@ html[data-theme="light"] :is(#page-rotina, #routine-commitment-dialog) {
   .routine-today-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem; }
   .routine-today-actions .routine-action { flex:1 1 7rem; }
 }
+
+@media (max-width:760px) {
+  #page-rotina .routine-layout,
+  #page-rotina .routine-layout .routine-builder,
+  #page-rotina .availability-grid {
+    grid-template-columns:minmax(0,1fr);
+  }
+  #page-rotina .routine-layout .routine-block-settings {
+    width:100%; margin-inline:0;
+  }
+  :is(#page-rotina, #routine-commitment-dialog) .routine-two {
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,8.5rem),1fr));
+    gap:.65rem .75rem;
+  }
+  :is(#page-rotina, #routine-commitment-dialog) .routine-two > div {
+    display:flex; flex-direction:column; min-width:0;
+  }
+  :is(#page-rotina, #routine-commitment-dialog) .routine-two label {
+    flex:1; min-height:0; text-align:start; line-height:1.4;
+    overflow-wrap:anywhere;
+  }
+  :is(#page-rotina .routine-layout, #routine-commitment-dialog) :is(select, input:not([type="checkbox"]):not([type="radio"])) {
+    display:block; box-sizing:border-box; width:100%; min-width:0; max-width:100%;
+    min-height:44px;
+  }
+  /* Safari time fields can retain an intrinsic width inside a grid track. */
+  :is(#page-rotina .routine-layout, #routine-commitment-dialog) input[type="time"] {
+    -webkit-appearance:none; appearance:none; margin-inline:0;
+  }
+  :is(#page-rotina .routine-layout, #routine-commitment-dialog) input[type="time"]::-webkit-date-and-time-value {
+    min-width:0; margin:0;
+  }
+  #page-rotina .availability-row { column-gap:.45rem; }
+  #page-rotina .availability-row > span { white-space:nowrap; }
+  @container routine-builder (max-width:21rem) {
+    #page-rotina .availability-row { grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); }
+    #page-rotina .availability-row label { grid-column:1 / -1; }
+  }
+}
