@@ -168,3 +168,36 @@ html[data-theme] .side-nav .account-nav strong{font-size:1rem;font-weight:750}ht
 .ranks-tabs{display:flex;gap:.6rem;padding:.4rem;border:1px solid var(--line);border-radius:16px;background:var(--panel-2);margin:1.5rem 0}.ranks-tabs button{flex:1;min-width:0;min-height:48px;padding:.8rem;border:1px solid transparent;border-radius:11px;background:transparent;color:var(--muted);font-weight:700;white-space:normal}.ranks-tabs button[aria-selected=true]{background:var(--panel);border-color:var(--brand);color:var(--ink)}.ranks-tabs button:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
 #rank-league-panel[hidden],#rank-personal-panel[hidden]{display:none}#rank-league-panel,#rank-personal-panel{min-width:0}.rank-personal-intro{color:var(--muted);margin:0 0 1.2rem}.community-profile-grid{grid-template-columns:1fr}.community-leagues-link{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:1rem 0;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:16px;background:var(--panel)}.community-leagues-link p{margin:0}.league-access p{line-height:1.7}.league-access button,.community-leagues-link button{min-height:44px;white-space:normal}
 @media(max-width:560px){.ranks-tabs button{font-size:.9rem;padding:.7rem .4rem}.community-leagues-link{align-items:stretch;flex-direction:column}.community-leagues-link button{width:100%}}
+
+#page-social .account-label-mobile { display:none; }
+@media (min-width:761px) {
+ .account-settings, .account-settings-actions { display:contents; }
+ .account-settings > summary { display:none; }
+}
+@media (max-width:760px) {
+ #page-social .account-label-desktop, #page-social .account-intro { display:none; }
+ #page-social .account-label-mobile:not([hidden]) { display:inline; }
+ #page-social .section-heading { margin-bottom:.8rem; }
+ #page-social .section-heading h1 { line-height:1.2; overflow-wrap:anywhere; }
+ #page-social :is(.account-tools, .account-settings) {
+  margin:0 0 .7rem; padding:.65rem 1rem;
+  border:1px solid var(--line); border-radius:.9rem; background:var(--panel);
+  overflow-wrap:anywhere;
+ }
+ #page-social :is(.account-tools, .account-settings) > summary {
+  min-height:44px; padding:.65rem 0; color:var(--ink); font-weight:700; cursor:pointer;
+ }
+ #page-social .account-tools > [role="status"]:empty { display:none; }
+ #page-social .account-access > [role="status"]:not(:empty) {
+  margin:.3rem 0 .75rem; padding:.65rem .75rem; border-radius:.65rem;
+  background:var(--brand-soft); color:var(--ink); line-height:1.5;
+ }
+ #page-social .account-access .peda-login-modes { margin:.55rem 0; }
+ #page-social .account-access .peda-login-modes > button { padding:.45rem; }
+ #page-social .account-access #account-form .social-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+ #page-social .account-access [value="login"] { min-height:48px; }
+ #page-social .account-settings-actions {
+  display:flex; flex-wrap:wrap; gap:.5rem; padding:.2rem 0 .6rem;
+ }
+ #page-social .account-settings-actions button { min-height:44px; }
+}

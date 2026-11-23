@@ -67,3 +67,23 @@ html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color
  .central-system-arrow { position:static; }
  .central-secondary { gap:.25rem .75rem; margin-top:.75rem; }
 }
+
+.home-mobile-stat { display:none; }
+@media (max-width:760px) {
+ .central-heading { margin-bottom:.8rem; }
+ .central-heading > :is(.section-kicker, p) { display:none; }
+ .central-heading h1 { margin:0; overflow-wrap:anywhere; }
+ .home-study { grid-template-columns:minmax(0,1fr); }
+ .home-study > .lumi-mark, .home-study-actions [data-go="perfil"] { display:none; }
+ .home-study-actions .primary-button { white-space:normal; }
+ .home-mobile-stat { display:grid; align-content:start; gap:.2rem; min-width:0; overflow-wrap:anywhere; }
+ .home-mobile-stat span { color:var(--muted); font-size:.875rem; }
+ .home-mobile-stat strong { color:var(--ink); font-size:1rem; line-height:1.25; }
+ .home-progress > #home-daily-summary { display:none; }
+ #page-inicio .home-progress {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start;
+  gap:.65rem .5rem; margin:.75rem 0 1.25rem; padding:.75rem;
+  border:1px solid var(--line); border-radius:.85rem; background:var(--panel);
+ }
+ #page-inicio .home-progress-track { grid-column:1/-1; width:100%; max-width:none; }
+}

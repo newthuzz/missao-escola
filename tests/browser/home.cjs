@@ -2,7 +2,7 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
 const assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../../dist');
 (async()=>{
- const server=http.createServer((req,res)=>{const file=path.join(root,req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0]);try{res.setHeader('Content-Type',/\.(js|mjs)$/.test(file)?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.woff')?'font/woff':file.endsWith('.webp')?'image/webp':'text/html');res.end(fs.readFileSync(file));}catch{res.writeHead(404);res.end();}});
+ const server=http.createServer((req,res)=>{const file=path.join(root,req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0]);try{res.setHeader('Content-Type',/\.(js|mjs)$/.test(file)?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.woff')?'font/woff':file.endsWith('.webp')?'image/webp':file.endsWith('.svg')?'image/svg+xml':'text/html');res.end(fs.readFileSync(file));}catch{res.writeHead(404);res.end();}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
@@ -35,11 +35,13 @@ const root=path.resolve(__dirname,'../../dist');
     learner.plan=A.makePlan(learner,'matematica',today);learner.plan.started=true;learner.plan.reviewed=true;learner.plan.answeredIds=[learner.plan.questionIds[0]];
     saveLearner();navigate('inicio');return structuredClone(learner.plan);
   });
+  await page.setViewportSize({width:390,height:844});
   await home.getByRole('button',{name:'Continuar estudo'}).click();
   assert.equal(await page.evaluate(()=>state.page),'aprendizagem');assert.deepEqual(await page.evaluate(()=>learner.plan.questionIds),plan.questionIds);assert.deepEqual(await page.evaluate(()=>learner.plan.answeredIds),plan.answeredIds);
   assert.equal(await page.locator('#tool-exercicios').isVisible(),true);assert.equal(await page.evaluate(()=>state.currentQuestion.id),plan.questionIds[1]);
   console.log('PASS current study resumes with the same subject, exercise IDs and completed steps');
 
+  await page.setViewportSize({width:1440,height:950});
   await page.evaluate(()=>{J.award(progress,{id:'home-ui-test',date:today,xp:20,coins:0,label:'Teste',kind:'questao'});save();render();navigate('inicio');});
   assert.match(await page.locator('#home-daily-summary').innerText(),/Meta diária de pontos atingida/);assert.equal(await page.locator('#home-daily-progress').getAttribute('aria-valuenow'),'20');
   const beforeChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));
@@ -54,6 +56,14 @@ const root=path.resolve(__dirname,'../../dist');
       if(await page.getAttribute('html','data-theme')!==theme)await page.locator('#theme-toggle').click();
       await page.evaluate(()=>Promise.allSettled(document.querySelector('#page-inicio').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations!==Infinity).map(a=>a.finished)));
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width} ${theme} overflow`);
+      const stats=home.locator('.home-mobile-stat:visible');
+      assert.equal(await stats.count(),width<=760?3:0);
+      if(width<=760){
+        const displayed=await stats.locator('strong').allTextContents();
+        const expected=await page.evaluate(()=>['20/20 XP',J.streak(progress,today).count+' dia',J.xp(progress)+' XP']);
+        assert.deepEqual(displayed,expected);
+        assert.ok(await home.getByRole('button',{name:'Continuar estudo'}).isVisible());
+      }
       for(const card of await home.locator('.central-system-card,.home-study').all()){
         const b=await card.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=width+1);
       }

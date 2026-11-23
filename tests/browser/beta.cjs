@@ -20,6 +20,34 @@ await p.setViewportSize({width:320,height:900});await p.evaluate(()=>document.do
  assert.ok(await p.locator('#routine-week-strip').evaluate(week=>week.scrollWidth<=week.clientWidth+1));
  await p.locator('[data-routine-edit-session]').first().click();assert.equal(await p.locator('.routine-wizard').count(),0);assert.ok(await p.locator('#routine-session-form').isVisible());const editedId=await p.locator('#routine-edit-id').inputValue();await p.locator('#routine-block-title').fill('Meu horário de teste');await p.locator('#routine-add-block').click();await p.locator('#routine-save').click();assert.equal(await p.evaluate(id=>routine.sessions.filter(s=>s.id===id).length,editedId),1);pass('Edição manual da rotina altera o mesmo bloco e mantém validação de horários.');
 await p.evaluate(()=>navigate('aprendizagem'));const observations=await p.evaluate(()=>learner.observations.length);await p.locator('[data-edit-grade]').first().click();await p.locator('#quick-grade').selectOption('3');await p.locator('#grade-save').click();assert.equal(await p.evaluate(()=>learner.observations.length),observations);assert.ok(await p.evaluate(()=>learner.planHistory.length));assert.ok(await p.locator('#study-begin').isVisible());await p.evaluate(()=>startPersonalized('matematica'));assert.equal(await p.evaluate(()=>A.question(learner.plan.exampleId).band),'f1');await p.evaluate(()=>document.documentElement.style.fontSize='200%');await p.locator('#complete-summary').click();assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'question at 200%');await p.screenshot({path:out+'/08-texto-200.png'});await p.evaluate(()=>document.documentElement.style.fontSize='');pass('Troca de ano ajusta conteúdos futuros sem apagar observações e histórico de sequências.');
+// Control the local clock so today's order and filtering are independent of test time.
+await p.setViewportSize({width:390,height:844});
+const afternoon=await p.evaluate(()=>new Date(today+'T14:00:00').getTime());
+await p.clock.setFixedTime(afternoon);
+await p.evaluate(()=>{
+ const day=(new Date(today+'T12:00:00').getDay()+6)%7;
+ const block=(id,title,start,weekday=day)=>({id,title,start,end:start+20,day:weekday,subject:'matematica',level:'auto',source:'manual'});
+ routine=R.load({...routine,sessions:[
+  block('s-later','Revisar frações',1000),
+  block('s-earlier','Bloco que já passou',790),
+  block('s-done','Bloco concluído',870),
+  block('s-next','Praticar matemática',900),
+  block('s-tomorrow','Outro dia',900,(day+1)%7)
+ ]});
+ R.setCompleted(routine,'s-done',today);
+ routineWorking=structuredClone(routine);
+ routineDirty=false;
+ navigate('rotina');
+});
+const todayBlocks=p.locator('.routine-today');
+assert.deepEqual(await todayBlocks.locator('li strong').allTextContents(),['Praticar matemática','Revisar frações']);
+await todayBlocks.getByRole('button',{name:'Ver semana'}).click();
+assert.ok(await p.locator('#routine-week-heading').evaluate(el=>document.activeElement===el));
+await todayBlocks.getByRole('button',{name:'Ajustes da rotina'}).click();
+assert.ok(await p.locator('#routine-mode-options').evaluate(el=>document.activeElement===el));
+await p.setViewportSize({width:1366,height:900});
+assert.ok(await todayBlocks.isHidden());
+pass('Rotina móvel mostra blocos futuros e pendentes em ordem, com acesso direto à semana e aos ajustes.');
 // Deliberate API fixtures below test errors and login behavior, not real external availability.
 const auth=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});let remote=null,failTutor=true;await auth.route('**/*.supabase.co/**',async route=>{const url=route.request().url(),body=route.request().postDataJSON();if(url.includes('/auth/v1/token'))return route.fulfill({json:{access_token:'fixture-only',refresh_token:'fixture-only',expires_in:3600,user:{id:'beta-test',email:'teste@example.test'}}});if(url.includes('/auth/v1/user'))return route.fulfill({json:{id:'beta-test',email:'teste@example.test'}});if(url.includes('/learner_backups'))return route.fulfill({json:remote?[remote]:[]});if(url.includes('/save_learner_backup')){remote={revision:(remote?.revision||0)+1,snapshot:body.p_snapshot,updated_at:new Date().toISOString()};return route.fulfill({json:[remote]});}if(url.includes('/quick-endpoint'))return route.fulfill(failTutor?{status:503,json:{error:'Tutor temporariamente indisponível.'}}:{json:{available:true,protocol:2,messages:[],conversations:[]}});return route.fulfill({status:503,json:{error:'Serviço não configurado no teste.'}});});const a=await auth.newPage();a.on('pageerror',e=>errors.push(e.message));await a.goto(origin);await a.locator('#app-splash').waitFor({state:'detached'});await a.locator('#quick-grade').selectOption('7');await a.locator('#grade-save').click();await a.evaluate(()=>startPersonalized('matematica'));await a.locator('#complete-summary').click();const pending=await a.evaluate(()=>state.currentQuestion.id);await a.locator('#tutor-launcher').click();await a.locator('#tutor-login').click();await a.locator('#account-form [name=email]').fill('teste@example.test');await a.locator('#account-form [name=password]').fill('fixture-password');await a.locator('#account-form button[value=login]').click();await a.waitForFunction(()=>state.page==='aprendizagem');assert.equal(await a.evaluate(()=>state.currentQuestion.id),pending);await a.waitForFunction(()=>document.querySelector('#tutor-status').textContent.includes('indisponível'));assert.ok(await a.locator('#tutor-message').isHidden());assert.ok(await a.locator('#tutor-load-retry').isVisible());failTutor=false;await a.locator('#tutor-load-retry').click();await a.locator('#tutor-message').waitFor({state:'visible'});pass('Fixtures: login volta à questão pendente; API indisponível oculta campo e permite recarregar sem travar o estudo.');
 assert.deepEqual(errors,[]);pass('Sem exceções JavaScript nos percursos executados.');

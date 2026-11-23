@@ -79,6 +79,16 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   await base(a).getByRole('button',{name:'Amigos',exact:true}).click();await base(a).screenshot({path:'work/social-captures/friends.png'});await openLeague(a);await base(a).screenshot({path:'work/social-captures/league.png'});
   unavailable=true;await base(a).getByRole('button',{name:'Atualizar',exact:true}).click();await base(a).getByRole('button',{name:'Tentar novamente',exact:true}).waitFor();assert.ok(!(await base(a).textContent()).includes('Cloudflare'));unavailable=false;await a.getByRole('button',{name:'Tentar novamente',exact:true}).click();await a.waitForFunction(()=>!document.querySelector('#social-features [disabled]'));assert.deepEqual(errors,[]);
   const localXp=await b.evaluate(()=>{J.award(progress,{id:'revoked-local',date:today,xp:25,coins:0,label:'Local test',kind:'questao'});save();return J.xp(progress);});
+  await b.setViewportSize({width:360,height:844});
+  const sync=b.locator('.account-tools'),settings=b.locator('.account-settings');
+  assert.equal(await sync.locator('summary').innerText(),'Sincronização');
+  assert.ok(await sync.locator('[data-account="refresh"]').isHidden());
+  await settings.locator('summary').click();
+  assert.ok(await settings.getByRole('button',{name:'Editar meu perfil'}).isVisible());
+  assert.ok(await settings.getByRole('button',{name:'Sair',exact:true}).isVisible());
+  assert.ok(await sync.locator('[data-account="refresh"]').isHidden());
+  await sync.locator('summary').click();
+  assert.ok(await sync.locator('[data-account="refresh"]').isVisible());
   revokedAccess='Bearer token-b';
   await base(b).getByRole('button',{name:'Atualizar',exact:true}).click();
   await b.locator('#account-form [value="login"]').waitFor({timeout:5000});
@@ -86,6 +96,7 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   assert.equal(await b.evaluate(()=>J.xp(progress)),localXp);
   assert.equal(await base(b).count(),0);
   assert.match(await b.locator('.account-tools [role="status"]').innerText(),/Sua sessão expirou/);
+  assert.ok(await b.getByRole('button',{name:'Entrar novamente',exact:true}).isVisible());
   await b.route(/\/auth\/v1\/token\?grant_type=password$/,route=>route.fulfill({json:{access_token:'token-b-new',refresh_token:'refresh-b-new',expires_in:3600,user:{id:B,email:'test@example.test'}}}));
   await b.locator('#account-form [name="email"]').fill('test@example.test');
   await b.locator('#account-form [name="password"]').fill('test-password');

@@ -54,15 +54,71 @@ async function token(){
 function showSync(value){
  syncStatus=value;
  const status=page.querySelector('#account-sync-status');if(status){if(status.textContent!==value.message)status.textContent=value.message;status.dataset.state=value.kind;}
+ const syncAction=page.querySelector('.account-sync-action');
+ if(syncAction)syncAction.hidden=value.kind!=='conflict';
  const copy=page.querySelector('#account-copy-date');if(copy)copy.textContent=backup?'Última cópia consultada: '+new Date(backup.updated_at).toLocaleString('pt-BR'):'';
 }
+const mobileAccount=matchMedia('(max-width:760px)');
+function layoutAccount(settingsOpen=false){
+ const settings=page.querySelector('.account-settings');
+ if(!settings)return;
+ const tools=page.querySelector('.account-tools');
+ if(mobileAccount.matches)tools.after(settings);
+ else tools.querySelector('.social-actions').append(settings);
+ settings.open=!mobileAccount.matches||settingsOpen;
+}
+mobileAccount.addEventListener('change',()=>layoutAccount());
+
 function renderAccount(message=''){
  if(sessionExpired&&!session&&!busy)message=expiredSessionMessage;
+ const signedIn=Boolean(session?.access_token);
  const staffAccount=pedagogy?.context&&['teacher','admin'].includes(pedagogy.workspace);
+ const priorTools=page.querySelector('.account-tools');
+ const keepMobileSyncOpen=mobileAccount.matches&&priorTools?.open&&priorTools.classList.contains('account-connected');
+ const keepSettingsOpen=mobileAccount.matches&&page.querySelector('.account-settings')?.open;
  setIslandAvatarAccount(session?.user?.id);
- page.innerHTML=`${session?.recoveryPending&&session.user?.id?'<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>':''}<div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Minha conta'}</h1><p>Seu perfil, seus amigos e seus estudos sincronizados.</p></div><details class="social-box account-tools" ${session?.access_token?'':'open'}><summary>Minha conta e sincronização</summary><p role="status">${esc(message)}</p>${session?.access_token?`<p>Conta: ${esc(session.user?.email||'')}</p><p role="status" id="account-sync-status">${esc(syncStatus.message)}</p><small id="account-copy-date"></small><div class="social-actions">${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}<button data-account="logout" class="outline-button">Sair</button></div>${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}`:`<form id="account-form" class="social-form"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label><div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div></form><p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>`}</details><div id="account-community-slot"></div>`;
+ page.innerHTML=`
+  ${session?.recoveryPending&&session.user?.id?`<section class="social-box"><h2>Escolha uma nova senha</h2><form id="account-reset-form"><label>Nova senha<input name="password" type="password" minlength="10" autocomplete="new-password" required></label><label>Confirme a nova senha<input name="password_confirm" type="password" minlength="10" autocomplete="new-password" required></label><button class="primary-button">Salvar nova senha</button></form></section>`:''}
+  <div class="section-heading"><h1>${staffAccount?'Minha conta institucional':'Minha conta'}</h1><p class="account-intro">Seu perfil, seus amigos e seus estudos sincronizados.</p></div>
+  <details class="social-box account-tools ${signedIn?'account-connected':'account-access'}" ${!signedIn||keepMobileSyncOpen?'open':''}>
+   <summary><span class="account-label-desktop">Minha conta e sincronização</span><span class="account-label-mobile">${signedIn?'Sincronização':'Acesso à conta'}</span>${signedIn?'<span class="account-label-mobile account-sync-action" hidden> · Escolher cópia</span>':''}</summary>
+   <p role="status">${esc(message)}</p>
+   ${signedIn?`
+    <p>Conta: ${esc(session.user?.email||'')}</p>
+    <p role="status" id="account-sync-status">${esc(syncStatus.message)}</p>
+    <small id="account-copy-date"></small>
+    <div class="social-actions">
+     ${staffAccount?'':`<button data-account="refresh" class="primary-button">Sincronizar agora</button><button data-account="save" class="outline-button">Usar progresso deste aparelho</button><button data-account="restore" class="outline-button">Carregar progresso da conta</button>`}
+     <details class="account-settings" open>
+      <summary>Configurações da conta</summary>
+      <div class="account-settings-actions">
+       ${staffAccount?'':'<button type="button" class="outline-button account-label-mobile" data-go="perfil">Editar meu perfil</button>'}
+       <button data-account="logout" class="outline-button">Sair</button>
+      </div>
+     </details>
+    </div>
+    ${staffAccount?'':`<p>O progresso mais recente é carregado ao entrar. As alterações são salvas automaticamente enquanto você usa o site. Se dois aparelhos alterarem os estudos ao mesmo tempo, a sincronização pede que você escolha uma cópia.</p><small>Antes de carregar outra cópia, os estudos deste aparelho são guardados como segurança local.</small>`}
+   `:`
+    <form id="account-form" class="social-form">
+     <label>E-mail<input name="email" type="email" autocomplete="email" required></label>
+     <label>Senha<input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+     <div class="social-actions"><button name="action" value="login" class="primary-button">Entrar</button><button name="action" value="signup" class="outline-button">Criar conta</button></div>
+    </form>
+    <p>Ao criar uma conta, confirme o e-mail antes de entrar, se solicitado.</p>
+   `}
+  </details>
+  <div id="account-community-slot"></div>`;
+ layoutAccount(keepSettingsOpen);
  communityNavigation.renderAccount(page.querySelector('#account-community-slot'));
  pedagogy?.decorateAccount(page);
+ if(sessionExpired&&!signedIn){
+  const login=page.querySelector('#account-form [value="login"]');
+  if(login&&!login.hidden){
+   const desktopLabel=login.textContent;
+   login.innerHTML='<span class="account-label-desktop"></span><span class="account-label-mobile">Entrar novamente</span>';
+   login.querySelector('.account-label-desktop').textContent=desktopLabel;
+  }
+ }
  if(busy)page.querySelectorAll('button,input,select,textarea').forEach(el=>el.disabled=true);
  showSync(syncStatus);
 }

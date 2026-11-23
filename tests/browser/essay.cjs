@@ -247,7 +247,7 @@ const server = http.createServer((request, response) => {
       await page.getByRole('button',{name:'Trocar ano'}).click();
       await saveGrade(7);
       await page.evaluate(()=>navigate('social'));
-      await page.locator('.account-tools summary').click();
+      await page.locator('.account-tools > summary').click();
       await page.getByRole('button',{name:'Sair',exact:true}).click();
       await page.evaluate(()=>navigate('redacao'));
       assert.equal(await section.locator('#essay-feedback').innerText(), '');
