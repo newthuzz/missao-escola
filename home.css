@@ -35,10 +35,19 @@ body[data-screen="inicio"] .topbar { min-height:4.5rem; }
 /* Short labels make the systems identifiable without repeating descriptions. */
 html[data-theme] .side-nav .nav-link { min-height:3rem; padding:.65rem .75rem; background:transparent; color:var(--ink); border-color:transparent; box-shadow:none; gap:.7rem; }
 html[data-theme] .side-nav .nav-link strong { font-size:1rem; font-weight:550; color:inherit; }
-html[data-theme] .side-nav .nav-link>span:first-child { font-size:1.5rem; color:var(--muted); }
 html[data-theme] .side-nav .nav-link.active { background:var(--brand-soft); border-color:var(--line); color:var(--brand); box-shadow:inset 3px 0 var(--brand); }
-html[data-theme] .side-nav .nav-link.active>span:first-child { color:var(--brand); }
 html[data-theme] .side-nav .nav-link:hover { background:var(--panel-2); }
+/* The sidebar and mobile drawer use the same icon shapes and colors. */
+.nav-icon-library { position:absolute; }
+.nav-icon, .side-nav .nav-link > .nav-icon {
+ display:grid; place-items:center; width:2rem; height:2rem; flex:none;
+ border-radius:.65rem; background:var(--brand-soft);
+}
+.nav-icon svg {
+ width:1.25rem; height:1.25rem; color:var(--brand); fill:none; stroke:currentColor;
+ stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+}
+button.active > .nav-icon { background:color-mix(in srgb, var(--brand) 18%, var(--panel)); }
 .sidebar>.nav-caption { margin:1.5rem .75rem .5rem; }
 .side-nav .secondary-caption { margin:1rem .75rem .35rem; }
 .sidebar .local-label { margin-top:1.5rem; line-height:1.5; }
