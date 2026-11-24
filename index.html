@@ -151,10 +151,14 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
 <div class="content-wrap"><section id="grade-onboarding" class="surface-card grade-onboarding" aria-labelledby="grade-title"><h2 id="grade-title">Em que ano você está?</h2><p>Escolha seu ano para encontrar atividades adequadas. Você pode trocar depois.</p><form id="quick-grade-form"><label for="quick-grade">Seu ano escolar</label><select id="quick-grade" required><option value="">Escolha seu ano</option><option value="1">1º ano · Fundamental</option><option value="2">2º ano · Fundamental</option><option value="3">3º ano · Fundamental</option><option value="4">4º ano · Fundamental</option><option value="5">5º ano · Fundamental</option><option value="6">6º ano · Fundamental</option><option value="7">7º ano · Fundamental</option><option value="8">8º ano · Fundamental</option><option value="9">9º ano · Fundamental</option><option value="10">1º ano · Ensino Médio</option><option value="11">2º ano · Ensino Médio</option><option value="12">3º ano · Ensino Médio</option></select><button id="grade-save" class="primary-button">Salvar meu ano</button><p role="status" id="grade-status"></p></form><small>Sem conta, seus estudos ficam neste navegador. Entre em Minha conta para sincronizar entre aparelhos.</small></section><section class="page active" id="page-inicio" aria-labelledby="home-title">
 <div class="central-heading"><span class="section-kicker">SEU ESPAÇO</span><h1 id="home-title">Sua central de estudos</h1><p>Estude, organize sua rotina e acompanhe sua jornada.</p></div>
 <div id="personalized-route"></div>
-<div class="home-progress"><span id="home-daily-summary">0 de 20 XP de estudo hoje</span>
-<div class="home-mobile-stat"><span>Meta diária</span><strong id="home-meta-value">0/20 XP</strong></div>
-<div class="home-mobile-stat"><span>Sequência</span><strong id="home-streak-value">0 dias</strong></div>
-<div class="home-mobile-stat"><span>XP total</span><strong id="home-xp-value">0 XP</strong></div><div id="home-daily-progress" class="home-progress-track" role="progressbar" aria-label="Meta diária de pontos de estudo" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><span id="home-daily-fill"></span></div></div>
+<dl class="home-progress" aria-label="Resumo do progresso">
+ <div class="home-progress-metric">
+  <dt>Meta diária</dt>
+  <dd><strong id="home-meta-value">0/20 XP</strong><span id="home-daily-progress" class="home-progress-track" role="progressbar" aria-label="Meta diária de pontos de estudo" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><span id="home-daily-fill"></span></span></dd>
+ </div>
+ <div class="home-progress-metric"><dt>Sequência</dt><dd><strong id="home-streak-value">0 dias</strong></dd></div>
+ <div class="home-progress-metric"><dt>XP total</dt><dd><strong id="home-xp-value">0 XP</strong></dd></div>
+</dl>
 <section class="central-systems" aria-labelledby="central-systems-title"><h2 id="central-systems-title">Explore os sistemas</h2><div class="central-system-grid">
 <button class="central-system-card" data-go="rotina"><span class="central-system-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2m-8 3h2"/></svg></span><span class="central-system-copy"><strong>Rotina de estudos</strong><small id="home-routine-summary">Organize seus horários de estudo.</small></span><span class="central-system-arrow" aria-hidden="true">→</span></button>
 <button class="central-system-card" data-go="jornada"><span class="central-system-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2V5Zm6-2v16m6-14v16"/></svg></span><span class="central-system-copy"><strong>Minha jornada</strong><small id="shortcut-journey">Explore as ilhas e seu progresso.</small></span><span class="central-system-arrow" aria-hidden="true">→</span></button>
@@ -572,8 +576,11 @@ function render(){
   $('all-missions').innerHTML=J.missions.map(missionCard).join('');$('missions-count').textContent=`${count} de ${J.missions.length} concluídas`;$('missions-total').textContent=dayXP+' XP de estudo hoje';
   $('streak-count').textContent=streak.count;$('streak-caption').textContent=streak.count===1?'dia de sequência':'dias de sequência';
   $('streak-message').textContent=streak.done?'Meta diária de pontos atingida. Seu estudo pode continuar.':streak.count?`Sua sequência está viva. Faltam ${Math.max(0,20-dayXP)} XP de estudo hoje.`:'Comece hoje. Seu primeiro passo já conta.';
-  $('home-daily-summary').textContent=dayXP>=20?'Meta diária de pontos atingida':`${dayXP} de 20 XP na meta diária`;$('home-daily-fill').style.width=Math.min(100,dayXP/20*100)+'%';$('home-daily-progress').setAttribute('aria-valuenow',Math.min(20,dayXP));
-  $('home-meta-value').textContent=Math.min(dayXP,20)+'/20 XP';
+  const goalXP=Math.min(dayXP,20);
+  $('home-meta-value').textContent=goalXP+'/20 XP';
+  $('home-daily-fill').style.width=(goalXP/20*100)+'%';
+  $('home-daily-progress').setAttribute('aria-valuenow',goalXP);
+  $('home-daily-progress').setAttribute('aria-valuetext',goalXP===20?'Meta diária atingida':goalXP+' de 20 XP de estudo');
   $('home-streak-value').textContent=streak.count+(streak.count===1?' dia':' dias');
   $('home-xp-value').textContent=p.xp+' XP';
   $('daily-xp').textContent=`${dayXP} / 20 XP`;$('daily-progress').style.width=Math.min(100,dayXP/20*100)+'%';$('freeze-count').textContent=progress.freezes;

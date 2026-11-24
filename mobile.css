@@ -79,8 +79,6 @@
  .home-study .section-kicker { font-size:.875rem; letter-spacing:.06em; }
  .home-study-actions { display:grid; grid-template-columns:1fr; justify-items:stretch; width:100%; gap:.5rem; }
  .home-study-actions button { width:100%; text-align:center; }
- .home-progress { align-items:flex-start; flex-direction:column; gap:.65rem; padding:1rem .25rem 1.5rem; margin:0; }
- .home-progress .home-progress-track { width:100%; max-width:none; }
  .central-system-grid { gap:1rem; }
  .central-system-card { padding:1.1rem; }
  .central-system-copy small { line-height:1.55; }

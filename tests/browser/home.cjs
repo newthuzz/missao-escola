@@ -43,7 +43,10 @@ const root=path.resolve(__dirname,'../../dist');
 
   await page.setViewportSize({width:1440,height:950});
   await page.evaluate(()=>{J.award(progress,{id:'home-ui-test',date:today,xp:20,coins:0,label:'Teste',kind:'questao'});save();render();navigate('inicio');});
-  assert.match(await page.locator('#home-daily-summary').innerText(),/Meta diária de pontos atingida/);assert.equal(await page.locator('#home-daily-progress').getAttribute('aria-valuenow'),'20');
+  assert.equal(await page.locator('#home-meta-value').innerText(),'20/20 XP');
+  const goal=home.getByRole('progressbar',{name:'Meta diária de pontos de estudo'});
+  assert.equal(await goal.getAttribute('aria-valuenow'),'20');
+  assert.equal(await goal.getAttribute('aria-valuetext'),'Meta diária atingida');
   const beforeChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));
   await home.locator('[data-go="recompensas"]').click();assert.ok(await page.locator('#claim-chest').isVisible());await page.locator('#claim-chest').click();assert.ok(await page.locator('#claim-chest').isDisabled());
   const afterChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));
@@ -56,15 +59,17 @@ const root=path.resolve(__dirname,'../../dist');
       if(await page.getAttribute('html','data-theme')!==theme)await page.locator('#theme-toggle').click();
       await page.evaluate(()=>Promise.allSettled(document.querySelector('#page-inicio').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations!==Infinity).map(a=>a.finished)));
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width} ${theme} overflow`);
-      const stats=home.locator('.home-mobile-stat:visible');
-      assert.equal(await stats.count(),width<=760?3:0);
-      if(width<=760){
-        const displayed=await stats.locator('strong').allTextContents();
-        const expected=await page.evaluate(()=>['20/20 XP',J.streak(progress,today).count+' dia',J.xp(progress)+' XP']);
-        assert.deepEqual(displayed,expected);
-        assert.ok(await home.getByRole('button',{name:'Continuar estudo'}).isVisible());
-      }
-      for(const card of await home.locator('.central-system-card,.home-study').all()){
+      const summary=home.locator('.home-progress');
+      assert.ok(await summary.isVisible());
+      assert.deepEqual(await summary.locator('dt').allTextContents(),['Meta diária','Sequência','XP total']);
+      const displayed=await summary.locator('dd strong').allTextContents();
+      const expected=await page.evaluate(()=>{
+        const count=J.streak(progress,today).count;
+        return ['20/20 XP',count+(count===1?' dia':' dias'),J.xp(progress)+' XP'];
+      });
+      assert.deepEqual(displayed,expected);
+      assert.ok(await home.getByRole('button',{name:'Continuar estudo'}).isVisible());
+      for(const card of await home.locator('.central-system-card,.home-study,.home-progress').all()){
         const b=await card.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=width+1);
       }
       if([1440,390].includes(width)){await page.evaluate(()=>document.querySelector('#toast').classList.remove('show'));await page.screenshot({path:`/tmp/missao-home-${width}-${theme}.png`,fullPage:true});}
