@@ -7,12 +7,32 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
  assert.ok(await p.locator('[data-study-select="matematica"]').isVisible());assert.ok(await p.locator('[data-study-minutes="5"]').isVisible());assert.equal(await p.locator('.study-topic-card').count(),await p.evaluate(()=>Math.min(3,A.unitsFor(learner,state.subject).length)));assert.ok(await p.getByRole('button',{name:'Praticar questões Responda no seu ritmo'}).isVisible());assert.ok(await p.locator('#study-begin').isVisible());assert.equal(await p.locator('.study-secondary>.study-option').count(),0);
  const xp=await p.evaluate(()=>J.xp(progress));await p.locator('[data-study-minutes="5"]').click();assert.equal(await p.evaluate(()=>learner.preferences.minutes),5);assert.equal(await p.evaluate(()=>J.xp(progress)),xp);await p.reload();await p.locator('#app-splash').waitFor({state:'detached'});await p.evaluate(()=>navigate('aprendizagem'));assert.equal(await p.locator('[data-study-minutes="5"]').getAttribute('aria-pressed'),'true');
  await p.locator('[data-study-select="portugues"]').click();assert.equal(await p.evaluate(()=>state.subject),'portugues');await p.locator('[data-study-select="matematica"]').click();assert.equal(await p.evaluate(()=>state.subject),'matematica');
- for(const width of [360,768,1440])for(const theme of ['light','dark']){await p.setViewportSize({width,height:1100});await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'overview overflow');await p.locator('#page-aprendizagem').screenshot({path:out+`/overview-${width}-${theme}.png`});}
+ const allTopics=p.getByRole('button',{name:'Ver todos os assuntos'});
+ for(const width of [360,768,1440])for(const theme of ['light','dark']){
+  await p.setViewportSize({width,height:1100});
+  await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'overview overflow');
+  const button=await allTopics.boundingBox(),heading=await p.locator('.study-topics-header').boundingBox();
+  const cards=await p.locator('.study-topic-grid').boundingBox();
+  assert.ok(button.height>=48&&button.y+button.height<=cards.y+1);
+  if(width===360)assert.ok(Math.abs(button.width-heading.width)<=1);
+  await p.locator('#page-aprendizagem').screenshot({path:out+`/overview-${width}-${theme}.png`});
+ }
  await p.setViewportSize({width:360,height:844});await p.locator('#study-begin').click();assert.ok(await p.locator('#tool-resumo').isVisible());assert.ok(await p.locator('[data-study-home]').isVisible());await p.locator('#complete-summary').click();assert.ok(await p.locator('#tool-exercicios').isVisible());const plan=await p.evaluate(()=>({ids:learner.plan.questionIds,started:learner.plan.started}));assert.ok(plan.started);
  await p.locator('[data-study-home]').click();assert.ok(await p.locator('[data-study-select="matematica"]').isVisible());await p.locator('[data-study-minutes="15"]').click();assert.deepEqual(await p.evaluate(()=>learner.plan.questionIds),plan.ids);assert.match(await p.locator('.study-time-feedback').innerText(),/sequência atual foi mantida/);
  p.once('dialog',d=>d.dismiss());await p.locator('[data-study-select="portugues"]').click();assert.equal(await p.evaluate(()=>state.subject),'matematica');assert.deepEqual(await p.evaluate(()=>learner.plan.questionIds),plan.ids);
  await p.locator('[data-study-preferences]').click();assert.ok(await p.locator('#study-settings').isVisible());await p.locator('#study-settings [name="topic"]').fill('frações');await p.locator('#study-settings button[type="submit"],#study-settings button:not([type])').first().click();assert.equal(await p.evaluate(()=>learner.preferences.topic),'frações');await p.locator('[data-study-preferences]').click();
- await p.locator('[data-study-all-topics]').click();assert.ok(await p.locator('#library-search').isVisible());await p.locator('#library-search').fill('zzzzzzzzzz');assert.ok(await p.locator('.library-empty').isVisible());await p.locator('#library-search').fill('');await p.locator('[data-study-all-topics]').click();assert.ok(await p.locator('#learning-library').isHidden());
+ await allTopics.click();
+ const collapseTopics=p.getByRole('button',{name:'Mostrar menos assuntos'});
+ assert.equal(await collapseTopics.getAttribute('aria-expanded'),'true');
+ assert.ok(await p.locator('.study-topic-grid').isHidden());
+ const search=p.locator('#library-search');
+ assert.ok(await search.evaluate(el=>el===document.activeElement));
+ await search.fill('zzzzzzzzzz');assert.ok(await p.locator('.library-empty').isVisible());
+ await search.fill('');await collapseTopics.click();
+ assert.equal(await allTopics.getAttribute('aria-expanded'),'false');
+ assert.ok(await p.locator('#learning-library').isHidden());
+ assert.ok(await p.locator('.study-topic-grid').isVisible());
  await p.locator('#study-begin').click();assert.equal(await p.evaluate(()=>state.tool),'exercicios');while(await p.evaluate(()=>!learner.plan.finished)){const answer=await p.evaluate(()=>state.currentQuestion.correct);await p.locator(`[data-answer-index="${answer}"]`).click();if(await p.evaluate(()=>!learner.plan.finished))await p.locator('#new-exercise').click();}assert.ok(await p.locator('#study-result-title').isVisible());await p.locator('#review-study').click();assert.ok(await p.locator('#plan-result').isVisible());await p.locator('[data-study-home]').click();
  p.once('dialog',d=>d.accept());await p.locator('.study-topic-card [data-learning-unit]').last().click();assert.equal(await p.evaluate(()=>state.tool),'resumo');assert.ok(await p.locator('#tool-resumo').isVisible());await p.locator('[data-study-home]').click();
  await p.locator('[data-tool="exercicios"]').click();assert.equal(await p.evaluate(()=>state.planPractice),false);assert.ok(await p.locator('#tool-exercicios').isVisible());await p.locator('[data-study-home]').click();await p.locator('[data-tool="resumo"]').click();assert.ok(await p.locator('#tool-resumo').isVisible());await p.locator('[data-study-home]').click();
