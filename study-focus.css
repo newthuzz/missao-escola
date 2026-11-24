@@ -121,3 +121,9 @@ body[data-screen="aprendizagem"] .mobile-tools { display:none; }
 @media(max-width:760px){.study-subject-buttons{gap:.45rem}.study-subject-buttons button{font-size:.85rem;padding:.65rem .85rem}.study-subject-buttons button[aria-pressed="true"]{padding:calc(.65rem - 1px) calc(.85rem - 1px)}.study-time{grid-template-columns:1fr;padding:1.1rem}.study-time-buttons button{flex:1}.study-time-buttons{width:100%}.study-modes{padding:1.1rem}.study-topic-card{padding:1.1rem}}
 .study-topic-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
 .study-modes .tool-tab:disabled{opacity:.6;cursor:default}
+
+/* PDF figures and worked solutions shrink to the reading column. */
+.study-source-image { display:block; width:fit-content; max-width:100%; margin:.75rem 0; }
+.study-source-image img { display:block; max-width:100%; height:auto; border:1px solid var(--line); border-radius:.5rem; }
+.study-question-source { display:block; margin:.5rem 0; color:var(--muted); overflow-wrap:anywhere; }
+#exercise-question, .worked-example h3 { white-space:pre-line; }

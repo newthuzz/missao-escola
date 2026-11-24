@@ -67,7 +67,7 @@
  };
  showPracticeHint=function(){const q=state.currentQuestion;if(!q||state.answered)return;state.helped=true;state.hintIndex++;const u=A.unit(q.unitId),hint=q.hints?.[0]||`Procure o que a pergunta pede em “${q.skill}”. ${u?'Relembre o objetivo: '+u.objective:'Separe os dados e a ideia que relaciona as alternativas.'}`;
   const text=state.hintIndex===1?'Pista conceitual: '+hint:state.hintIndex===2?'Passo intermediário: '+(q.hints?.[1]||`Compare cada alternativa com os dados da pergunta. Qual mantém a relação descrita? Explique antes de escolher.`):'Solução comentada · estudo com apoio: '+q.explanation;
-  document.querySelector('#practice-hint').hidden=false;document.querySelector('#practice-hint').textContent=text;document.querySelector('#practice-hint').setAttribute('role','status');if(state.planPractice&&learner.plan){const saved=learner.plan.attempts?.[q.id];if(saved)saved.helped=true;else learner.plan.hintedIds=[...new Set([...(learner.plan.hintedIds||[]),q.id])];saveLearner();}
+  document.querySelector('#practice-hint').hidden=false;document.querySelector('#practice-hint').textContent=text;if(state.hintIndex>=3)document.querySelector('#practice-hint').insertAdjacentHTML('beforeend',studySolutionImage(q));document.querySelector('#practice-hint').setAttribute('role','status');if(state.planPractice&&learner.plan){const saved=learner.plan.attempts?.[q.id];if(saved)saved.helped=true;else learner.plan.hintedIds=[...new Set([...(learner.plan.hintedIds||[]),q.id])];saveLearner();}
  };
  document.addEventListener('click',e=>{const b=e.target.closest('[data-study-choice],[data-study-base],#repeat-study');if(!b)return;
   if(b.dataset.studyChoice){startPersonalized(b.dataset.studyChoice);return;}

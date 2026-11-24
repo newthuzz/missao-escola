@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const html=fs.readFileSync(require('path').join(__dirname,'../index.html'),'utf8');
-function engine(){const ctx=vm.createContext({});const curriculum=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('root.Curriculum=data'));vm.runInContext(curriculum,ctx);for(const name of ['study-content.js','adaptive.js'])vm.runInContext(fs.readFileSync(require('path').join(__dirname,'..',name),'utf8'),ctx);return {A:ctx.Adaptive,C:ctx.Curriculum};}
+function engine(){const ctx=vm.createContext({});const curriculum=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('root.Curriculum=data'));vm.runInContext(curriculum,ctx);for(const name of ['study-content.js','imported-questions.js','adaptive.js'])vm.runInContext(fs.readFileSync(require('path').join(__dirname,'..',name),'utf8'),ctx);return {A:ctx.Adaptive,C:ctx.Curriculum};}
 const {A,C}=engine(),today='2026-10-30';
 function state(grade=7){const s=A.blank();s.profile=A.profileInput({name:'Aluno de teste',age:13,grade,difficulties:[]});return s;}
 test('all available grades, subjects and fixed levels generate safe, distinct plans',()=>{
@@ -81,4 +81,36 @@ test('empty banks, missing units and canonical exclusions remain safe',()=>{
  const s=state(10);assert.equal(A.makePlan(s,'matematica',today,'auto','not-a-unit'),null);
  const selected=A.select(s,'fisica',today,{exclude:['fisica-em-gw157w']});assert.notEqual(A.canonical(selected.id),A.canonical('fisica-em-gw157w'));
  const old=C.questions;try{C.questions=[];const blank=state();assert.equal(A.makePlan(blank,'matematica',today),null);assert.equal(A.startDiagnostic(blank,today),null);assert.equal(A.diagnosticAnswer(blank,0,today),false);}finally{C.questions=old;}
+});
+
+
+test('PDF questions have valid keys, source pages, files and grade-specific practice',()=>{
+ const pdf=C.questions.filter(q=>q.sourceNumber);
+ assert.equal(pdf.length,1216);
+ assert.equal(new Set(pdf.map(q=>q.id)).size,pdf.length);
+ for(const q of pdf){
+  const unit=A.unit(q.unitId);
+  assert.ok(unit.supplemental&&unit.questionIds.includes(q.id));
+  assert.equal(q.subject,unit.subject);
+  assert.ok(q.minGrade>=10&&q.minGrade<=12);
+  assert.ok(q.answers.length>=2&&q.answers.length<=5);
+  assert.equal(new Set(q.answers).size,q.answers.length);
+  assert.ok(q.correct>=0&&q.correct<q.answers.length);
+  assert.ok(q.sourcePage>0&&q.sourceAnswerPage>0);
+  assert.ok(C.sources.some(source=>source.id===q.sourceIds[0]));
+  for(const media of [q.questionImage,q.solutionImage]){
+   if(!media)continue;
+   const path=require('path').join(__dirname,'..',media);
+   const header=fs.readFileSync(path).subarray(8,12).toString();
+   assert.equal(header,'WEBP',q.id);
+  }
+ }
+ assert.equal(A.question('pdf-esa-049').answers[A.question('pdf-esa-049').correct],'objeto direto.');
+ for(const [subject,minGrade,count] of [['matematica',10,468],['portugues',10,100],['fisica',12,648]]){
+  assert.equal(A.eligible(state(minGrade),subject).filter(q=>q.sourceNumber).length,count);
+  assert.equal(A.eligible(state(9),subject).filter(q=>q.sourceNumber).length,0);
+  const collection=A.unitsFor(state(minGrade),subject).find(u=>u.supplemental&&u.questionIds.length>=4);
+  const student=state(minGrade),plan=A.makePlan(student,subject,today,'auto',collection.id);
+  assert.ok(plan&&[plan.exampleId,...plan.questionIds].every(id=>A.question(id).unitId===collection.id));
+ }
 });

@@ -106,7 +106,7 @@
   const paths=available.map(u=>{const stats=unitStats(s,u,today),prerequisites=(u.prerequisites||[]).filter(id=>id!==u.id&&allowed.has(id)).map(id=>({unit:unit(id),stats:unitStats(s,unit(id),today)}));
    const topic=s.preferences?.topic?.toLocaleLowerCase('pt-BR'),match=topic&&(u.title+' '+u.objective+' '+u.area).toLocaleLowerCase('pt-BR').includes(topic);
    const reason=stats.status==='Reforçar'?'Vamos rever esta base: houve dificuldades recentes.':stats.status==='Revisar'?'Recupere este conteúdo sem consultar a resposta.':match?'Este conteúdo corresponde ao tema que você informou.':stats.count?'Continue praticando em outro contexto.':'Comece com uma checagem curta; ainda temos poucas evidências.';
-   return {unit:u,stats,prerequisites,reason,priority:(grade<=u.maxGrade?3:0)+(stats.status==='Reforçar'?3:0)+(stats.status==='Revisar'?2.4:0)+(1-stats.estimate)+(stats.count===0?.5:0)-(stats.mastered?1:0)+(match?2:0)};
+   return {unit:u,stats,prerequisites,reason,priority:(grade<=u.maxGrade?3:0)+(stats.status==='Reforçar'?3:0)+(stats.status==='Revisar'?2.4:0)+(1-stats.estimate)+(stats.count===0?.5:0)-(stats.mastered?1:0)+(match?2:0)-(u.supplemental?4:0)};
   });
   for(const p of paths){const weak=p.prerequisites.filter(x=>x.stats.status==='Reforçar');if(weak.length){p.reason='Antes de '+p.unit.title+', vale rever '+weak.map(x=>x.unit.title).join(', ')+'. Você pode avançar se preferir.';for(const x of weak){const base=paths.find(p=>p.unit.id===x.unit.id);base.priority=Math.max(base.priority,p.priority+1);base.reason='Reforce esta base para seguir em '+p.unit.title+'.';}}}
   paths.sort((a,b)=>b.priority-a.priority||a.unit.id.localeCompare(b.unit.id));ix.paths.set(key,paths);return paths;

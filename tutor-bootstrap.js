@@ -18,6 +18,7 @@
       mode=q?'study':'general';
       if(q&&lastAnswer?.id===q.id)answer=q.answers[lastAnswer.index]||'';
     }
+    if(q?.sourceNumber)return {mode:'general',question:null,studentAnswer:''};
     return {mode,question:q?{id:q.id,unitId:q.unitId,subject:q.subject,level:q.level,question:q.question,answers:q.answers||[],correct:q.correct,explanation:q.explanation,hints:q.hints||[]}:null,studentAnswer:answer};
   };
   const changed=()=>window.dispatchEvent(new CustomEvent('missao-study-context'));
