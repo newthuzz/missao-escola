@@ -8,6 +8,7 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
  const xp=await p.evaluate(()=>J.xp(progress));await p.locator('[data-study-minutes="5"]').click();assert.equal(await p.evaluate(()=>learner.preferences.minutes),5);assert.equal(await p.evaluate(()=>J.xp(progress)),xp);await p.reload();await p.locator('#app-splash').waitFor({state:'detached'});await p.evaluate(()=>navigate('aprendizagem'));assert.equal(await p.locator('[data-study-minutes="5"]').getAttribute('aria-pressed'),'true');
  await p.locator('[data-study-select="portugues"]').click();assert.equal(await p.evaluate(()=>state.subject),'portugues');await p.locator('[data-study-select="matematica"]').click();assert.equal(await p.evaluate(()=>state.subject),'matematica');
  const allTopics=p.getByRole('button',{name:'Ver todos os assuntos'});
+ const preferences=p.getByRole('button',{name:'Definir uma prova ou um tema (opcional)',exact:true});
  for(const width of [360,768,1440])for(const theme of ['light','dark']){
   await p.setViewportSize({width,height:1100});
   await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
@@ -15,13 +16,33 @@ const assert=require('node:assert/strict'),http=require('node:http'),fs=require(
   const button=await allTopics.boundingBox(),heading=await p.locator('.study-topics-header').boundingBox();
   const cards=await p.locator('.study-topic-grid').boundingBox();
   assert.ok(button.height>=48&&button.y+button.height<=cards.y+1);
-  if(width===360)assert.ok(Math.abs(button.width-heading.width)<=1);
+  const preferenceBounds=await preferences.boundingBox();
+  assert.ok(preferenceBounds.height>=48);
+  const fill=locator=>locator.evaluate(button=>getComputedStyle(button).backgroundColor);
+  assert.equal(await fill(preferences),await fill(allTopics));
+  if(width===360){
+   assert.ok(Math.abs(button.width-heading.width)<=1);
+   const timeContentWidth=await p.locator('.study-time').evaluate(card=>{
+    const style=getComputedStyle(card);
+    return card.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+   });
+   assert.ok(Math.abs(preferenceBounds.width-timeContentWidth)<=1);
+  }
   await p.locator('#page-aprendizagem').screenshot({path:out+`/overview-${width}-${theme}.png`});
  }
  await p.setViewportSize({width:360,height:844});await p.locator('#study-begin').click();assert.ok(await p.locator('#tool-resumo').isVisible());assert.ok(await p.locator('[data-study-home]').isVisible());await p.locator('#complete-summary').click();assert.ok(await p.locator('#tool-exercicios').isVisible());const plan=await p.evaluate(()=>({ids:learner.plan.questionIds,started:learner.plan.started}));assert.ok(plan.started);
  await p.locator('[data-study-home]').click();assert.ok(await p.locator('[data-study-select="matematica"]').isVisible());await p.locator('[data-study-minutes="15"]').click();assert.deepEqual(await p.evaluate(()=>learner.plan.questionIds),plan.ids);assert.match(await p.locator('.study-time-feedback').innerText(),/sequência atual foi mantida/);
  p.once('dialog',d=>d.dismiss());await p.locator('[data-study-select="portugues"]').click();assert.equal(await p.evaluate(()=>state.subject),'matematica');assert.deepEqual(await p.evaluate(()=>learner.plan.questionIds),plan.ids);
- await p.locator('[data-study-preferences]').click();assert.ok(await p.locator('#study-settings').isVisible());await p.locator('#study-settings [name="topic"]').fill('frações');await p.locator('#study-settings button[type="submit"],#study-settings button:not([type])').first().click();assert.equal(await p.evaluate(()=>learner.preferences.topic),'frações');await p.locator('[data-study-preferences]').click();
+ await preferences.focus();await p.keyboard.press('Enter');
+ assert.equal(await preferences.getAttribute('aria-expanded'),'true');
+ assert.ok(await p.locator('#study-settings').isVisible());
+ const topic=p.locator('#study-settings [name="topic"]');
+ assert.ok(await topic.evaluate(el=>el===document.activeElement));
+ await topic.fill('frações');
+ await p.locator('#study-settings button[type="submit"],#study-settings button:not([type])').first().click();
+ assert.equal(await p.evaluate(()=>learner.preferences.topic),'frações');
+ await preferences.click();
+ assert.equal(await preferences.getAttribute('aria-expanded'),'false');
  await allTopics.click();
  const collapseTopics=p.getByRole('button',{name:'Mostrar menos assuntos'});
  assert.equal(await collapseTopics.getAttribute('aria-expanded'),'true');

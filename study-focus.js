@@ -28,6 +28,7 @@
  modes.append(tabs);const difficulty=strip.querySelector('#difficulty-level').closest('label');difficulty.firstChild.textContent='Nível da prática livre';modes.append(difficulty);secondary.append(modes);
  const help=document.createElement('details');help.className='study-help';help.innerHTML='<summary>Como este estudo foi escolhido?</summary>';
  const explanation=header.querySelector('.adaptive-label');explanation.className='text-button';explanation.textContent='Entender minhas sugestões';help.append(explanation,page.querySelector('.ai-note'));secondary.append(help);
+ const disclosureIcon='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
  let showPlan=false;
  const oldTool=selectTool;selectTool=function(tool){const value=oldTool(tool);const activity=tool!=='recuperacao'||showPlan;page.classList.toggle('study-in-activity',activity);returnButton.hidden=!activity;if(!activity)tabs.querySelectorAll('[data-tool]').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false');});return value;};
  const backup=page.querySelector('.study-backup-tools');
@@ -41,12 +42,15 @@
   const essayOption=grade>=7?'<button type="button" class="study-essay-option" data-go="redacao">Redação <span aria-hidden="true">→</span></button>':'';
   subjects.innerHTML=`<div class="study-section-intro"><span class="section-kicker">ESCOLHA POR ONDE COMEÇAR</span><h2>O que você quer estudar?</h2></div><div class="study-subject-buttons" role="group" aria-label="Matérias">${subjectChoices}${essayOption}</div>`;
   const selectedTime=A.minutes(learner);
-  time.innerHTML=`<div><h2>Quanto tempo você tem hoje?</h2><p>Escolha um tempo para o seu estudo.</p></div><div class="study-time-buttons" role="group" aria-label="Tempo disponível">${[5,10,15].map(value=>`<button type="button" data-study-minutes="${value}" aria-pressed="${value===selectedTime}">${value} min</button>`).join('')}</div><p class="study-time-feedback" role="status"></p><button type="button" class="text-button" data-study-preferences aria-expanded="${!settings?.hidden}" aria-controls="study-settings">Definir uma prova ou um tema (opcional)</button>`;
+  time.innerHTML=`<div><h2>Quanto tempo você tem hoje?</h2><p>Escolha um tempo para o seu estudo.</p></div><div class="study-time-buttons" role="group" aria-label="Tempo disponível">${[5,10,15].map(value=>`<button type="button" data-study-minutes="${value}" aria-pressed="${value===selectedTime}">${value} min</button>`).join('')}</div><p class="study-time-feedback" role="status"></p><button type="button" class="study-disclosure-button study-preferences-button" data-study-preferences aria-expanded="${!settings?.hidden}" aria-controls="study-settings">
+   <span>Definir uma prova ou um tema (opcional)</span>
+   ${disclosureIcon}
+  </button>`;
   const units=grade?A.unitsFor(learner,state.subject):[],previewUnits=units.slice(0,3);
   const expanded=!library.hidden;
-  topics.innerHTML=`<div class="study-topics-header"><div class="study-section-intro"><span class="section-kicker">VOCÊ TAMBÉM PODE ESCOLHER</span><h2>${units.length>1?'Escolher outro assunto':'Conhecer este assunto'}</h2><p>${esc(subjectName(state.subject))} · ${units.length>1?'veja alguns temas para estudar.':'veja a explicação e o objetivo do estudo.'}</p></div><button type="button" class="study-all-topics" data-study-all-topics aria-expanded="${expanded}" aria-controls="learning-library">
+  topics.innerHTML=`<div class="study-topics-header"><div class="study-section-intro"><span class="section-kicker">VOCÊ TAMBÉM PODE ESCOLHER</span><h2>${units.length>1?'Escolher outro assunto':'Conhecer este assunto'}</h2><p>${esc(subjectName(state.subject))} · ${units.length>1?'veja alguns temas para estudar.':'veja a explicação e o objetivo do estudo.'}</p></div><button type="button" class="study-disclosure-button" data-study-all-topics aria-expanded="${expanded}" aria-controls="learning-library">
    <span>${expanded?'Mostrar menos assuntos':'Ver todos os assuntos'}</span>
-   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+   ${disclosureIcon}
   </button></div><div class="study-topic-grid">${previewUnits.map(u=>`<article class="study-topic-card"><span>${esc(u.area)}</span><h3>${esc(u.title)}</h3><p>${esc(u.objective)}</p><div><button type="button" class="outline-button" data-learning-unit="${u.id}">Estudar este assunto →</button><button type="button" class="text-button" data-learning-content="${u.id}">Ver explicação</button></div></article>`).join('')||'<p>Escolha uma matéria para ver seus assuntos.</p>'}</div>`;
   if(!grade){entry.hidden=true;page.classList.add('study-unprepared');return;}entry.hidden=false;
   const p=currentPlan(),q=p?A.question(p.exampleId):null,u=q?A.unit(q.unitId):A.learningPath(learner,state.subject,today)[0]?.unit;
