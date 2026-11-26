@@ -9,17 +9,18 @@
    [['Organizar minha rotina', {go:'rotina'}], ['Escolher tempo de estudo', {homeStudy:'time'}]]],
   frequencia: ['Se está difícil ir à escola, converse com a coordenação ou com um adulto de confiança. Eles podem ajudar a encontrar um próximo passo.',
    [['Abrir Rede de Apoio', {go:'apoio'}], ['Buscar apoio para permanecer na escola', {go:'oportunidades'}]]],
-  professor: ['O canal pedagógico mostra os professores autorizados para sua turma, quando sua escola participa.',
-   [['Encontrar um professor', {homeSupport:'directory'}], ['Acompanhar meus pedidos', {homeSupport:'requests'}]]],
+  professor: ['Se sua escola participa, você pode pedir ajuda aos professores autorizados da sua turma.',
+   [['Pedir ajuda', {homeSupport:'overview'}], ['Encontrar um professor', {homeSupport:'directory'}]]],
   oportunidades: ['Confira materiais gratuitos, programas educacionais e caminhos para retomar os estudos.',
    [['Abrir Central de Oportunidades', {go:'oportunidades'}]]]
  };
  const options = [...document.querySelectorAll('[data-home-checkin]')];
- const checkin = document.querySelector('#home-checkin');
+ const moreOptions = document.querySelector('#home-checkin-more');
  const result = document.querySelector('#home-checkin-result');
  const guidance = document.querySelector('#home-checkin-guidance');
  const links = document.querySelector('#home-checkin-links');
  const format = new Intl.NumberFormat('pt-BR');
+ const percent = new Intl.NumberFormat('pt-BR',{style:'percent'});
  const countLabel = (value,singular,plural) => format.format(value)+' '+(value===1?singular:plural);
 
  function resetCheckin() {
@@ -32,11 +33,12 @@
 
  function reset() {
   document.querySelectorAll('.home-disclosure[open]').forEach(details=>{details.open=false;});
+  moreOptions.open=false;
   resetCheckin();
  }
 
- checkin.addEventListener('toggle',()=>{
-  if(!checkin.open)resetCheckin();
+ moreOptions.addEventListener('toggle',()=>{
+  if(!moreOptions.open&&moreOptions.querySelector('[aria-pressed="true"]'))resetCheckin();
  });
 
  function showGuide(option) {
@@ -64,14 +66,14 @@
 
   const total=routine.sessions.length;
   const done=routine.sessions.filter(session=>R.completed(routine,session.id,today)).length;
-  $('home-weekly-progress').textContent=routine.savedAt&&total
-   ? format.format(done)+' de '+countLabel(total,'bloco planejado concluído','blocos planejados concluídos')+' nesta semana.'
-   : 'Monte uma rotina para planejar seus estudos.';
+  const hasWeeklyGoal=Boolean(routine.savedAt&&total);
+  $('home-weekly-value').textContent=hasWeeklyGoal?percent.format(Math.floor(100*done/total)/100):'Sem meta';
+  $('home-weekly-progress').textContent=hasWeeklyGoal
+   ? format.format(done)+' de '+countLabel(total,'bloco concluído','blocos concluídos')
+   : 'Monte sua rotina de estudos.';
 
   const units=new Set([...learner.planHistory,plan].filter(item=>item?.finished&&item.unitId).map(item=>item.unitId));
-  $('home-completed-content').textContent=units.size
-   ? countLabel(units.size,'unidade concluída','unidades concluídas')+' nos estudos salvos.'
-   : 'Nenhuma unidade concluída nos estudos salvos.';
+  $('home-completed-value').textContent=format.format(units.size);
 
   const grade=A.schoolYear(learner);
   const observed=new Set(learner.observations.map(item=>A.canonical(item.questionId)));
@@ -84,7 +86,7 @@
   const completedStudies=progress.events.filter(event=>event.kind==='fim').length;
   const journey=J.progress(progress);
   const available=J.rewards.filter(item=>!J.rewardPurchaseError(progress,item,balance)).length;
-  $('home-mission-points').textContent=countLabel(balance,'estrela','estrelas');
+  $('home-mission-points').textContent=format.format(balance);
   $('home-reward-goal').textContent=!completedStudies?'Concluir seu primeiro estudo.':completedStudies<3
    ? 'Concluir três estudos · '+completedStudies+' de 3.'
    : countLabel(journey.remaining,'XP','XP')+' para chegar a '+journey.nextIsland.name+'.';

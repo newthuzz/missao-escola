@@ -6,14 +6,14 @@ const root=path.resolve(__dirname,'../../dist');
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
-  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
   await page.addInitScript(()=>localStorage.setItem('missao-escola-personal-v1',JSON.stringify({version:2,selectedGrade:7})));
   await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>document.querySelector('.mobile-nav [data-page="social"]'));
   await page.locator('#app-splash').waitFor({state:'detached'});
   const home=page.locator('#page-inicio');
   assert.ok(await home.isVisible());assert.equal(await home.locator('.home-study .primary-button').count(),1);
   assert.equal(await home.locator('.home-shortcuts button').count(),2);
-  assert.equal(await home.locator('.home-disclosure').count(),4);
+  assert.equal(await home.locator('.home-disclosure').count(),3);
   assert.equal(await home.locator('.home-disclosure[open]').count(),0);
   assert.ok(await home.locator('.home-progress').isVisible());
   for(const selector of ['.journey-map','.streak-card','.level-card','.daily-chest','.mission-card'])assert.equal(await home.locator(selector).count(),0);
@@ -29,14 +29,15 @@ const root=path.resolve(__dirname,'../../dist');
   await journey.locator('summary').focus();
   await page.keyboard.press('Enter');
   assert.ok(await home.locator('#home-weekly-progress').isVisible());
+  assert.equal(await home.locator('#home-weekly-value').innerText(),'Sem meta');
   assert.match(await home.locator('#home-help-progress').innerText(),/Entre na sua conta/);
-  assert.match(await home.locator('#home-weekly-progress').innerText(),/Monte uma rotina/);
+  assert.match(await home.locator('#home-weekly-progress').innerText(),/Monte sua rotina/);
+  assert.equal(await checkin.locator('[data-home-checkin]:visible').count(),4);
   await checkin.locator('summary').click();
-  assert.ok(await home.locator('#home-weekly-progress').isHidden());
   assert.equal(await checkin.locator('[data-home-checkin]').count(),6);
   for(const choice of await checkin.locator('[data-home-checkin]').all()){
    await choice.click();
-   assert.equal(await choice.getAttribute('aria-pressed'),'true');
+   assert.equal(await choice.getAttribute('aria-pressed'),'true',await choice.innerText());
    assert.ok(await checkin.locator('#home-checkin-links button').count()>0);
   }
   assert.equal(await page.evaluate(()=>JSON.stringify({local:{...localStorage},session:{...sessionStorage}})),beforeCheckin);
@@ -51,11 +52,12 @@ const root=path.resolve(__dirname,'../../dist');
   assert.ok(await page.locator('#page-impacto').isVisible());
   assert.equal(await page.locator('#page-impacto .home-resource').count(),4);
   await page.locator('.side-nav [data-page="inicio"]').click();
+  const extraOption=checkin.locator('[data-home-checkin="frequencia"]');
   await checkin.locator('summary').click();
-  await checkin.locator('[data-home-checkin="materias"]').click();
+  await extraOption.click();
   await checkin.locator('summary').click();
-  await checkin.locator('summary').click();
-  assert.equal(await checkin.locator('[data-home-checkin="materias"]').getAttribute('aria-pressed'),'false');
+  await page.waitForFunction(()=>document.querySelector('#home-checkin-result').hidden);
+  assert.equal(await extraOption.getAttribute('aria-pressed'),'false');
   await checkin.locator('[data-home-checkin="materias"]').click();
   await checkin.getByRole('button',{name:'Ver conteúdos de recuperação'}).click();
   assert.ok(await page.locator('#library-search').isVisible());
@@ -64,6 +66,7 @@ const root=path.resolve(__dirname,'../../dist');
   await home.locator('[data-home-support="requests"]').click();
   assert.ok(await page.locator('#pedagogy-support').getByRole('button',{name:'Entrar ou criar conta'}).isVisible());
   await page.locator('.side-nav [data-page="inicio"]').click();
+  await page.emulateMedia({reducedMotion:'no-preference'});
   await journey.locator('summary').click();
   await home.getByRole('button',{name:'Abrir Minha Jornada',exact:true}).focus();await page.keyboard.press('Enter');
   await page.waitForFunction(()=>state.page==='jornada');await page.locator('#map-art').scrollIntoViewIfNeeded();
@@ -107,18 +110,19 @@ const root=path.resolve(__dirname,'../../dist');
    A.observe(learner,example,false,J.shiftDay(today,-1));
    learner.planHistory=[{...learner.plan,finished:true}];
    const day=(new Date(today+'T12:00:00').getDay()+6)%7;
-   routine=R.load({...routine,savedAt:new Date().toISOString(),sessions:[{id:'test-block',day,start:960,end:980,subject:'matematica',level:'auto',source:'manual'}]});
+   const block={id:'test-block',day,start:960,end:980,subject:'matematica',level:'auto',source:'manual'};
+   routine=R.load({...routine,savedAt:new Date().toISOString(),sessions:[block,{...block,id:'test-block-two',day:(day+1)%7}]});
    R.setCompleted(routine,'test-block',today);
    navigate('inicio');
   });
   await journey.locator('summary').click();
   assert.match(await home.locator('#home-study-progress').innerText(),/1 de .* questões do plano resolvidas/);
-  assert.match(await home.locator('#home-weekly-progress').innerText(),/1 de 1 bloco planejado/);
-  assert.match(await home.locator('#home-completed-content').innerText(),/1 unidade concluída/);
+  assert.equal(await home.locator('#home-weekly-progress').innerText(),'1 de 2 blocos concluídos');
+  assert.equal(await home.locator('#home-weekly-value').innerText(),'50%');
+  assert.equal(await home.locator('#home-completed-value').innerText(),'1');
   assert.match(await home.locator('#home-recovery-progress').innerText(),/1 questão com revisão sugerida/);
-  await home.locator('#home-rewards summary').click();
-  assert.equal(await home.locator('#home-mission-points').innerText(),afterChest.coins+' estrelas');
-  await home.locator('#home-rewards summary').click();
+  assert.equal(await home.locator('#home-mission-points').innerText(),String(afterChest.coins));
+  await journey.locator('summary').click();
   console.log('PASS study progress, weekly plan, content completion, recovery evidence and real rewards balance');
 
   await page.emulateMedia({reducedMotion:'reduce'});
@@ -137,7 +141,7 @@ const root=path.resolve(__dirname,'../../dist');
       });
       assert.deepEqual(displayed,expected);
       assert.ok(await home.getByRole('button',{name:'Continuar estudo'}).isVisible());
-      for(const card of await home.locator('.home-shortcuts,.home-study,.home-progress,.home-welcome,.home-details').all()){
+      for(const card of await home.locator('.home-shortcuts,.home-study,.home-progress,.home-welcome,.home-details,.home-highlight,#home-checkin').all()){
         const b=await card.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=width+1);
       }
       if([1440,390].includes(width)){await page.evaluate(()=>document.querySelector('#toast').classList.remove('show'));await page.screenshot({path:`/tmp/missao-home-${width}-${theme}.png`,fullPage:true});}
@@ -152,6 +156,9 @@ const root=path.resolve(__dirname,'../../dist');
    await page.evaluate(route=>navigate(route),route);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),route+' overflow at 200%');
    if(route==='inicio'){
+    await checkin.locator('summary').click();
+    assert.equal(await checkin.locator('[data-home-checkin]:visible').count(),6);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'check-in overflows at 200%');
     for(const disclosure of await home.locator('.home-disclosure summary').all()){
      await disclosure.click();
      assert.equal(await home.locator('.home-disclosure[open]').count(),1);

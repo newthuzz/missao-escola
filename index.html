@@ -145,6 +145,10 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
 <symbol id="nav-icon-account" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
 <symbol id="nav-icon-journey" viewBox="0 0 24 24"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Zm6-2v14m6-12v14"/></symbol>
 <symbol id="nav-icon-rewards" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12m0-12H8a2 2 0 1 1 2-2c1 1 2 2 2 2Zm0 0h4a2 2 0 1 0-2-2c-1 1-2 2-2 2Z"/></symbol>
+<symbol id="home-icon-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14a4.5 4.5 0 0 0 8 0m-7-4h.01m6 0h.01"/></symbol>
+<symbol id="home-icon-time" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3v3c0 3 2 4 5 6-3 2-5 3-5 6v3M17 3v3c0 3-2 4-5 6 3 2 5 3 5 6v3"/></symbol>
+<symbol id="home-icon-flame" viewBox="0 0 24 24"><path d="M12 3c1 5 6 6 6 12a6 6 0 0 1-12 0c0-2 1-4 3-6 0 2 1 3 2 4 2-3 2-6 1-10Z"/></symbol>
+<symbol id="home-icon-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.4-5.7-3-5.7 3 1.1-6.4-4.6-4.5 6.4-.9L12 3Z"/></symbol>
 <symbol id="nav-icon-school" viewBox="0 0 24 24"><path d="m3 8 9-5 9 5M5 8v12m14-12v12M3 20h18M10 20v-5h4v5m-2-9h.01"/></symbol>
 </svg><div id="app-splash" class="app-splash" hidden><div class="app-splash-backdrop" aria-hidden="true"></div><div class="app-splash-brand"><img class="app-splash-logo" src="./assets/brand/logo.svg" width="240" height="180" alt=""><p class="app-splash-name">Missão Escola</p></div><p class="app-splash-status" role="status">Preparando sua próxima descoberta…</p></div><a class="skip-link" href="#main">Pular para o conteúdo</a><div class="stars" aria-hidden="true"></div><div class="app-shell">
 <aside class="sidebar" aria-label="Navegação principal"><a class="brand-lockup" href="#inicio"><span class="brand-mark"><img class="brand-logo" src="./assets/brand/logo.svg" width="64" height="48" alt="" aria-hidden="true" decoding="async"></span><span><strong class="brand-name">Missão Escola</strong><small>SEU CONHECIMENTO VAI LONGE</small></span></a><span class="nav-caption">SISTEMAS</span><nav class="side-nav">
@@ -178,54 +182,48 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
 
 <dl class="home-progress" aria-label="Resumo do progresso">
  <div class="home-progress-metric">
-  <dt>Meta diária</dt>
+  <dt><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-missions"/></svg>Meta diária</dt>
   <dd><strong id="home-meta-value">0/20 XP</strong><span id="home-daily-progress" class="home-progress-track" role="progressbar" aria-label="Meta diária de pontos de estudo" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><span id="home-daily-fill"></span></span></dd>
  </div>
- <div class="home-progress-metric"><dt>Sequência</dt><dd><strong id="home-streak-value">0 dias</strong></dd></div>
- <div class="home-progress-metric"><dt>XP total</dt><dd><strong id="home-xp-value">0 XP</strong></dd></div>
+ <div class="home-progress-metric"><dt><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#home-icon-flame"/></svg>Sequência</dt><dd><strong id="home-streak-value">0 dias</strong></dd></div>
+ <div class="home-progress-metric"><dt><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#home-icon-star"/></svg>XP total</dt><dd><strong id="home-xp-value">0 XP</strong></dd></div>
 </dl>
 
-<nav class="home-shortcuts" aria-label="Atalhos do Início">
- <button type="button" class="outline-button" data-go="rotina"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-routine"/></svg>Rotina</button>
- <button type="button" class="outline-button" data-go="oportunidades"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-opportunities"/></svg>Oportunidades</button>
-</nav>
+<dl class="home-highlight-grid" aria-label="Progresso nos estudos">
+ <div class="home-highlight">
+  <dt><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-routine"/></svg>Meta de estudos da semana</dt>
+  <dd><strong id="home-weekly-value">Sem meta</strong><small id="home-weekly-progress">Monte sua rotina de estudos.</small></dd>
+ </div>
+ <div class="home-highlight">
+  <dt><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-study"/></svg>Unidades concluídas</dt>
+  <dd><strong id="home-completed-value">0</strong></dd>
+ </div>
+</dl>
+
+<section id="home-checkin" aria-labelledby="home-checkin-title">
+ <h2 id="home-checkin-title">Como está sua jornada escolar?</h2>
+ <p class="home-checkin-note">Opcional. Sua escolha não é salva.</p>
+ <div class="home-checkin-options" role="group" aria-labelledby="home-checkin-title">
+  <button type="button" class="outline-button" data-home-checkin="acompanho" aria-pressed="false"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#home-icon-smile"/></svg><span>Estou bem</span></button>
+  <button type="button" class="outline-button" data-home-checkin="materias" aria-pressed="false"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-study"/></svg><span>Tenho dificuldades</span></button>
+  <button type="button" class="outline-button" data-home-checkin="tempo" aria-pressed="false"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#home-icon-time"/></svg><span>Estou sem tempo</span></button>
+  <button type="button" class="outline-button" data-home-checkin="professor" aria-pressed="false"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-support"/></svg><span>Preciso de ajuda</span></button>
+ </div>
+ <details id="home-checkin-more">
+  <summary>Mais opções</summary>
+  <div class="home-checkin-options">
+   <button type="button" class="outline-button" data-home-checkin="frequencia" aria-pressed="false"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-school"/></svg><span>Ir à escola está difícil</span></button>
+   <button type="button" class="outline-button" data-home-checkin="oportunidades" aria-pressed="false"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-opportunities"/></svg><span>Busco oportunidades</span></button>
+  </div>
+ </details>
+ <div class="home-checkin-result" id="home-checkin-result" hidden>
+  <p id="home-checkin-guidance" role="status"></p><div id="home-checkin-links" class="home-actions"></div>
+ </div>
+</section>
 
 <div class="home-details">
- <details class="home-disclosure" id="home-journey-details" name="home-details">
-  <summary>Detalhes da jornada</summary>
-  <div class="home-disclosure-content">
-   <dl class="home-metrics">
-    <div><dt>Atividades educacionais</dt><dd id="home-study-progress">Nenhuma atividade registrada ainda.</dd></div>
-    <div><dt>Objetivo semanal</dt><dd id="home-weekly-progress">Monte uma rotina para planejar seus estudos.</dd></div>
-    <div><dt>Conteúdos concluídos</dt><dd id="home-completed-content">Nenhuma unidade concluída nos estudos salvos.</dd></div>
-    <div><dt>Atividades de recuperação</dt><dd id="home-recovery-progress">Suas revisões aparecem após as primeiras tentativas.</dd></div>
-    <div><dt>Solicitações de ajuda</dt><dd id="home-help-progress" role="status">Entre na sua conta para consultar seus pedidos.</dd></div>
-    <div><dt>Frequência escolar oficial</dt><dd>Sem dados da escola nesta plataforma. Consulte a secretaria para ver seu registro.</dd></div>
-   </dl>
-   <button class="outline-button" type="button" data-go="jornada">Abrir Minha Jornada</button>
-  </div>
- </details>
-
- <details class="home-disclosure" id="home-checkin" name="home-details">
-  <summary>Como está sua jornada escolar?</summary>
-  <div class="home-disclosure-content">
-   <p>Responder é opcional. Sua escolha fica nesta página e não é salva nem enviada.</p>
-   <div class="home-checkin-options" role="group" aria-label="Como estão seus estudos">
-    <button type="button" class="outline-button" data-home-checkin="acompanho" aria-pressed="false">Estou conseguindo acompanhar meus estudos</button>
-    <button type="button" class="outline-button" data-home-checkin="materias" aria-pressed="false">Estou com dificuldades nas matérias</button>
-    <button type="button" class="outline-button" data-home-checkin="tempo" aria-pressed="false">Tenho pouco tempo para estudar</button>
-    <button type="button" class="outline-button" data-home-checkin="frequencia" aria-pressed="false">Estou com dificuldades para frequentar a escola</button>
-    <button type="button" class="outline-button" data-home-checkin="professor" aria-pressed="false">Preciso conversar com um professor</button>
-    <button type="button" class="outline-button" data-home-checkin="oportunidades" aria-pressed="false">Preciso conhecer oportunidades de apoio</button>
-   </div>
-   <div class="home-checkin-result" id="home-checkin-result" hidden>
-    <p id="home-checkin-guidance" role="status"></p><div id="home-checkin-links" class="home-actions"></div>
-   </div>
-  </div>
- </details>
-
  <details class="home-disclosure" id="home-support" name="home-details">
-  <summary>Você não está sozinho</summary>
+  <summary><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-support"/></svg><span class="home-row-title"><strong>Rede de Apoio Escolar</strong><small>Encontre ajuda para continuar estudando.</small></span></summary>
   <div class="home-disclosure-content">
    <p>Se sua escola participa, você pode conversar com professores autorizados.</p>
    <div class="home-actions">
@@ -239,17 +237,34 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
  </details>
 
  <details class="home-disclosure" id="home-rewards" name="home-details">
-  <summary>Missão Rewards</summary>
+  <summary><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-rewards"/></svg><span class="home-row-title"><strong>Missão Rewards</strong><small>Troque seus pontos por itens.</small></span><span class="home-rewards-balance"><span id="home-mission-points">0</span> <abbr title="Mission Points">MP</abbr></span></summary>
   <div class="home-disclosure-content">
    <dl class="home-metrics home-reward-metrics">
-    <div><dt>Mission Points</dt><dd id="home-mission-points">0 estrelas</dd></div>
     <div><dt>Próxima meta de estudo</dt><dd id="home-reward-goal">Concluir seu primeiro estudo.</dd></div>
     <div><dt>Benefícios disponíveis</dt><dd id="home-redeemable">Personagens, acessórios, efeitos e escudos.</dd></div>
    </dl>
    <button class="outline-button" type="button" data-go="recompensas">Central de recompensas</button>
   </div>
  </details>
+
+ <details class="home-disclosure" id="home-journey-details" name="home-details">
+  <summary><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-journey"/></svg><span class="home-row-title">Detalhes da jornada</span></summary>
+  <div class="home-disclosure-content">
+   <dl class="home-metrics">
+    <div><dt>Atividades educacionais</dt><dd id="home-study-progress">Nenhuma atividade registrada ainda.</dd></div>
+    <div><dt>Atividades de recuperação</dt><dd id="home-recovery-progress">Suas revisões aparecem após as primeiras tentativas.</dd></div>
+    <div><dt>Solicitações de ajuda</dt><dd id="home-help-progress" role="status">Entre na sua conta para consultar seus pedidos.</dd></div>
+    <div><dt>Frequência escolar oficial</dt><dd>Sem dados da escola nesta plataforma. Consulte a secretaria para ver seu registro.</dd></div>
+   </dl>
+   <button class="outline-button" type="button" data-go="jornada">Abrir Minha Jornada</button>
+  </div>
+ </details>
 </div>
+
+<nav class="home-shortcuts" aria-label="Atalhos do Início">
+ <button type="button" class="outline-button" data-go="rotina"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-routine"/></svg>Rotina</button>
+ <button type="button" class="outline-button" data-go="oportunidades"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-opportunities"/></svg>Oportunidades</button>
+</nav>
 </section><section class="page" id="page-jornada" aria-labelledby="journey-title"><div class="page-intro"><span class="section-kicker">SEU PROGRESSO</span><h1 id="journey-title">Minha jornada</h1><p>Explore suas ilhas e acompanhe cada conquista.</p></div><div class="dashboard-grid"><div class="journey-column"><article class="journey-map surface-card"><div class="map-top"><div><span class="section-kicker" id="island-number">EXPEDIÇÃO 01 · ILHA 01</span><h2 id="island-title">Ilha da Aurora</h2><p id="island-subtitle">Toda grande jornada começa com um pequeno passo.</p></div><span class="island-tag" id="island-tag">0 / 300 XP</span></div><div class="map-art" id="map-art" aria-label="Trilha da ilha"></div><div class="map-controls"><button class="map-arrow" id="previous-island" aria-label="Ver ilha anterior">←</button><div id="island-dots" aria-label="Ilhas da expedição"></div><button class="map-arrow" id="next-island" aria-label="Ver próxima ilha">→</button></div><div class="map-bottom"><div><span class="map-compass">⌁</span><div><strong id="map-next">Um novo mundo espera por você</strong><small id="map-remaining">Faltam 300 XP para a próxima ilha</small></div></div><button class="primary-button" data-start-personalized>Continuar jornada <span>→</span></button></div></article>
 </div><aside class="dashboard-aside" aria-label="Seu progresso"><article class="surface-card streak-card"><div class="card-heading"><h2>Sua constância</h2><span class="soft-pill">DIÁRIA</span></div><div class="streak-total"><div class="flame-art"><svg viewBox="0 0 48 64" fill="none" aria-hidden="true"><path d="M26 2C30 22 46 24 44 42 42 56 32 62 23 61 7 60 1 50 4 38 6 29 13 25 14 17 17 22 18 28 17 33 29 26 29 16 26 2Z" fill="#F0AB70"/><path d="M26 32C30 41 35 44 32 51 28 60 15 57 15 48 16 42 23 41 26 32Z" fill="#FFD99C"/></svg></div><div><strong id="streak-count">0</strong><span id="streak-caption">dias de sequência</span></div></div><div class="week-row" id="week-row"></div><p id="streak-message">Um pequeno estudo hoje já faz diferença.</p><div class="daily-goal"><div><span>Meta de estudo</span><strong id="daily-xp">0 / 20 XP</strong></div><div class="meter"><i id="daily-progress"></i></div></div><div class="freeze-row"><span>❄ <b id="freeze-count">0</b> escudos</span><button class="text-button" data-go="recompensas">Ver proteção →</button></div></article>
 <article class="surface-card level-card"><div class="card-heading"><h2>Seu próximo nível</h2><span>✦</span></div><div class="level-value"><div class="level-emblem" id="level-number">1</div><div><strong id="rank-name">Aprendiz</strong><small id="level-caption">Nível 1</small></div></div><div class="level-meter"><div class="meter"><i id="level-progress"></i></div><div><span id="level-xp">0 / 100 XP</span><span id="next-level">Nível 2</span></div></div><div class="level-footer"><span>XP total</span><strong id="total-xp">0 XP</strong></div></article>

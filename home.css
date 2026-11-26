@@ -20,7 +20,10 @@ body[data-screen="inicio"] .topbar { min-height:4.5rem; }
 }
 .home-progress-metric { min-width:0; padding-inline:clamp(.5rem,1.8vw,1.5rem); overflow-wrap:anywhere; }
 .home-progress-metric + .home-progress-metric { border-inline-start:1px solid var(--line); }
-.home-progress-metric dt { color:var(--muted); font-size:.875rem; line-height:1.3; }
+.home-progress-metric dt {
+ display:flex; flex-wrap:wrap; align-items:center; gap:.2rem .35rem;
+ color:var(--muted); font-size:.875rem; line-height:1.3;
+}
 .home-progress-metric dd {
  display:flex; flex-wrap:wrap; align-items:center; gap:.35rem .7rem; margin:.25rem 0 0;
  color:var(--ink); font-size:1rem; line-height:1.25; font-variant-numeric:tabular-nums;
@@ -30,6 +33,11 @@ body[data-screen="inicio"] .topbar { min-height:4.5rem; }
  border-radius:1rem; overflow:hidden; background:var(--line);
 }
 .home-progress-track>span { display:block; width:0; height:100%; background:var(--brand); border-radius:inherit; }
+.home-icon,.home-shortcuts svg {
+ width:1.15rem; height:1.15rem; flex:none; color:var(--brand); fill:none; stroke:currentColor;
+ stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+}
+.home-progress .home-icon { width:1em; height:1em; }
 /* Short labels make the systems identifiable without repeating descriptions. */
 html[data-theme] .side-nav .nav-link { min-height:3rem; padding:.65rem .75rem; background:transparent; color:var(--ink); border-color:transparent; box-shadow:none; gap:.7rem; }
 html[data-theme] .side-nav .nav-link strong { font-size:1rem; font-weight:550; color:inherit; }
@@ -71,22 +79,39 @@ html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color
 .home-welcome .home-mission-purpose { margin:.4rem 0 0; color:var(--muted); font-size:.875rem; line-height:1.45; }
 .home-welcome-art { min-width:0; }
 .home-welcome-art img { display:block; width:100%; height:auto; }
-.home-shortcuts { display:flex; flex-wrap:wrap; gap:.5rem; margin:0 0 1.25rem; }
+.home-shortcuts { display:flex; flex-wrap:wrap; gap:.5rem; margin:.8rem 0 1.25rem; }
 .home-shortcuts .outline-button {
  flex:1 1 11rem; justify-content:center; gap:.45rem; background:var(--panel);
 }
 .home-shortcuts .outline-button:hover { background:var(--brand-soft); }
-.home-shortcuts svg { width:1.1rem; height:1.1rem; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.home-highlight-grid {
+ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); gap:.65rem; margin:.8rem 0;
+}
+.home-highlight {
+ display:flex; flex-direction:column; align-items:flex-start; gap:.15rem; min-width:0;
+ padding:.75rem .9rem; border:1px solid var(--line); border-radius:.85rem;
+ background:var(--panel); overflow-wrap:anywhere;
+}
+.home-highlight dt { display:grid; gap:.3rem; color:var(--ink); font-size:.875rem; font-weight:650; line-height:1.35; }
+.home-highlight dd { margin:0; }
+.home-highlight strong { font-size:1.3rem; line-height:1.2; color:var(--ink); }
+.home-highlight small { display:block; margin-top:.2rem; color:var(--muted); font-size:.8rem; line-height:1.35; }
 
-.home-details { border:1px solid var(--line); border-radius:1rem; background:var(--panel); }
-.home-disclosure + .home-disclosure { border-top:1px solid var(--line); }
+.home-details { display:grid; gap:.5rem; }
+.home-disclosure {
+ border:1px solid var(--line); border-radius:.85rem; background:var(--panel);
+}
+.home-disclosure#home-support { background:var(--panel-2); }
 .home-disclosure summary {
- display:flex; align-items:center; justify-content:space-between; gap:.75rem;
- padding:.75rem 1rem; min-height:48px; color:var(--ink); font-weight:650;
+ display:flex; align-items:center; gap:.65rem;
+ padding:.7rem .9rem; min-height:48px; border-radius:inherit; color:var(--ink); font-weight:650;
  list-style:none; cursor:pointer; overflow-wrap:anywhere;
 }
-.home-disclosure:first-child summary { border-radius:1rem 1rem 0 0; }
-.home-disclosure:last-child:not([open]) summary { border-radius:0 0 1rem 1rem; }
+.home-disclosure[open] summary { border-radius:.85rem .85rem 0 0; }
+.home-row-title { flex:1; min-width:0; line-height:1.3; }
+.home-row-title small { display:block; margin-top:.15rem; color:var(--muted); font-weight:400; font-size:.8rem; }
+.home-rewards-balance { max-width:26%; color:var(--brand); font-variant-numeric:tabular-nums; text-align:end; line-height:1.25; }
+.home-rewards-balance abbr { text-decoration:none; }
 .home-disclosure summary::-webkit-details-marker { display:none; }
 .home-disclosure summary::after {
  content:""; flex:none; width:.55em; height:.55em; margin-inline-end:.2em;
@@ -109,16 +134,24 @@ html[data-theme] .mobile-nav button.active { background:var(--brand-soft); color
 .home-impact-evidence {
  padding:clamp(1rem,2.2vw,1.6rem); border:1px solid var(--line); border-radius:1.15rem; background:var(--panel);
 }
-.home-checkin-options {
- display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap:.5rem;
+#home-checkin {
+ margin:.8rem 0; padding:.85rem .9rem; border:1px solid var(--line); border-radius:.85rem; background:var(--panel);
 }
-.home-checkin-options .outline-button { justify-content:flex-start; text-align:left; }
+#home-checkin h2 { margin:0; color:var(--ink); font-size:1.1rem; line-height:1.3; }
+.home-checkin-note { margin:.2rem 0 .65rem; color:var(--muted); font-size:.8rem; }
+.home-checkin-options {
+ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,max(7rem,40%)),1fr)); gap:.4rem;
+}
+.home-checkin-options .outline-button { justify-content:flex-start; text-align:left; gap:.4rem; padding:.45rem .6rem; }
+.home-checkin-options .outline-button span { min-width:0; }
 .home-checkin-options [aria-pressed="true"] {
  background:var(--brand-soft); border-color:var(--brand); color:var(--ink); box-shadow:inset 0 -2px var(--brand);
 }
 .home-checkin-result {
  margin-top:.85rem; padding:.85rem; border:1px solid var(--line); border-radius:.8rem; background:var(--panel-2);
 }
+#home-checkin-more summary { display:list-item; width:fit-content; min-height:44px; padding:.6rem .25rem; cursor:pointer; color:var(--brand); font-size:.85rem; }
+#home-checkin-more:not([open]) { margin-bottom:-.35rem; }
 .home-checkin-result[hidden] { display:none; }
 .home-checkin-result p { margin:0 0 .65rem; color:var(--ink); }
 .home-actions { display:flex; flex-wrap:wrap; align-items:stretch; gap:.55rem; }
