@@ -7,7 +7,7 @@ const db=await createPedagogyDB();
 try {
  const ids=await seedPedagogy(db);
  await db.exec(sql('social.sql'));
- await db.exec(sql('migrations/20261126145939_mission_rewards.sql'));
+ await db.exec(sql('migrations/20261126161316_mission_rewards.sql'));
  await db.query('insert into public.edu_workspace_owners(user_id) values($1)',[ids.admin]);
  const call=(user,mode,operation,body={})=>asUser(db,user,async()=>{
   const rows=(await db.query('select public.mission_rewards_action($1,$2,$3) result',[mode,operation,JSON.stringify(body)])).rows;

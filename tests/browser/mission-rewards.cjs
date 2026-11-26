@@ -10,7 +10,7 @@ const assets={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css'
  const {createPedagogyDB,seedPedagogy,asUser,action}=await import('../pedagogy-db.test.mjs');
  const db=await createPedagogyDB();
  const ids=await seedPedagogy(db);
- for(const name of ['social.sql','migrations/20261126145939_mission_rewards.sql']){
+ for(const name of ['social.sql','migrations/20261126161316_mission_rewards.sql']){
   await db.exec(fs.readFileSync(path.resolve(__dirname,'../../supabase',name),'utf8'));
  }
  await db.query('insert into public.edu_workspace_owners(user_id) values($1)',[ids.admin]);
