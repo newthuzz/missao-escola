@@ -50,4 +50,22 @@
 .mp-dialog fieldset label { padding:.25rem 0; }
 .mp-dialog [data-mp-feedback] { color:var(--muted); }
 .mp-dialog [data-mp-feedback]:empty { margin:0; }
-#reward-studio-section { margin-top:1.25rem; }
+
+#page-recompensas .page-intro { margin-bottom:1rem; }
+.mp-balance { grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); }
+.mp-balance article { padding:clamp(.65rem,2vw,1rem); min-width:0; overflow-wrap:anywhere; }
+.mp-balance article + article { background:var(--panel); }
+.mp-balance small { color:var(--muted); line-height:1.35; }
+.reward-tabs {
+ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); gap:.3rem;
+ margin:1rem 0; padding:.3rem; border:1px solid var(--line); border-radius:.85rem; background:var(--panel);
+}
+.reward-tabs button {
+ display:flex; align-items:center; justify-content:center; gap:.4rem; min-height:44px; min-width:0;
+ padding:.45rem; border:1px solid transparent; background:transparent; color:var(--muted); border-radius:.6rem;
+ font:inherit; font-weight:650; overflow-wrap:anywhere;
+}
+.reward-tabs [aria-selected="true"] { color:var(--ink); background:var(--brand-soft); border-color:var(--brand); }
+#page-recompensas [role="tabpanel"][hidden] { display:none; }
+.reward-tabs button:focus-visible,#page-recompensas [role="tabpanel"]:focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
+.mp-demo-balance { color:var(--ink); }

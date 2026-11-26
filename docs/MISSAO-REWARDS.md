@@ -1,6 +1,6 @@
 # Missão Rewards
 
-A carteira de Mission Points usa a conta existente do Supabase. O XP continua medindo a evolução na jornada. As estrelas históricas e os itens já adquiridos podem ser usados no **Ateliê de itens digitais**, disponível na página de recompensas. O Ateliê e os backups do navegador não alimentam o saldo de MP.
+A carteira de Mission Points usa a conta existente do Supabase. O XP continua medindo a evolução na jornada. As estrelas históricas e os itens já adquiridos podem ser usados no **Ateliê visual**, na página de recompensas. A página mostra os dois saldos e permite navegar entre os benefícios em MP e o Ateliê. Missões, resgates, histórico e parceiros ficam em seções recolhíveis da aba de benefícios. O Ateliê e os backups do navegador não alimentam o saldo de MP.
 
 ## Como os pontos são registrados
 

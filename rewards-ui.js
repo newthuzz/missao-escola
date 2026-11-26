@@ -2,22 +2,45 @@ import {startRewardMotion,reactAvatar} from './reward-motion.js';
 import {rewardArt,renderLook,resolveRewardLook} from './reward-look.js';
 import {emblem} from './social-art.js';
 const page=document.querySelector('#reward-studio-content');
+const tabs = [...document.querySelectorAll('.reward-tabs [role="tab"]')];
+function showRewardTab(selected) {
+ for (const tab of tabs) {
+  const active = tab===selected;
+  tab.setAttribute('aria-selected',String(active));
+  tab.tabIndex=active?0:-1;
+  document.getElementById(tab.getAttribute('aria-controls')).hidden=!active;
+ }
+}
+const tabList=tabs[0].parentElement;
+tabList.addEventListener('click',event=>{
+ const tab=event.target.closest('[role="tab"]');
+ if(tab)showRewardTab(tab);
+});
+tabList.addEventListener('keydown',event=>{
+ const index=tabs.indexOf(event.target);
+ if(index<0)return;
+ const destinations={ArrowLeft:(index+tabs.length-1)%tabs.length,ArrowRight:(index+1)%tabs.length,Home:0,End:tabs.length-1};
+ if(!Object.hasOwn(destinations,event.key))return;
+ event.preventDefault();
+ const tab=tabs[destinations[event.key]];
+ showRewardTab(tab);
+ tab.focus();
+});
+
 const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const types={avatar:'Personagens',accessory:'Acessórios',aura:'Efeitos',consumable:'Proteção'};
 const displayOrder=['raposa-aurora','guardiao-bosque','dragao-eclipse','lanterna','mochila','luneta','robo-orbital','pinguim-polar','fenix-solar','baleia-celeste','cometa','astronauta','livro','asas','violeta','folhas','solar','freeze'];
 const groups={aurora:'Aurora',forest:'Bosque',crystal:'Cristais',lunar:'Lunar',peaks:'Picos',stellar:'Estelar'};
 let filter='all',announcement='',opened=null;
-const wallet=page.querySelector('.wallet'),grid=page.querySelector('#reward-grid'),oldCollection=page.querySelector('.collection');
+const grid=page.querySelector('#reward-grid'),oldCollection=page.querySelector('.collection');
 page.classList.add('reward-studio');
 const hero=document.createElement('section');hero.className='reward-hero';hero.setAttribute('aria-label','Seu viajante e próxima conquista');page.prepend(hero);
-wallet.classList.add('reward-wallet');
-const resources=document.createElement('div');resources.className='reward-resources';hero.after(resources);resources.append(wallet);
-const status=document.createElement('p');status.className='reward-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');resources.after(status);
+const status=document.createElement('p');status.className='reward-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');hero.after(status);
 const toolbar=document.createElement('div');toolbar.className='reward-toolbar';toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Filtrar recompensas');grid.before(toolbar);
 const intro=document.createElement('div');intro.className='reward-shop-heading';toolbar.before(intro);
 const journal=document.createElement('section');journal.className='reward-journal';journal.setAttribute('aria-label','Marcas da sua jornada');grid.after(journal);
 oldCollection.remove();const previousChoices=document.createElement('div');previousChoices.id='avatar-choices';previousChoices.hidden=true;page.append(previousChoices);
-page.querySelector('.tip-banner').innerHTML='<span aria-hidden="true">✦</span><div><strong>Uma conquista no seu ritmo</strong><p>As estrelas do Ateliê vêm dos estudos e das missões da jornada. Seu saldo de Mission Points fica na carteira acima. Os itens são visuais e não alteram o desempenho nas ligas. Sua coleção permanece com você, mesmo quando faz uma pausa.</p></div>';
+page.querySelector('.tip-banner').innerHTML='<span aria-hidden="true">✦</span><div><strong>Uma conquista no seu ritmo</strong><p>As estrelas do Ateliê vêm dos estudos e das missões da jornada. Os itens são visuais e não alteram o desempenho nas ligas. Sua coleção permanece com você, mesmo quando faz uma pausa.</p></div>';
 const owned=item=>item.type==='consumable'?progress.freezes>0:progress.purchases.some(p=>p.item===item.id);
 const currentLook=()=>resolveRewardLook(progress,window.JourneyAvatar?.profile?.());
 const selected=item=>{const look=currentLook();return item.type==='avatar'?look.special===item.id:item.type==='accessory'?look.accessory===item.id:item.type==='aura'?look.effect===item.id:false;};

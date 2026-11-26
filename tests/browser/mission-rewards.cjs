@@ -63,17 +63,19 @@ const assets={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css'
    if(destination==='administracao'){
     await page.locator('#page-administracao').getByRole('button',{name:'Missão Rewards',exact:true}).click();
    }
-   await page.locator('.mp-balance').waitFor();
+   await page.getByRole('heading',{name:'Catálogo de benefícios'}).waitFor();
    return page;
   }
   const student=await pageFor(ids.student);
-  const currentBalance=()=>student.locator('.mp-balance article').first().locator('strong').innerText();
+  const currentBalance=()=>student.locator('#mp-program-balance').innerText();
+  const demoBalance=()=>student.locator('.mp-demo-balance').innerText();
   assert.equal(await currentBalance(),'0 MP');
   assert.ok(await student.getByText('Nenhum benefício confirmado está disponível neste ambiente.').isVisible());
   assert.equal(await student.getByRole('button',{name:'Administrar programa'}).count(),0);
   await student.getByRole('button',{name:'Demonstração',exact:true}).click();
-  await student.locator('.mp-balance').waitFor();
+  await student.getByRole('heading',{name:'Catálogo de benefícios'}).waitFor();
   assert.match(await student.locator('#mp-mode-notice').innerText(),/Pontos fictícios/);
+  await student.getByText('Como ganhar MP',{exact:true}).click();
   const fractions=student.locator('.mp-card').filter({has:student.getByRole('heading',{name:'Frações em pequenas partes'})});
   await fractions.getByRole('button',{name:'Começar atividade'}).click();
   const challenge=student.locator('.mp-dialog');
@@ -84,7 +86,8 @@ const assets={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css'
   await challenge.locator('[name=q0][value="1"]').check();
   await challenge.getByRole('button',{name:'Conferir respostas'}).click();
   await student.locator('#mp-status').getByText(/Atividade concluída/).waitFor();
-  assert.equal(await currentBalance(),'20 MP');
+  assert.equal(await demoBalance(),'Saldo de teste: 20 MP');
+  assert.equal(await currentBalance(),'0 MP');
   const digital=student.locator('.mp-card').filter({has:student.getByRole('heading',{name:'Emblema ilustrativo',exact:true})});
   await digital.getByRole('button',{name:'Solicitar resgate'}).click();
   deferRedeem=true;
@@ -92,15 +95,29 @@ const assets={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css'
   await challenge.locator('[data-mp-feedback]').getByText(/failed|fetch|conexão/i).waitFor();
   await challenge.getByRole('button',{name:'Confirmar resgate'}).click();
   await student.locator('#mp-status').getByText(/Solicitação registrada/).waitFor();
-  assert.equal(await currentBalance(),'0 MP');
+  assert.equal(await demoBalance(),'Saldo de teste: 0 MP');
   assert.equal(await student.getByRole('button',{name:'Cancelar pedido'}).count(),1);
   await student.getByRole('button',{name:'Cancelar pedido'}).click();
   await student.getByText('Cancelado',{exact:true}).last().waitFor();
-  assert.equal(await currentBalance(),'20 MP');
+  assert.equal(await demoBalance(),'Saldo de teste: 20 MP');
+  assert.equal(await currentBalance(),'0 MP');
   await student.getByRole('button',{name:'Programa',exact:true}).click();
-  await student.locator('.mp-balance').waitFor();
+  await student.getByRole('heading',{name:'Catálogo de benefícios'}).waitFor();
   assert.equal(await currentBalance(),'0 MP');
   assert.equal(await student.getByText('Emblema ilustrativo',{exact:true}).count(),0);
+  const benefitsTab=student.getByRole('tab',{name:'Benefícios em MP'});
+  const studioTab=student.getByRole('tab',{name:'Ateliê visual'});
+  await benefitsTab.focus();
+  await student.keyboard.press('ArrowRight');
+  assert.equal(await studioTab.getAttribute('aria-selected'),'true');
+  assert.ok(await student.locator('#mission-rewards').isHidden());
+  assert.ok(await student.getByRole('tabpanel',{name:'Ateliê visual'}).isVisible());
+  assert.ok(await student.locator('#wallet-coins').isVisible());
+  await student.keyboard.press('Home');
+  assert.equal(await benefitsTab.getAttribute('aria-selected'),'true');
+  assert.ok(await student.locator('#reward-studio-section').isHidden());
+  await student.getByText('Como ganhar MP',{exact:true}).click();
+
 
   const admin=await pageFor(ids.admin,"administracao");
   await admin.getByRole('button',{name:'Administrar programa'}).click();

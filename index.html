@@ -362,13 +362,21 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
 <section class="page" id="page-diagnostico" aria-labelledby="diagnostic-title"><div class="page-intro"><span class="section-kicker">SEU PONTO DE PARTIDA, SEM RÓTULOS</span><h1 id="diagnostic-title">Uma descoberta de cada vez.</h1><p>Responda como conseguir. “Ainda não sei” também ajuda a encontrar um bom começo.</p></div><div id="diagnostic-content"></div></section>
 <section class="page" id="page-conquistas" aria-labelledby="badges-title"><div class="page-intro"><span class="section-kicker">A HISTÓRIA QUE VOCÊ ESTÁ CONSTRUINDO</span><h1 id="badges-title">Cada conquista tem seu brilho <span>✦</span></h1><p>Ranks pessoais reconhecem sua evolução. Seu progresso é seu, sem comparação com outras pessoas.</p></div><div class="surface-card rank-overview" id="rank-overview"></div><div class="rank-grid" id="rank-grid"></div><div class="section-heading"><div><span class="section-kicker">MARCOS DA JORNADA</span><h2>Sua coleção de conquistas</h2></div><span class="soft-pill" id="badge-wall-count"></span></div><div class="badges-grid" id="all-badges"></div><div class="section-heading"><div><span class="section-kicker">SEUS ÚLTIMOS PASSOS</span><h2>Diário de bordo</h2></div></div><article class="surface-card activity-card" id="recent-activity"></article></section>
 <section class="page" id="page-recompensas" aria-labelledby="rewards-title">
- <div class="page-intro"><h1 id="rewards-title">Missão Rewards</h1><p>Transforme sua dedicação aos estudos em oportunidades para continuar aprendendo.</p></div>
- <div id="mission-rewards">
+ <div class="page-intro"><h1 id="rewards-title">Missão Rewards</h1><p>Acompanhe seus benefícios e personalize seu viajante.</p></div>
+ <div class="mp-balance" aria-label="Seus saldos">
+  <article><span>Mission Points</span><strong id="mp-program-balance">— MP</strong><small>Benefícios e resgates do programa</small></article>
+  <article><span>Estrelas da jornada</span><strong id="wallet-coins">✧ 0</strong><small>Avatares, acessórios e efeitos</small></article>
+ </div>
+ <div class="reward-tabs" role="tablist" aria-label="Tipos de recompensa">
+  <button id="reward-tab-benefits" type="button" role="tab" aria-selected="true" aria-controls="mission-rewards"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#nav-icon-rewards"/></svg>Benefícios em MP</button>
+  <button id="reward-tab-studio" type="button" role="tab" aria-selected="false" aria-controls="reward-studio-section" tabindex="-1"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="#home-icon-star"/></svg>Ateliê visual</button>
+ </div>
+ <div id="mission-rewards" role="tabpanel" aria-labelledby="reward-tab-benefits" tabindex="0">
   <nav class="mp-controls" aria-label="Ambiente do Missão Rewards">
    <button type="button" class="outline-button" data-mp-mode="real" aria-pressed="true">Programa</button>
    <button type="button" class="outline-button" data-mp-mode="demo" aria-pressed="false">Demonstração</button>
   </nav>
-  <p id="mp-mode-notice">Programa · Mission Points da sua conta</p>
+  <p id="mp-mode-notice">Use seus pontos para resgatar benefícios.</p>
   <p id="mp-status" role="status"></p>
   <div id="mp-view"><p>Entre na sua conta para acessar a carteira e as missões elegíveis.</p></div>
   <details class="mp-information">
@@ -378,7 +386,8 @@ html[data-theme="light"] .social-beta-lettering{color:#97491f;opacity:.64}
    <p>Os MP são virtuais e de uso individual. Na demonstração, pontos, estoque e pedidos são fictícios.</p>
   </details>
  </div>
- <details id="reward-studio-section" class="mp-information"><summary>Ateliê de itens digitais · estrelas da jornada</summary><div id="reward-studio-content"><div class="wallet surface-card"><div><span>ESTRELAS DO ATELIÊ</span><strong id="wallet-coins">✧ 0</strong></div><p>XP faz você evoluir.<br>Estrelas personalizam sua jornada no Ateliê.</p></div><div class="reward-grid" id="reward-grid"></div><div class="surface-card collection"><div><h2>Seu viajante</h2><p>Escolha um avatar da sua coleção.</p></div><div id="avatar-choices"></div></div><div class="tip-banner"></div></div></details>
+ <div id="reward-studio-section" role="tabpanel" aria-labelledby="reward-tab-studio" tabindex="0" hidden>
+  <div id="reward-studio-content"><div class="reward-grid" id="reward-grid"></div><div class="surface-card collection"><div><h2>Seu viajante</h2><p>Escolha um avatar da sua coleção.</p></div><div id="avatar-choices"></div></div><div class="tip-banner"></div></div></div>
 </section>
         <section class="page" id="page-apoio" aria-labelledby="support-title">
           <div class="page-intro"><span class="section-kicker">ACOLHIMENTO</span><h1 id="support-title">Rede de Apoio</h1><p>Pedir ajuda também é um passo importante. Você decide o que quer compartilhar.</p></div>

@@ -7,6 +7,11 @@ const view = document.querySelector('#mp-view');
 const notice = document.querySelector('#mp-mode-notice');
 const status = document.querySelector('#mp-status');
 const homeBalance = document.querySelector('#home-mission-points');
+const programBalance = document.querySelector('#mp-program-balance');
+function showProgramBalance(value) {
+ homeBalance.textContent=value===null?'—':number.format(value);
+ programBalance.textContent=value===null?'— MP':points(value);
+}
 const number = new Intl.NumberFormat('pt-BR');
 const date = new Intl.DateTimeFormat('pt-BR', {dateStyle:'short', timeStyle:'short'});
 export const rewardStatus = {requested:'Solicitado',pending:'Aguardando aprovação',approved:'Aprovado',preparing:'Em preparação',delivered:'Entregue',refused:'Recusado',cancelled:'Cancelado'};
@@ -39,7 +44,9 @@ function call(operation, body={}, targetMode=mode) {
 
 const empty = message=>'<p class="mp-empty">'+escape(message)+'</p>';
 const action = (op, label, id='')=>'<button type="button" class="outline-button" data-mp-action="'+op+'" value="'+escape(id)+'">'+escape(label)+'</button>';
-const section = (title, content)=>'<section class="mp-panel"><h2>'+title+'</h2>'+content+'</section>';
+function detail(id,title,content,opened) {
+ return '<details class="mp-information" data-mp-detail="'+id+'"'+(opened.has(id)?' open':'')+'><summary>'+title+'</summary>'+content+'</details>';
+}
 const badge = (text)=>'<span class="mp-badge">'+escape(text)+'</span>';
 
 function catalog(data) {
@@ -101,15 +108,17 @@ function redemptions(data) {
 
 function paint() {
  if(!stateData)return;
- view.innerHTML=`<div class="mp-balance"><article><span>Saldo disponível</span><strong>${points(stateData.balance)}</strong></article>
- <article><span>Pontos acumulados em atividades</span><strong>${points(stateData.total)}</strong></article></div>
- <div class="mp-controls mp-wallet-controls">${action('reload','Atualizar carteira')}${stateData.canAdmin?action('admin_toggle',adminVisible?'Fechar administração':'Administrar programa'):''}</div>`+
+ const opened = new Set([...view.querySelectorAll('[data-mp-detail][open]')].map(item=>item.dataset.mpDetail));
+ view.innerHTML=`<div class="mp-controls mp-wallet-controls">
+ ${action('reload','Atualizar')}${stateData.canAdmin?action('admin_toggle',adminVisible?'Fechar administração':'Administrar programa'):''}</div>`+
  (adminVisible&&adminData?renderRewardsAdmin(adminData,stateData.rules,mode,adminOffset):'')+
- section('Missões elegíveis',missions(stateData))+
- section('Catálogo de benefícios',catalog(stateData))+
- section('Meus resgates',redemptions(stateData))+
- section('Histórico da carteira',history(stateData))+
- section('Instituições parceiras',stateData.partners.length?'<div class="mp-grid">'+stateData.partners.map(item=>`<article class="mp-card"><h3>${escape(item.name)}</h3><p>${escape(item.summary)}</p></article>`).join('')+'</div>':empty(mode==='demo'?'Este catálogo contém exemplos e funciona sem parceiros.':'Nenhuma parceria confirmada publicada.'));
+ (mode==='demo'?'<p class="mp-demo-balance"><strong>Saldo de teste: '+points(stateData.balance)+'</strong></p>':'')+
+ '<section class="mp-panel"><h2>Catálogo de benefícios</h2>'+catalog(stateData)+'</section>'+
+ detail('missions','Como ganhar MP',missions(stateData),opened)+
+ detail('redemptions','Meus resgates',redemptions(stateData),opened)+
+ detail('history','Histórico da carteira','<p>Pontos acumulados em atividades: <strong>'+points(stateData.total)+'</strong></p>'+history(stateData),opened)+
+ detail('partners','Instituições parceiras',stateData.partners.length?'<div class="mp-grid">'+stateData.partners.map(item=>`<article class="mp-card"><h3>${escape(item.name)}</h3><p>${escape(item.summary)}</p></article>`).join('')+'</div>':empty(mode==='demo'?'Este catálogo contém exemplos e funciona sem parceiros.':'Nenhuma parceria confirmada publicada.'),opened);
+
 }
 
 async function refresh(ticket=version) {
@@ -118,7 +127,7 @@ async function refresh(ticket=version) {
  if(ticket!==version)return;
  stateData=data;
  adminData=admin;
- if(currentMode==='real')homeBalance.textContent=number.format(data.balance);
+ if(currentMode==='real')showProgramBalance(data.balance);
  paint();
 }
 
@@ -140,7 +149,7 @@ async function load() {
  adminData=null;
  resetStatus();
  page.querySelectorAll('[data-mp-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mpMode===mode)));
- notice.textContent=mode==='demo'?'Modo demonstrativo · Pontos fictícios e resgates simulados':'Programa · Mission Points da sua conta';
+ notice.textContent=mode==='demo'?'Modo demonstrativo · Pontos fictícios e resgates simulados':'Use seus pontos para resgatar benefícios.';
  notice.classList.toggle('is-demo',mode==='demo');
  if(!getAccountUser()){
   view.innerHTML=empty('Entre com sua conta para acessar as atividades e salvar a carteira deste ambiente.')+
@@ -279,6 +288,7 @@ page.addEventListener('submit',event=>{
   modal?.close();
   await refresh(ticket);
   if(ticket!==version)return;
+  if(op==='redeem')view.querySelector('[data-mp-detail="redemptions"]').open=true;
   const messages={complete:result.duplicate?'Esta atividade já foi registrada.':result.earned?'Atividade concluída · '+points(result.earned):'Atividade concluída. O limite de pontos foi atingido.',redeem:'Solicitação registrada. Acompanhe em Meus resgates.',set_goal:'Meta semanal definida.'};
   resetStatus(messages[op]||'Alteração registrada.');
   status.tabIndex=-1;
@@ -293,12 +303,15 @@ async function refreshHome() {
  balanceRequest=user;
  try{
   const data=await call('balance',{},'real');
-  if(user===getAccountUser())homeBalance.textContent=number.format(data.balance);
+  if(user===getAccountUser())showProgramBalance(data.balance);
  }catch{}finally{if(balanceRequest===user)balanceRequest=null;}
 }
 window.addEventListener('missao-navigation',event=>{
  const next=event.detail;
- if(next==='recompensas')void load();
+ if(next==='recompensas'){
+  void load();
+  if(mode==='demo')void refreshHome();
+ }
  else{
   version++;
   modal?.close();
@@ -310,7 +323,7 @@ window.addEventListener('missao-account-change',()=>{
  if(next===owner)return;
  owner=next;
  pendingRequests.clear();
- homeBalance.textContent='—';
+ showProgramBalance(null);
  adminVisible=false;
  historyOffset=0;
  adminOffset=0;
