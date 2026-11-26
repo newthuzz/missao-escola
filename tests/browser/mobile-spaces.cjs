@@ -9,7 +9,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
   const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('http://127.0.0.1:'+server.address().port);await p.locator('#app-splash').waitFor({state:'detached'});await p.waitForFunction(()=>document.querySelector('#page-social'));const menu=p.locator('#mobile-menu'),toggle=p.getByRole('button',{name:'Abrir menu',exact:true});
   const destinations=[
    ['inicio','inicio'],['aprendizagem','aprendizagem'],['rotina','rotina'],['missoes','missoes'],
-   ['apoio','apoio'],['social','social'],['recompensas','recompensas'],['conquistas','conquistas']
+   ['apoio','apoio'],['jornada','jornada'],['oportunidades','oportunidades'],['impacto','impacto'],['social','social'],['recompensas','recompensas'],['conquistas','conquistas']
   ].map(([name,page])=>({selector:`[data-page="${name}"]`,page}));
   destinations.push({selector:'[data-mobile-friends]',page:'social'});
   const open=async()=>{await toggle.tap();await menu.waitFor({state:'visible'});assert.equal(await toggle.getAttribute('aria-expanded'),'true');};
@@ -108,6 +108,6 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
   });await p.screenshot({path:out+'/cartoon-gallery.png'});await p.locator('#cartoon-gallery-test').evaluate(el=>el.remove());
   await p.setViewportSize({width:390,height:844});await open();
   await p.setViewportSize({width:1440,height:1000});await p.waitForFunction(()=>!document.querySelector('#mobile-menu').open);assert.ok(await toggle.isHidden());assert.ok(await p.locator('.side-nav [data-page="recompensas"]').isVisible());assert.deepEqual(errors,[]);
-  console.log('PASS all nine mobile shortcuts, both themes, landscape, 44px targets, 200% text, keyboard and backdrop dismissal, reload and desktop.');
+  console.log('PASS all twelve mobile shortcuts, both themes, landscape, 44px targets, 200% text, keyboard and backdrop dismissal, reload and desktop.');
  }finally{await browser?.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

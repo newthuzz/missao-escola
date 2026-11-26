@@ -1,43 +1,37 @@
-# Central de estudos
+# Início e permanência escolar
 
-A abertura foi reorganizada para responder a duas perguntas: por onde começar e onde encontrar cada sistema.
+O Início apresenta a missão do projeto antes de pedir o ano escolar. A página reúne acolhimento, acompanhamento, orientação opcional, apoio pedagógico e incentivos. Os quatro pilares aparecem em **Nosso Impacto** com atalhos para recursos que já funcionam.
 
-## O que fica na abertura
+## Dados do painel
 
-- Uma ação principal de estudo personalizado. Quando há um plano iniciado hoje, ela continua o mesmo plano, preservando a matéria, questões e etapas concluídas.
-- Uma linha com a meta diária de estudo, atualizada pelo progresso existente.
-- Três acessos identificados por nome e ícone: rotina, jornada e amigos/liga.
-- Links discretos para missões, recompensas e apoio.
-- Mascote/tutor e perfil nos acessos fixos existentes.
-
-O cartão da rotina mostra o primeiro bloco ainda não concluído do dia, quando existir. Não tenta substituir a agenda completa.
-
-## Como os demais conteúdos foram organizados
-
-| Conteúdo | Destino |
+| Indicador | Origem |
 | --- | --- |
-| Mapa das ilhas, sequência, escudos e detalhes de XP/nível | Minha jornada, em `#jornada` |
-| Lista completa de missões | Missões do dia |
-| Baú diário e itens | Recompensas |
-| Agenda e edição de horários | Rotina de estudos |
-| Perfil, diagnóstico e opções de personalização | Perfil e estudo personalizado |
-| Login, amigos e liga | Conta e comunidade, no sistema existente |
+| Atividades educacionais | Respostas concluídas no plano ativo ou questões resolvidas registradas no progresso |
+| Objetivo semanal | Blocos da rotina salva e marcações da semana |
+| Conteúdos concluídos | Unidades distintas dos planos concluídos no histórico salvo |
+| Atividades de recuperação | Questões já praticadas que o motor de revisão indica para hoje |
+| Solicitações de ajuda | Primeira página de **Meus pedidos**, após a verificação do acesso do estudante |
+| Frequência oficial | Registro da escola ainda sem integração. A interface mostra a ausência de dados |
+| Mission Points e benefícios | Saldo de estrelas e critérios de resgate da carteira existente |
 
-Foram removidas da abertura as repetições de missões, recomendações longas, prévia extensa da rotina, blocos grandes de progresso e frases motivacionais redundantes. As regras de XP, baú, sequência e sincronização continuam sendo as existentes.
+O check-in utiliza apenas a interface da página. Selecionar uma opção revela caminhos de apoio e não altera o perfil, o plano ou os registros. A seleção é limpa ao sair do Início.
 
-A navegação lateral usa nomes curtos e destaque apenas no sistema ativo. A navegação móvel tem seis entradas, incluindo Conta. O mapa só é atualizado quando sua página é aberta; a ambientação continua suspensa fora da área visível. O fallback sem IntersectionObserver observa a página que contém o mapa, em vez de presumir que ele está no início.
+## Integrações
+
+O resumo de pedidos usa a operação `requests` já autenticada do Supabase, no ambiente de estudante e com o filtro de pedidos próprios. Ele compartilha a consulta recente com a página **Meus pedidos**. Títulos e mensagens ficam no atendimento, com as permissões institucionais existentes em `edu_support_requests`, `edu_support_messages` e `edu_teacher_assignments`. Conta e backup continuam nos serviços existentes de Auth e `learner_backups`.
+
+**Central de Oportunidades** reúne links oficiais de acesso público e orientações para buscar a equipe da escola. **Nosso Impacto** descreve o que a plataforma acompanha. Uma avaliação de permanência depende de registros oficiais, autorização das escolas e indicadores agregados validados. O projeto ainda não publica esses resultados.
 
 ## Verificação
 
 Após `npm run build`:
 
 ```sh
-node tests/browser/home.cjs
-node tests/browser/island-life.cjs
-node tests/browser/progress-sync.cjs
 npm test
+node tests/browser/home.cjs
+node tests/browser/mobile-spaces.cjs
+node tests/browser/pedagogy.cjs
+node tests/browser/beta.cjs
 ```
 
-O teste da central cobre a continuidade real de um plano parcial, acesso aos sistemas, ausência dos painéis antigos na abertura, atualização da meta e as regras do baú após sua mudança de página. Também verifica teclado, temas claro/escuro, larguras de 320 a 1440 px e fonte ampliada. Os testes das ilhas comparam a geometria com a versão anterior e verificam animação e interação na nova página.
-
-Não há alteração no esquema do Supabase nem necessidade de atualizar a Edge Function para esta reorganização visual. A ativação do tutor continua seguindo seu tutorial próprio.
+Os testes de apoio pedagógico usam usuários e registros locais de teste. A reestruturação utiliza o esquema do Supabase e as rotas do Cloudflare já existentes.

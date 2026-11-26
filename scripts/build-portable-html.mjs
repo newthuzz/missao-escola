@@ -49,7 +49,7 @@ html=await replaceAsync(html,/\b(src|href)="(\.\/assets\/[^"$]+)"/g,async(full,a
 const resolver='<script>window.MissaoHTMLAssets='+JSON.stringify(assets)+';window.MissaoAsset=function(path){return window.MissaoHTMLAssets[path.replace(/^\\.\\//,\"\")]||path;};</script>';
 html=html.replace('<meta charset="utf-8">','<meta charset="utf-8">'+resolver);
 html=html.replace('</head>','<style data-inline-source="tutor.css">'+await cssInline(resolve(dist,'tutor.css'))+'</style></head>');
-const note="if(location.protocol==='file:'){document.title='Missão Escola · Beta em HTML';const note=document.createElement('p');note.className='portable-file-note';note.textContent='Versão HTML: estudo e rotina sem servidor. Conta, Tutor e amigos/ligas precisam da versão online ou com servidor local.';document.querySelector('#page-inicio .central-heading').after(note);}";
+const note="if(location.protocol==='file:'){document.title='Missão Escola · Beta em HTML';const note=document.createElement('p');note.className='portable-file-note';note.textContent='Versão HTML: estudo e rotina sem servidor. Conta, Tutor e amigos/ligas precisam da versão online ou com servidor local.';document.querySelector('#home-welcome').after(note);}";
 html=html.replace('</body>',()=>'<script data-inline-source="portable-account-tutor">'+result.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script><script>'+note+'</script></body>');
 for(const file of ['assets/katex/LICENSE','assets/fonts/OFL-Anton.txt']){const license=await readFile(resolve(dist,file),'utf8');html=html.replace('</html>','<!-- License: '+file+'\n'+license.replace(/-->/g,'-- >')+'\n--></html>');}
 await mkdir(dirname(output),{recursive:true});await writeFile(output,html);

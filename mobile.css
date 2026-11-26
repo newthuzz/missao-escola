@@ -73,8 +73,6 @@
  #mobile-menu .nav-icon { width:2rem; }
  .content-wrap { padding:1.25rem 1rem calc(1.5rem + env(safe-area-inset-bottom)); }
  .toast { bottom:calc(1rem + env(safe-area-inset-bottom)); }
- .central-heading h1 { font-size:1.65rem; }
- .central-heading p { line-height:1.65; }
  .home-study { gap:1rem .75rem; padding:1.25rem; }
  .home-study .section-kicker { font-size:.875rem; letter-spacing:.06em; }
  .home-study-actions { display:grid; grid-template-columns:1fr; justify-items:stretch; width:100%; gap:.5rem; }

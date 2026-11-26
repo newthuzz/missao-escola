@@ -78,6 +78,19 @@
   else{const next=A.studyState(learner,today).nextQuestionId;if(next)document.querySelector(`[data-plan-question="${next}"]`)?.click();else finishStudy();}
   updateEntry();if(scroll)revealActivity();
  }
+ function showTopics(expanded) {
+  library.hidden=!expanded;
+  const button=topics.querySelector('[data-study-all-topics]');
+  button.setAttribute('aria-expanded',String(expanded));
+  button.querySelector('span').textContent=expanded?'Mostrar menos assuntos':'Ver todos os assuntos';
+  if(expanded)library.querySelector('input')?.focus();
+ }
+ window.showStudyEntry=destination=>{
+  showPlan=false;
+  selectTool('recuperacao');
+  if(destination==='topics')showTopics(true);
+  else time.querySelector('[data-study-minutes][aria-pressed="true"]')?.focus();
+ };
  window.resumeStudy=resumeStudy;
  window.showStudyResult=()=>{updateEntry();selectTool('concluido');revealActivity();};
  entry.addEventListener('click',event=>{if(event.target.closest('#study-begin'))resumeStudy();});
@@ -89,7 +102,7 @@
   if(b.dataset.studySelect){if(b.dataset.studySelect===state.subject)return;if(learner.plan?.started&&!learner.plan.finished&&!confirm('Trocar de matéria? Seu histórico será guardado antes de preparar outro estudo.'))return;showPlan=false;state.difficulty='auto';const select=page.querySelector('#subject-select');select.value=b.dataset.studySelect;select.dispatchEvent(new Event('change',{bubbles:true}));page.querySelector(`[data-study-select="${state.subject}"]`)?.focus();return;}
   if(b.dataset.studyMinutes){const value=Number(b.dataset.studyMinutes),plan=currentPlan();A.setPreferences(learner,{...learner.preferences,minutes:value});if(plan&&!plan.started&&!plan.finished)learner.plan=A.makePlan(learner,state.subject,today,state.difficulty,plan.unitId);saveLearner();renderPersonalization();renderPlan();const text=plan?.started&&!plan.finished?'Tempo salvo para o próximo estudo. Sua sequência atual foi mantida.':'Tempo salvo. Seu próximo estudo usará essa preferência.';time.querySelector('.study-time-feedback').textContent=text;time.querySelector(`[data-study-minutes="${value}"]`)?.focus();return;}
   if(b.hasAttribute('data-study-preferences')){settings.hidden=!settings.hidden;b.setAttribute('aria-expanded',String(!settings.hidden));if(!settings.hidden)settings.querySelector('[name="topic"]')?.focus();return;}
-  if(b.hasAttribute('data-study-all-topics')){library.hidden=!library.hidden;b.setAttribute('aria-expanded',String(!library.hidden));b.querySelector('span').textContent=library.hidden?'Ver todos os assuntos':'Mostrar menos assuntos';if(!library.hidden)library.querySelector('input')?.focus();}
+  if(b.hasAttribute('data-study-all-topics'))showTopics(library.hidden);
  });
  document.addEventListener('click',event=>{
   if(!event.target.closest('#complete-summary'))return;const p=currentPlan();if(!p?.reviewed||!p.started)return;
