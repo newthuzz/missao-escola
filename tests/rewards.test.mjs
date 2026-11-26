@@ -12,10 +12,10 @@ test('legacy purchases keep their cost, equipment and aura; current collection r
  const restored=J.load(legacy);assert.equal(J.coins(restored),100);assert.equal(restored.equipped,'astronauta');assert.equal(restored.rewardLook.effect,'violeta');assert.equal(restored.purchases.length,3);
  const s=fund(10000);for(const item of J.rewards)assert.equal(J.buy(s,item.id,day),null);s.rewardGoal='cometa';const copy=J.load(JSON.parse(JSON.stringify(s)));assert.equal(copy.purchases.length,18);assert.equal(copy.rewardLook.accessory,'asas');assert.equal(copy.rewardLook.effect,'solar');assert.equal(copy.equipped,'baleia-celeste');assert.equal(copy.rewardLook.source,'collection');assert.equal(copy.rewardGoal,'cometa');assert.equal(J.coins(copy),J.coins(s));
 });
-test('equipment requires ownership, removal is free and the daily chest is idempotent',()=>{
+test('equipment requires ownership, removal is free and historical credits remain intact',()=>{
  const s=fund();assert.ok(J.equipReward(s,'asas'));assert.equal(s.rewardLook.accessory,null);J.buy(s,'lanterna',day);assert.equal(s.rewardLook.accessory,'lanterna');J.equipReward(s,'none-accessory');assert.equal(s.rewardLook.accessory,null);J.buy(s,'solar',day);assert.equal(s.aura,false);J.equipReward(s,'none-effect');assert.equal(s.rewardLook.effect,null);J.equipReward(s,'profile');assert.equal(s.rewardLook.source,'profile');
  J.buy(s,'freeze',day);J.buy(s,'freeze',day);const balance=J.coins(s);assert.ok(J.buy(s,'freeze',day));assert.equal(J.coins(s),balance);assert.equal(s.freezes,2);
- assert.equal(J.checkin(s,day),true);assert.equal(J.checkin(s,day),false);assert.equal(J.coins(s),balance+10);
+ const previous=J.load({...s,events:[...s.events,{id:day+':checkin',date:day,coins:10,xp:5,kind:'checkin',label:'Historical credit'}]});assert.equal(J.coins(previous),balance+10);
  const invalid=J.load({...s,rewardLook:{source:'bad',accessory:'asas',effect:'violeta'},equipped:'dragao-eclipse'});assert.equal(invalid.rewardLook.accessory,null);assert.equal(invalid.rewardLook.effect,null);assert.equal(invalid.equipped,'padrao');
 });
 test('every reward renders in a portrait and on the island; unowned overrides are rejected',()=>{

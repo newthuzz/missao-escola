@@ -12,7 +12,7 @@ O Início apresenta a missão do projeto antes de pedir o ano escolar. O estudo 
 | Atividades de recuperação | Questões já praticadas que o motor de revisão indica para hoje |
 | Solicitações de ajuda | Primeira página de **Meus pedidos**, após a verificação do acesso do estudante |
 | Frequência oficial | Registro da escola ainda sem integração. A interface mostra a ausência de dados |
-| Mission Points e benefícios | Saldo de estrelas e critérios de resgate da carteira existente |
+| Mission Points | Saldo da carteira autenticada do Missão Rewards. As estrelas continuam no Ateliê |
 
 O check-in utiliza apenas a interface da página. Selecionar uma opção revela caminhos de apoio e não altera o perfil, o plano ou os registros. A seleção é limpa ao sair do Início ou ao fechar **Mais opções** com uma das opções extras selecionada.
 

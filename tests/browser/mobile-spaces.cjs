@@ -98,6 +98,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
   assert.equal(await p.evaluate(()=>state.page),'conquistas');
   await p.reload();await p.locator('#app-splash').waitFor({state:'detached'});assert.equal(await p.evaluate(()=>state.page),'conquistas');
   await visit(destinations.find(({page})=>page==='recompensas'));
+  await p.locator('#reward-studio-section summary').click();
   assert.ok(await p.locator('.reward-hero-art [data-style="cartoon"]').isVisible());
   await p.locator('.reward-item [data-reward-detail="astronauta"]').click();await p.locator('.reward-dialog [data-style="cartoon"]').waitFor();await p.screenshot({path:out+'/cartoon-preview-mobile.png'});await p.keyboard.press('Escape');
   // Preview gallery is explicitly local test artwork, never production people or progress.

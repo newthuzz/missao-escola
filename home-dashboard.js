@@ -82,17 +82,11 @@
    ? countLabel(pending,'questão com revisão sugerida','questões com revisão sugerida')+'.'
    : observed.size?'Nenhuma revisão pendente para hoje.':'Suas revisões aparecem após as primeiras tentativas.';
 
-  const balance=J.coins(progress);
   const completedStudies=progress.events.filter(event=>event.kind==='fim').length;
   const journey=J.progress(progress);
-  const available=J.rewards.filter(item=>!J.rewardPurchaseError(progress,item,balance)).length;
-  $('home-mission-points').textContent=format.format(balance);
   $('home-reward-goal').textContent=!completedStudies?'Concluir seu primeiro estudo.':completedStudies<3
    ? 'Concluir três estudos · '+completedStudies+' de 3.'
    : countLabel(journey.remaining,'XP','XP')+' para chegar a '+journey.nextIsland.name+'.';
-  $('home-redeemable').textContent=available
-   ? countLabel(available,'item disponível','itens disponíveis')+' para resgate.'
-   : 'Continue juntando estrelas para resgatar itens.';
  }
 
  document.addEventListener('click',event=>{

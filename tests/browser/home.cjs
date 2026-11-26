@@ -100,11 +100,12 @@ const root=path.resolve(__dirname,'../../dist');
   const goal=home.getByRole('progressbar',{name:'Meta diária de pontos de estudo'});
   assert.equal(await goal.getAttribute('aria-valuenow'),'20');
   assert.equal(await goal.getAttribute('aria-valuetext'),'Meta diária atingida');
-  const beforeChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));
+  const beforeRewards=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress)}));
   await home.locator('#home-rewards summary').click();
-  await home.locator('[data-go="recompensas"]').click();assert.ok(await page.locator('#claim-chest').isVisible());await page.locator('#claim-chest').click();assert.ok(await page.locator('#claim-chest').isDisabled());
-  const afterChest=await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress),day:J.dayXP(progress,today)}));
-  assert.equal(afterChest.xp,beforeChest.xp+5);assert.equal(afterChest.coins,beforeChest.coins+10);assert.equal(afterChest.day,beforeChest.day);
+  await home.locator('[data-go="recompensas"]').click();
+  assert.ok(await page.getByRole('heading',{name:'Missão Rewards',exact:true}).isVisible());
+  assert.equal(await page.locator('#claim-chest').count(),0);
+  assert.deepEqual(await page.evaluate(()=>({xp:J.xp(progress),coins:J.coins(progress)})),beforeRewards);
   await page.evaluate(()=>{
    const example=A.question(learner.plan.exampleId);
    A.observe(learner,example,false,J.shiftDay(today,-1));
@@ -121,7 +122,7 @@ const root=path.resolve(__dirname,'../../dist');
   assert.equal(await home.locator('#home-weekly-value').innerText(),'50%');
   assert.equal(await home.locator('#home-completed-value').innerText(),'1');
   assert.match(await home.locator('#home-recovery-progress').innerText(),/1 questão com revisão sugerida/);
-  assert.equal(await home.locator('#home-mission-points').innerText(),String(afterChest.coins));
+  assert.equal(await home.locator('#home-mission-points').innerText(),'—');
   await journey.locator('summary').click();
   console.log('PASS study progress, weekly plan, content completion, recovery evidence and real rewards balance');
 
