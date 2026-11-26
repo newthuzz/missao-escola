@@ -15,6 +15,7 @@
    [['Abrir Central de Oportunidades', {go:'oportunidades'}]]]
  };
  const options = [...document.querySelectorAll('[data-home-checkin]')];
+ const checkin = document.querySelector('#home-checkin');
  const result = document.querySelector('#home-checkin-result');
  const guidance = document.querySelector('#home-checkin-guidance');
  const links = document.querySelector('#home-checkin-links');
@@ -28,6 +29,15 @@
   links.replaceChildren();
   result.hidden=true;
  }
+
+ function reset() {
+  document.querySelectorAll('.home-disclosure[open]').forEach(details=>{details.open=false;});
+  resetCheckin();
+ }
+
+ checkin.addEventListener('toggle',()=>{
+  if(!checkin.open)resetCheckin();
+ });
 
  function showGuide(option) {
   if(option.getAttribute('aria-pressed')==='true'){resetCheckin();return;}
@@ -94,5 +104,5 @@
    if(state.page==='aprendizagem'&&A.schoolYear(learner))window.showStudyEntry?.(homeStudy);
   }
  });
- window.MissaoHome=Object.freeze({render,resetCheckin});
+ window.MissaoHome=Object.freeze({render,reset});
 })();

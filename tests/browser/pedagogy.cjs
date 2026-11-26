@@ -29,9 +29,11 @@ const {chromium}=require('/opt/codex/runtimes/codex-primary-runtime/dependencies
   await a.getByRole('button',{name:'Aprovar acesso',exact:true}).click();await a.getByText(/Acesso aprovado com os vínculos/).waitFor();await t.getByRole('button',{name:'Atualizar status',exact:true}).click();await t.waitForFunction(()=>state.page==='professor');await t.getByRole('heading',{name:'Painel do professor',exact:true}).waitFor();assert.ok(await t.locator('.mobile-nav').isHidden());
   await s.goto(origin+'/#apoio');await ready(s);await s.locator('[data-peda-form="request"]').waitFor();await s.locator('[data-peda-form="request"] [name=display_name]').fill('Aluno da fixture');await s.locator('[data-peda-form="request"] [name=title]').fill('Como começar esta atividade?');await s.locator('[data-peda-form="request"] [name=description]').fill('Tentei separar os números, mas preciso de orientação sobre o próximo passo.');await s.getByRole('button',{name:'Enviar pedido de ajuda',exact:true}).click();await s.getByRole('heading',{name:'Como começar esta atividade?',exact:true}).waitFor();
   await s.evaluate(()=>navigate('inicio'));
+  await s.locator('#home-journey-details summary').click();
   await s.locator('#home-help-progress').getByText(/1 pedido registrado/).waitFor();
   assert.doesNotMatch(await s.locator('#home-help-progress').innerText(),/Como começar esta atividade/);
   const fetched=studentRequests;
+  await s.locator('#home-support summary').click();
   await s.locator('[data-home-support="requests"]').click();
   await s.getByRole('heading',{name:'Meus pedidos',exact:true}).waitFor();
   assert.equal(studentRequests,fetched);

@@ -1,6 +1,6 @@
 # Início e permanência escolar
 
-O Início apresenta a missão do projeto antes de pedir o ano escolar. A página reúne acolhimento, acompanhamento, orientação opcional, apoio pedagógico e incentivos. Os quatro pilares aparecem em **Nosso Impacto** com atalhos para recursos que já funcionam.
+O Início apresenta a missão do projeto antes de pedir o ano escolar. O estudo atual, o resumo de progresso e os atalhos de Rotina e Oportunidades ficam visíveis. Os indicadores detalhados, a orientação opcional, o apoio pedagógico e as recompensas aparecem em seções recolhíveis. Os quatro pilares ficam em **Nosso Impacto**, acessível pelo menu.
 
 ## Dados do painel
 
@@ -14,7 +14,7 @@ O Início apresenta a missão do projeto antes de pedir o ano escolar. A página
 | Frequência oficial | Registro da escola ainda sem integração. A interface mostra a ausência de dados |
 | Mission Points e benefícios | Saldo de estrelas e critérios de resgate da carteira existente |
 
-O check-in utiliza apenas a interface da página. Selecionar uma opção revela caminhos de apoio e não altera o perfil, o plano ou os registros. A seleção é limpa ao sair do Início.
+O check-in utiliza apenas a interface da página. Selecionar uma opção revela caminhos de apoio e não altera o perfil, o plano ou os registros. A seleção é limpa ao fechar a seção ou ao sair do Início.
 
 ## Integrações
 
